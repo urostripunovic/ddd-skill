@@ -1,0 +1,453 @@
+"""Usage: check_model.py [--glossary PATH] <context-file>...
+
+Checks selected structural properties: that every section of the template is
+present (with "None." where there is nothing), state-field type references, command
+signature/table agreement, incoming/outgoing command mentions, matrix cells,
+example mentions for commands and decision failures, unique example numbers,
+selected glossary names and rejected synonyms, depth override names, and approval
+hash boundaries. For each name on a "Strict commands:" line it prints the strict
+scope: the rows that name the command and the primitives its states use.
+
+It does not prove reachability from creation, resolve event/failure payload
+types, validate outside-fact trust rules, cover use-case failures or all glossary
+terms, or judge examples against rules. Review those at the chosen depth.
+
+Exit status is 1 when any problem is found. Lines starting with "warning:" and the
+strict-scope lines do not change the exit status.
+"""
+import pathlib
+import re
+import subprocess
+import sys
+
+BUILTIN = {"Timestamp", "Boolean", "NonEmpty", "List", "Set", "Map", "Optional"}
+NONE = re.compile(r"^\s*none\b", re.I | re.M)
+
+
+def split(text, marker):
+    """Sections under headings that start with marker ('## ' or '### '), as (title, body) pairs."""
+    parts = re.split(rf"^{re.escape(marker)}(.+)$", text, flags=re.M)
+    return [(parts[i].strip(), parts[i + 1]) for i in range(1, len(parts), 2)]
+
+
+def find(sections, title):
+    for name, body in sections:
+        if name.lower().startswith(title.lower()):
+            return body
+    return None
+
+
+def table(body):
+    """Rows of the first markdown table in body, as dicts keyed by header. Rows with no content are dropped."""
+    lines = [l.strip() for l in (body or "").splitlines() if l.strip().startswith("|")]
+    if len(lines) < 2:
+        return []
+    cells = lambda l: [c.strip() for c in l.strip("|").split("|")]
+    header = cells(lines[0])
+    rows = []
+    for line in lines[2:]:
+        row = dict(zip(header, cells(line)))
+        if any(row.values()):
+            rows.append(row)
+    return rows
+
+
+def code(body):
+    m = re.search(r"```[^\n]*\n(.*?)```", body or "", re.S)
+    return m.group(1) if m else ""
+
+
+def names_in(cell):
+    return re.findall(r"[A-Z][A-Za-z0-9]*", cell or "")
+
+
+def words(name):
+    """'SubmittedOrders' -> ['submitted', 'order'], so 'Submitted order' in an Avoid list matches it."""
+    parts = re.findall(r"[A-Z]+(?![a-z])|[A-Z]?[a-z0-9]+", name)
+    return [p.lower()[:-1] if len(p) > 3 and p.lower().endswith("s") else p.lower() for p in parts]
+
+
+def contains(haystack, needle):
+    return any(haystack[i:i + len(needle)] == needle for i in range(len(haystack) - len(needle) + 1))
+
+
+def load_glossary(context_file, context_name, override):
+    """Follows the layout of the shared glossary: a root GLOSSARY.md, or a GLOSSARY-MAP.md that links to one per context."""
+    if override:
+        return pathlib.Path(override)
+    for folder in [context_file.resolve().parent, *context_file.resolve().parents]:
+        glossary_map = folder / "GLOSSARY-MAP.md"
+        if glossary_map.exists():
+            for label, target in re.findall(r"\[([^\]]+)\]\(([^)]+)\)", glossary_map.read_text()):
+                if label.strip().lower() == context_name.lower():
+                    return (folder / target).resolve()
+            return None
+        if (folder / "GLOSSARY.md").exists():
+            return folder / "GLOSSARY.md"
+        if (folder / ".git").exists():
+            return None
+    return None
+
+
+def parse_glossary(path):
+    terms, avoid = set(), []
+    current = None
+    for line in path.read_text().splitlines():
+        term = re.match(r"\*\*(.+?)\*\*\s*:", line)
+        if term:
+            current = term.group(1).strip()
+            terms.add(re.sub(r"[^a-z0-9]", "", current.lower()))
+        rejected = re.match(r"_Avoid_\s*:\s*(.+)", line.strip())
+        if rejected and current:
+            for phrase in rejected.group(1).split(","):
+                if phrase.strip():
+                    avoid.append((phrase.strip(), current))
+    return terms, avoid
+
+
+def strict_scope(command, signature, subs, examples, primitives, defs):
+    """What a strict command pulls into strict depth: the rows that name it and the primitives of the data it adds."""
+    named = lambda cell: re.search(rf"\b{command}\b", cell or "")
+    parts = []
+    rows = [r.get("#", "?") for r in examples if named(r.get("Covers")) or named(r.get("When"))]
+    if rows:
+        parts.append("examples " + ", ".join(rows))
+    rows = [r.get("#", "?") for r in table(find(subs, "Invariants"))
+            if named(r.get("Commands that could break it")) or named(r.get("Enforced by"))]
+    if rows:
+        parts.append("invariants " + ", ".join(rows))
+    rows = [r.get("Commands", "") for r in table(find(subs, "Races")) if named(r.get("Commands"))]
+    if rows:
+        parts.append("races " + "; ".join(rows))
+    rows = [(names_in(r.get("Fact", "")) or ["?"])[0] for r in table(find(subs, "Facts from outside"))
+            if named(r.get("Used by")) or re.search(r"\b(every|all)\b", r.get("Used by", ""), re.I)]
+    if rows:
+        parts.append("facts " + ", ".join(rows))
+    if signature["failures"]:
+        parts.append("failures " + ", ".join(sorted(signature["failures"])))
+    def reachable(states):
+        found, todo = set(), list(states)
+        while todo:
+            for ref in defs.get(todo.pop(), []):
+                if ref not in found:
+                    found.add(ref)
+                    todo.append(ref)
+        return found & set(primitives)
+
+    added = reachable(signature["targets"]) - reachable(signature["sources"])
+    if added:
+        parts.append("primitives it adds " + ", ".join(sorted(added)))
+    return command, parts, signature["events"]
+
+
+def check(path, glossary_override):
+    problems, warnings, notes = [], [], []
+    err = problems.append
+    raw = path.read_text()
+    text = re.sub(r"<!--.*?-->", "", raw, flags=re.S)
+
+    title = re.search(r"^# Context:\s*(.+)$", text, re.M)
+    context = title.group(1).strip() if title else path.stem
+    top = split(text, "## ")
+
+    hasher = pathlib.Path(__file__).with_name("model-hash.sh")
+    hashed = subprocess.run([str(hasher), str(path)], capture_output=True, text=True)
+    if hashed.returncode:
+        err("model hash failed: " + (hashed.stderr.strip() or "no diagnostic"))
+
+    status = re.search(r"^Status:\s*(.+)$", text, re.M)
+    if not status:
+        err("no Status line")
+    elif status.group(1).lower().startswith("approved"):
+        recorded = re.search(r"model-hash\s+([0-9a-f]+)", status.group(1))
+        if not recorded:
+            warnings.append("approved without a model-hash, so the approval cannot be verified")
+        else:
+            actual = hashed.stdout.strip()
+            if hashed.returncode == 0 and actual != recorded.group(1):
+                err(f"edited after approval: the Status line records model-hash {recorded.group(1)}, the file now hashes to {actual}")
+        questions = find(top, "Open questions")
+        if questions and questions.strip() and not NONE.search(questions):
+            warnings.append("approved with open questions")
+        amendments = len(table(find(top, "Amendments")))
+        if amendments:
+            warnings.append(f"{amendments} amendment(s) since approval: fold them into the model and approve again when convenient")
+
+    depth = re.search(r"^Depth:\s*(.+)$", text, re.M)
+    if depth and depth.group(1).strip() not in ("standard", "strict"):
+        err(f"Depth is '{depth.group(1).strip()}'; it is 'standard' or 'strict'")
+    overrides = re.findall(r"^Strict commands:[ \t]*(.*)$", text, re.M)
+    strict_commands = []
+    if len(overrides) > 1:
+        err("more than one Strict commands line; use one comma-separated list")
+    if overrides:
+        strict_commands = [name.strip() for name in overrides[0].split(",")]
+        if any(not re.fullmatch(r"[A-Za-z][A-Za-z0-9]*", name) for name in strict_commands):
+            err("Strict commands must be a comma-separated list of command names; omit the line when none are strict")
+    assumed = len(re.findall(r"\(assumed\)", text))
+    if assumed:
+        warnings.append(f"{assumed} assumption(s) nobody has confirmed, marked (assumed)")
+
+    primitives = {}
+    for row in table(find(top, "Domain primitives")):
+        name = row.get("Name", "")
+        if not name:
+            continue
+        primitives[name] = row
+        for column in row:
+            if column != "Name" and not row[column]:
+                err(f"primitive {name}: the '{column}' cell is empty")
+
+    flow = find(top, "The flow")
+    if flow is None:
+        err("no 'The flow' section")
+    elif not re.search(r"^\s*\d+\.", flow, re.M):
+        err("'The flow' has no numbered steps")
+    for section in ("Domain primitives", "Rules across aggregates", "Policies", "Decisions", "Open questions"):
+        body = find(top, section)
+        if body is None:
+            err(f"no '{section}' section")
+        elif section != "Open questions" and not table(body) and not NONE.search(body):
+            err(f"'{section}' has no rows; write 'None.' if the question was asked and the answer is none")
+
+    aggregates = [(t, b) for t, b in top if t.lower().startswith("aggregate:")]
+    if not aggregates:
+        err("no '## Aggregate: <name>' section")
+
+    # Types are collected from every aggregate first, because one aggregate may refer to another's value types.
+    parsed = []
+    defined = dict.fromkeys(primitives, "primitive")
+    for title_, body in aggregates:
+        subs = split(body, "### ")
+        block = code(find(subs, "States"))
+        agg = {"name": title_.split(":", 1)[1].strip(), "subs": subs, "states": [], "terminal": set(), "defs": {}, "fields": set(), "sum": None}
+        for line in block.splitlines():
+            line = line.strip()
+            sum_type = re.match(r"type\s+(\w+)\s*=\s*(.+)", line)
+            definition = re.match(r"(\w+)\s*=\s*(.+)", line)
+            if sum_type:
+                agg["sum"] = sum_type.group(1)
+                agg["states"] = [s.strip() for s in sum_type.group(2).split("|")]
+            elif line.startswith("terminal"):
+                agg["terminal"] = set(names_in(line))
+            elif definition:
+                body_ = re.sub(r"\(.*?\)", "", definition.group(2))
+                agg["defs"][definition.group(1)] = names_in(re.sub(r"\b\w+\s*:", "", body_))
+                agg["fields"].update(re.findall(r"\b(\w+)\s*:", body_))
+        for row in table(find(subs, "Facts from outside")):
+            fact = names_in(row.get("Fact", ""))
+            if fact:
+                agg["defs"].setdefault(fact[0], [])
+        for name in [agg["sum"], *agg["defs"]]:
+            if name and name in defined:
+                err(f"{name} is defined twice")
+            if name:
+                defined[name] = "type"
+        parsed.append(agg)
+
+    all_names, glossary_needed, all_commands = set(defined), set(), set()
+    all_defs = {name: refs for agg in parsed for name, refs in agg["defs"].items()}
+    signatures, scopes = {}, []
+    for agg in parsed:
+        subs, states, where = agg["subs"], agg["states"], f"aggregate {agg['name']}"
+        if not agg["sum"]:
+            err(f"{where}: the States block has no 'type X = A | B' line")
+            continue
+        glossary_needed.update([agg["sum"], *[d for d in agg["defs"]]])
+        all_names.update(agg["fields"])
+        for state in states:
+            if state not in agg["defs"]:
+                err(f"{where}: state {state} is in the sum type but is never defined")
+        for name, refs in agg["defs"].items():
+            for ref in refs:
+                if ref not in defined and ref not in BUILTIN:
+                    err(f"{where}: {name} uses {ref}, which is neither a primitive nor a defined type")
+        for state in agg["terminal"] - set(states):
+            err(f"{where}: 'terminal {state}' names something that is not a state")
+
+        failures = {r.get("Failure", ""): r for r in table(find(subs, "Failures")) if r.get("Failure")}
+        events = {r.get("Event", ""): r for r in table(find(subs, "Events")) if r.get("Event")}
+        commands, returned, emitted, produced = {}, set(), set(), set()
+        for line in code(find(subs, "Commands")).splitlines():
+            sig = re.match(r"\s*(\w+)\s*:\s*(.+?)\s*->\s*(.+)", line)
+            if not sig:
+                continue
+            name, sources = sig.group(1), [s.strip() for s in sig.group(2).split("|")]
+            creating = sources == ["()"]
+            if not creating:
+                for source in sources:
+                    if source not in states:
+                        err(f"{where}: command {name} starts from {source}, which is not a state")
+            targets, own_events, own_failures = [], set(), set()
+            for part in sig.group(3).split("|"):
+                result = part.split("+")[0].strip()
+                if result in states:
+                    targets.append(result)
+                    for event in names_in(part.split("+", 1)[1]) if "+" in part else []:
+                        emitted.add(event)
+                        own_events.add(event)
+                        if event not in events:
+                            err(f"{where}: command {name} emits {event}, which is not in the Events table")
+                else:
+                    returned.add(result)
+                    own_failures.add(result)
+                    if result not in failures:
+                        err(f"{where}: command {name} returns {result}, which is neither a state nor in the Failures table")
+            if not targets:
+                err(f"{where}: command {name} has no resulting state")
+            produced.update(targets)
+            commands[name] = set() if creating else set(sources)
+            signatures[name] = {"sources": commands[name], "targets": set(targets), "events": own_events, "failures": own_failures}
+        if not commands:
+            err(f"{where}: the Commands block has no 'Name : State -> State' lines")
+        all_names.update([*commands, *events, *failures])
+        all_commands.update(commands)
+
+        listed = {r.get("Command", ""): r for r in table(find(subs, "Commands")) if r.get("Command")}
+        for name in commands:
+            if not listed.get(name, {}).get("Issued by"):
+                err(f"{where}: command {name} has no 'Issued by'")
+        for name in set(listed) - set(commands):
+            err(f"{where}: the Commands table lists {name}, which has no signature")
+        for name in set(events) - emitted:
+            err(f"{where}: event {name} is listed, but no command emits it")
+        for name, row in events.items():
+            if not row.get("Consumed by"):
+                err(f"{where}: event {name} has no consumer; write who needs it, or remove it")
+        for name in set(failures) - returned:
+            err(f"{where}: failure {name} is listed, but no command returns it")
+
+        for state in states:
+            if state not in produced:
+                err(f"{where}: no command lists {state} as a result")
+            leaves = any(state in sources for sources in commands.values())
+            if state in agg["terminal"] and leaves:
+                err(f"{where}: {state} is marked terminal, but a command starts from it")
+            if state not in agg["terminal"] and not leaves:
+                err(f"{where}: no command starts from {state}; mark it terminal or say how it ends")
+
+        for row in table(find(subs, "Invariants")):
+            number = row.get("#", "?")
+            if not row.get("Enforced by"):
+                err(f"{where}: invariant {number} does not say where it is enforced")
+            named = re.search(r"decision function (\w+)", row.get("Enforced by", ""))
+            if named and named.group(1) not in commands:
+                err(f"{where}: invariant {number} is enforced by {named.group(1)}, which is not a command")
+            breakers = row.get("Commands that could break it", "")
+            if not breakers:
+                err(f"{where}: invariant {number} does not say which commands could break it")
+            for name in names_in(breakers):
+                if name not in commands:
+                    err(f"{where}: invariant {number} names {name}, which is not a command")
+
+        columns = {c: s for c, s in commands.items() if s}
+        matrix = table(next((b for t, b in subs if t.lower().startswith("command") and "matrix" in t.lower()), None))
+        if not matrix:
+            err(f"{where}: no command x state matrix")
+        else:
+            rows = {r.get("State", ""): r for r in matrix}
+            for state in set(states) - set(rows):
+                err(f"{where}: the matrix has no row for {state}")
+            for command in set(columns) - set(matrix[0]):
+                err(f"{where}: the matrix has no column for {command}")
+            for state, row in rows.items():
+                for command, legal in columns.items():
+                    cell = row.get(command)
+                    if cell is None or state not in states:
+                        continue
+                    if state in legal and cell.lower() != "yes":
+                        err(f"{where}: matrix {state} x {command} should be 'yes'; the command's signature starts from {state}")
+                    elif state not in legal and not re.match(r"no:\s*\S", cell, re.I):
+                        err(f"{where}: matrix {state} x {command} needs 'no: <the business's reason>'")
+            use_case = " ".join(" ".join(r.values()) for r in table(find(subs, "Use-case failures")))
+            for command, legal in columns.items():
+                refused = [s for s in states if s not in legal and s in rows]
+                if refused and not re.search(rf"\b{command}\b", use_case):
+                    warnings.append(f"{where}: the matrix refuses {command} in {', '.join(refused)}, but no Use-case failures row names {command}; name the failure the workflow returns")
+
+        for section in ("Events", "Invariants", "Failures", "Use-case failures", "Facts from outside"):
+            body = find(subs, section)
+            if body is None:
+                err(f"{where}: no '{section}' section")
+            elif not table(body) and not NONE.search(body):
+                err(f"{where}: '{section}' has no rows; write 'None.' if there are none")
+
+        examples = table(find(subs, "Examples"))
+        if not examples:
+            err(f"{where}: no examples")
+        numbers = [row.get("#", "") for row in examples if row.get("#")]
+        for number in sorted({n for n in numbers if numbers.count(n) > 1}):
+            err(f"{where}: example number {number} is used twice; numbers are permanent, so give a new row the next unused number")
+        for row in examples:
+            for column in ("Given", "When", "Then"):
+                if not row.get(column):
+                    err(f"{where}: example {row.get('#', '?')} has no '{column}'")
+        mentions = lambda name, cols: any(re.search(rf"\b{name}\b", row.get(c, "")) for row in examples for c in cols)
+        for name in commands:
+            if examples and not mentions(name, ("Covers", "When")):
+                err(f"{where}: command {name} has no example")
+        for name in failures:
+            if examples and not mentions(name, ("Covers", "Then")):
+                err(f"{where}: failure {name} has no example")
+
+        races = find(subs, "Races")
+        if races is None or (not table(races) and not NONE.search(races)):
+            err(f"{where}: 'Races' is empty; write 'None.' if no two commands can clash")
+
+        for command in [c for c in strict_commands if c in signatures and c in commands]:
+            scopes.append(strict_scope(command, signatures[command], subs, examples, primitives, all_defs))
+
+    policies = table(find(top, "Policies"))
+    for line in scopes:
+        command, parts, events_ = line
+        caused = [f"{r.get('When (event)', '')} -> {r.get('Then (command)', '')}" for r in policies
+                  if re.search(rf"\b{command}\b", r.get("Then (command)", ""))
+                  or any(re.search(rf"\b{e}\b", r.get("When (event)", "")) for e in events_)]
+        if caused:
+            parts.append("policies " + "; ".join(caused))
+        notes.append(f"strict scope for {command}: " + ("; ".join(parts) or "the command alone"))
+
+    for name in sorted(set(strict_commands) - all_commands):
+        err(f"Strict commands names {name!r}, which has no command signature")
+
+    glossary = load_glossary(path, context, glossary_override)
+    if glossary is None or not glossary.exists():
+        err("no glossary found: expected GLOSSARY.md at the repository root, or an entry for this context in GLOSSARY-MAP.md")
+    else:
+        terms, avoid = parse_glossary(glossary)
+        for name in sorted(glossary_needed):
+            if re.sub(r"[^a-z0-9]", "", name.lower()) not in terms:
+                err(f"{name} is not in {glossary.name}")
+        for phrase, preferred in avoid:
+            needle = words(phrase.replace(" ", "_").title().replace("_", ""))
+            for name in sorted(all_names):
+                if contains(words(name), needle):
+                    err(f"{name} uses '{phrase}', which {glossary.name} lists under Avoid for {preferred}")
+
+    return problems, warnings, notes
+
+
+def main(argv):
+    glossary = None
+    if argv[:1] == ["--glossary"]:
+        glossary, argv = argv[1], argv[2:]
+    if not argv:
+        print(__doc__)
+        return 2
+    failed = False
+    for name in argv:
+        problems, warnings, notes = check(pathlib.Path(name), glossary)
+        for message in notes:
+            print(f"{name}: {message}")
+        for message in warnings:
+            print(f"{name}: warning: {message}")
+        for message in problems:
+            print(f"{name}: {message}")
+        failed = failed or bool(problems)
+        if not problems:
+            print(f"{name}: model check passed")
+    return 1 if failed else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

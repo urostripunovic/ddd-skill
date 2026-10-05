@@ -1,0 +1,65 @@
+version: "2"
+
+linters:
+  enable:
+    - exhaustive
+    - gochecksumtype
+    - nolintlint
+    - depguard
+    - forbidigo
+  settings:
+    gochecksumtype:
+      # A default clause would otherwise hide a variant added later.
+      default-signifies-exhaustive: false
+    exhaustive:
+      # Already the default; pinned so nobody relaxes it by accident.
+      default-signifies-exhaustive: false
+    nolintlint:
+      # A suppression has to name its linter and say why, so a reviewer can judge it.
+      require-explanation: true
+      require-specific: true
+    depguard:
+      rules:
+        domain:
+          # DOMAIN-PATHS: the globs of this repository's domain packages, set in the repository's own config.
+          # tools/check-cards.sh points them at the card examples itself; keep this marker line.
+          files:
+            - "**/internal/domain/**"
+            # Tests may encode, print and generate random input to probe the domain.
+            - "!$test"
+          deny:
+            - pkg: database/sql
+              desc: the domain declares the repository contract; storage implements it outside the domain
+            - pkg: net/http
+              desc: HTTP is a boundary; parse there and pass domain types in
+            - pkg: encoding/json
+              desc: a domain type is not a wire format; map it at the boundary
+            - pkg: os
+              desc: configuration and files are read at the boundary and passed in as values
+            - pkg: log$
+              desc: the domain returns values and events; the workflow or adapter logs
+    forbidigo:
+      forbid:
+        - pattern: ^time\.Now$
+          msg: a decision takes the time as a parameter, so it stays pure and testable
+        - pattern: ^rand\.
+          msg: a decision takes generated values as parameters
+        - pattern: ^uuid\.New
+          msg: a decision takes generated IDs as parameters
+        # slog.Value constructors support safe redaction; only its logging entry points are forbidden.
+        - pattern: ^log\.|^slog\.(Debug|Info|Warn|Error|Log|LogAttrs|DebugContext|InfoContext|WarnContext|ErrorContext)$
+          msg: the domain does not log; return a value or an event
+        - pattern: ^fmt\.Print
+          msg: the domain does not print; return a value or an event
+  exclusions:
+    paths:
+      # Some npm packages ship Go files; without this a mixed Go and TypeScript repository gets findings from them.
+      - node_modules
+    rules:
+      # DOMAIN-PATHS: the same packages as above, as a regular expression. forbidigo runs only inside them.
+      - path-except: internal/domain/
+        linters:
+          - forbidigo
+      - path: _test\.go
+        linters:
+          - forbidigo
