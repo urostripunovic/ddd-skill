@@ -1,0 +1,12 @@
+{
+  "name": "fixture",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=22.18" },
+  "scripts": {
+    "typecheck": "tsc -p .",
+    "lint": "eslint src test",
+    "test": "node --test \"test/**/*.test.ts\""
+  },
+  "devDependencies": { "@types/node": "^22", "eslint": "^9", "typescript": "^5", "typescript-eslint": "^8" }
+}

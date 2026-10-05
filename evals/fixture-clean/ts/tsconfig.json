@@ -1,0 +1,20 @@
+{
+  // The compiler options of tools/lint/tsconfig.json, and two more because Node runs
+  // the tests from the .ts files directly: imports name the .ts file, and a type-only
+  // import must say so, or it would still be there at run time.
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true
+  },
+  "include": ["src", "test"]
+}
