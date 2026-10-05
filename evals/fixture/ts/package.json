@@ -1,0 +1,7 @@
+{
+  "name": "fixture",
+  "private": true,
+  "type": "module",
+  "scripts": { "typecheck": "tsc -p .", "lint": "eslint src" },
+  "devDependencies": { "eslint": "^9", "typescript": "^5", "typescript-eslint": "^8" }
+}
