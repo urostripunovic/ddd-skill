@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 # Usage: <this directory>/install.sh [--lang go,ts | --lang none | --model-only] [repository]
 # Copies the kit's cards, model templates and tools into a repository (default:
-# the current directory).
-#   --lang go,ts   the cards with the examples and lint configs for these languages
-#   --lang none    the cards alone: the rules, for a language the kit has no examples for
-#   --model-only   no cards at all: the model template and its checker, for a
-#                  repository that keeps its own coding style
+# the current directory). The strategic cards (docs/ddd/strategic/) are about the
+# model, not the code, and are installed with every option.
+#   --lang go,ts   the functional cards with the examples and lint configs for these languages
+#   --lang none    the functional cards alone: the rules, for a language the kit has no examples for
+#   --model-only   no pattern cards: the model template, its checker and the strategic
+#                  cards, for a repository that keeps its own coding style
 # It installs no programs, changes no lint config and
 # never overwrites a file: a file that exists with other content is kept and
 # listed, so that somebody decides about it. Safe to run again.
@@ -81,13 +82,15 @@ put() { # put <path relative to the kit and to the repository>
 put_all() { while IFS= read -r file; do put "${file#"${kit}"/}"; done < <(find "${kit}/$1" "${@:2}" -type f | sort); }
 
 put_all docs/domain
-for file in check-model.sh check_model.py model-hash.sh; do put "tools/${file}"; done
+put_all docs/ddd/strategic
+for file in check-model.sh check_model.py model-hash.sh stamp-model.sh ddd-status.sh ddd_status.py; do put "tools/${file}"; done
 if [ -z "${model_only}" ]; then
   put_all docs/ddd/cards -maxdepth 1
-  for file in check-cards.sh extract_cards.py; do put "tools/${file}"; done
+  put_all docs/ddd/cards/functional -maxdepth 1
+  for file in check-cards.sh extract_cards.py check-domain-paths.sh; do put "tools/${file}"; done
 fi
-if has go; then put_all docs/ddd/cards/go; put tools/lint/.golangci.yml; fi
-if has ts; then put_all docs/ddd/cards/ts; put tools/lint/eslint.config.mjs; put tools/lint/tsconfig.json; fi
+if has go; then put_all docs/ddd/cards/functional/go; put tools/lint/.golangci.yml; fi
+if has ts; then put_all docs/ddd/cards/functional/ts; put tools/lint/eslint.config.mjs; put tools/lint/tsconfig.json; fi
 
 if [ -z "${model_only}" ]; then
   if ! grep -qxF '.cards-check/' .gitignore 2>/dev/null; then
@@ -100,6 +103,12 @@ fi
 
 if [ -n "${model_only}" ]; then echo "model only: no cards, no lint configs"; else echo "languages: ${langs}"; fi
 echo "added ${added} files; ${same} were already there and identical"
+# Cards from before the style directories sit directly under docs/ddd/cards/. They hold the
+# team's Corrections, so they are reported and never moved or overwritten here.
+if [ -n "$(find docs/ddd/cards -maxdepth 1 \( -name '[0-9]*.md' -o -name go -o -name ts \) -print -quit 2>/dev/null)" ]; then
+  echo "earlier card layout: docs/ddd/cards/ holds cards or language directories that now belong in docs/ddd/cards/functional/;"
+  echo "  move them there with git mv, keeping their Corrections, and compare them with the kit's"
+fi
 if [ "${#kept[@]}" -gt 0 ]; then
   echo "kept, because the repository's version differs from the kit's (compare with ${kit}/<path>):"
   printf '  %s\n' "${kept[@]}"

@@ -2,11 +2,11 @@
 # Usage: tools/check-cards.sh   (run from the repository root)
 # Requires: python3; for Go: go, gofmt, golangci-lint v2; for TypeScript: node, npm.
 # Compiles and lints every card example with the reference configs in tools/lint/.
-# Only the languages installed under docs/ddd/cards/ are checked.
+# Only the languages installed under docs/ddd/cards/functional/ are checked.
 set -euo pipefail
 
 root="$(pwd)"
-cards="${root}/docs/ddd/cards"
+cards="${root}/docs/ddd/cards/functional"
 work="${root}/.cards-check"
 if [ ! -d "${cards}/go" ] && [ ! -d "${cards}/ts" ]; then
   echo "no language examples installed; nothing checked"

@@ -71,7 +71,7 @@ Pay attention to the cases a task implies without spelling out: the failure path
 Go through the diff hunk by hunk. Each hunk either carries a requirement, is needed to support one, or is unrequested.
 
 - Unrequested behaviour is a finding even when it is good. It was not reviewed as part of the task, and it hides in the diff of something else.
-- An unrequested edit to the approved model body is a finding, unless the model was approved again in the same range for a gap the task ran into: then say so as a note. Standard-depth amendments and migration-progress notes (`(done <date>)` on a `## Migration` step) are permitted bookkeeping; still check whether the behaviour they describe is within the task. A change inside a strict scope (as `tools/check-model.sh` prints it) cannot use an autonomous amendment to bypass clarification and reapproval. Read `Depth:`, `Strict commands:` and relevant amendments when comparing the task with the model.
+- An unrequested edit to the approved model body is a finding, unless the model was approved again in the same range for a gap the task ran into: then say so as a note. Rows in the context file's notes tail (`## Amendments`, `## Pending`, and `(done <date>)` on a `## Migration` step) are permitted bookkeeping; still check whether the behaviour they describe is within the task. An amendment inside a strict scope (as `tools/check-model.sh` prints it), or at strict depth, is a finding.
 - Refactoring mixed into a behaviour change is a finding: name the files, and suggest a separate commit.
 - Removed or weakened tests are a finding, whatever the reason given.
 

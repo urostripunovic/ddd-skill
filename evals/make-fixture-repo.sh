@@ -44,7 +44,8 @@ fi
 printf '.cards-check/\nnode_modules/\npackage-lock.json\n' > .gitignore
 
 hash="$(tools/model-hash.sh docs/domain/contexts/ordering.md)"
-edit "s/^Status: draft$/Status: approved by eval on 2026-10-03, model-hash ${hash}/" docs/domain/contexts/ordering.md
+# The fixture model is strict, so its approval rests on a review of the same version.
+edit "s/^Status: draft$/Status: approved by eval on 2026-10-03, model-hash ${hash}, reviewed 2026-10-03 at ${hash}/" docs/domain/contexts/ordering.md
 git add -A
 git commit -q -m "Kit and approved Ordering model"
 base="$(git rev-parse HEAD)"

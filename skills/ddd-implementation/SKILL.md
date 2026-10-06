@@ -5,7 +5,14 @@ description: "Implement an approved domain model and its examples as tests. Use 
 
 # DDD implementation
 
-Turn the approved model in `docs/domain/` into code and tests. Installed pattern cards mean the project chose the kit's typed style; without them, use the project's existing style. Do not ask the user to choose again.
+Turn the approved model in `docs/domain/` into code and tests.
+
+Read [code-style.md](../ddd-modelling/lifecycle/code-style.md), [depth.md](../ddd-modelling/lifecycle/depth.md), [notes-tail.md](../ddd-modelling/lifecycle/notes-tail.md) and [gaps.md](../ddd-modelling/lifecycle/gaps.md) in `../ddd-modelling/lifecycle/` first. They define the code style, effective depth, the notes tail and what to do with a gap, and this file does not repeat them. Read [approval.md](../ddd-modelling/lifecycle/approval.md) or [adoption.md](../ddd-modelling/lifecycle/adoption.md) only when the case below sends you there. Whether or not you open them, these hold:
+
+- Never implement from a draft model, or one edited since approval, and never write an approved status yourself: only the user approves.
+- When the model is missing a state, command, invariant or who may issue a command, or two rules contradict: stop, write the question under `## Pending`, and wait. Never invent the rule in code.
+- At strict depth, or inside a strict scope, every gap stops the work the same way.
+- Never edit the model above its notes tail (`## Migration`, `## Amendments`, `## Pending`).
 
 ## Is this repository using the kit?
 
@@ -15,7 +22,7 @@ If `docs/domain/` does not exist, this repository has not adopted the kit. Do th
 
 1. Read the glossary (`GLOSSARY.md` at the root, or the one `GLOSSARY-MAP.md` links to for this context), `docs/domain/context-map.md` and the file for the context you are working in, including its `## Amendments`: those rows are part of what the code must do. Read the repository's agent instructions (`CLAUDE.md`, `AGENTS.md`) for where domain code, use cases, adapters and tests go; follow them, and if they say nothing and this is the first domain code, ask once and offer to write the answer there.
 2. Decide which case you are in (see **Which case applies**) and follow it.
-3. Resolve the code style below before loading cards. When using cards, read `docs/ddd/cards/README.md` and the language directory's `README.md` if installed. It holds the language's idioms and check commands.
+3. Resolve the code style below before loading cards. When using cards, read the style's README, `docs/ddd/cards/functional/README.md`, and its language directory's `README.md` if installed. The language README holds the idioms and check commands.
 4. Load only the cards the task needs. A card holds the rules; its example, when installed, is the file of the same name in the language directory. Do not read the other language's examples.
 
 | Task | Cards |
@@ -38,21 +45,19 @@ If `docs/domain/` does not exist, this repository has not adopted the kit. Do th
 
 Read each card's **Corrections** section. Those are mistakes already made in this codebase.
 
-**Code style.** Use the setup choice recorded in the agent instructions. If none is recorded, installed cards mean the kit's style; no cards means the repository's own style. In the latter case, read **Without the cards** below and skip the card table, core rules and language section. If cards are installed but your language's examples are not, follow the cards in that language's idioms, best effort, and use the project's own compile, lint and test commands. Missing kit examples or lint rules are expected in that mode.
-
-**Depth.** Read `Depth:` and the optional `Strict commands:` line. A missing `Depth:` means strict. The strict scope is what `tools/check-model.sh` prints for each strict command: the command, its failures, the rows that name it (examples, invariants, races, facts from outside, policies) and the primitives of the data it adds. Work in that scope uses strict depth; everything else uses the context's depth. Apply this when deciding whether a gap can become an amendment.
+**Code style.** Resolve it as code-style.md says. In the repository's own style, read **Without the cards** below and skip the card table, core rules and language section. If cards are installed but your language's examples are not, follow the cards in that language's idioms, best effort, and use the project's own compile, lint and test commands. Missing kit examples or lint rules are expected in that mode.
 
 If the task needs a pattern that no card covers, say so before writing it, and add a row to the **Wanted** table in `docs/ddd/cards/README.md`. Implement it from the core rules. Do not write the card yourself at this point: a card is made from code that has been reviewed and merged, as that README describes.
 
 ## Which case applies
 
-**The code belongs to a context with an approved model.** Follow the model. Run `tools/check-model.sh <file>` first. A changed approved body or a structural error needs correction before implementation. The hash does not cover the glossary or context map: if their definitions or relationships conflict with the approved rules, show the discrepancy and ask for a model update and reapproval. The checker cannot detect changed business meaning.
+**The code belongs to a context with an approved model.** Follow the model, with its `## Amendments`. Run `tools/check-model.sh <file>` first; a changed approved body or a structural error needs correction before implementation. If the glossary or context map conflicts with an approved rule, show the discrepancy and ask for a model update (approval.md).
 
-**The model exists but is a draft, or derived from code and not confirmed.** Stop and say so, and say what is needed: the user's approval. At `standard` depth that means they confirm the core and have seen the assumptions; a review first is optional. At `strict` depth, or with strict commands, offer `ddd-model-review` in a fresh session first, unless the Status line already says `reviewed`. The approval is the user's act. Never write the approved status yourself on the strength of "go ahead" or "allow everything": ask for the word "approve", then stamp it.
+**The model exists but is a draft, or derived from code and not confirmed.** If the scope is still listed under `## Prototypes`, an adoption is in progress: follow **A recorded prototype** below instead. Otherwise stop and say what is needed: the user's approval, and first the review approval.md requires at this depth, unless the Status line has a current one.
 
-**A recorded prototype with no model.** If the user chose depth none for this scope, as recorded under `## Prototypes` in the context map or agent instructions, implement within that scope without requiring a model. Follow the project's chosen code style and checks. An exemption never overrides an existing model; adoption removes or narrows it when a draft is created.
+**A recorded prototype.** Inside a prototype scope (adoption.md), implement without requiring a model, in the project's chosen style and checks. While a draft model for the scope is being adopted, say in your summary that the draft must be checked against this change before approval.
 
-**A step from the migration plan.** The task is a step under the context file's `## Migration` (the user names it, or a ticket points at it), and the model is approved. Do that step and nothing else, in the order the plan gives, instead of the per-command order below: a step that adds characterisation tests adds only tests, and a rename step only renames. When it is done, add `(done <date>)` to the end of the step. The Migration section is outside the model-hash, so this does not affect the approval, and the next session starts at the first step not marked done.
+**A step from the migration plan.** The task is a step under the context file's `## Migration` (the user names it, or a ticket points at it), and the model is approved. Do that step and nothing else, in the order the plan gives, instead of the per-command order below: a step that adds characterisation tests adds only tests, and a rename step only renames. When it is done, add `(done <date>)` to the end of the step, so the next session starts at the first step not marked done.
 
 **A new aggregate or context with no model or prototype exemption.** A new context, a new aggregate, or a new lifecycle, and nothing in `docs/domain/` for it: stop and offer `ddd-modelling`. Do not invent the model while coding. A new state, command or rule in a context that has a model is a gap in the core: see **When the model does not fit**.
 
@@ -96,7 +101,7 @@ Write the code the way the surrounding code is written: its classes or functions
 
 ## Languages
 
-The model and the rules above are the same in every language. The idioms are not, and they live in one directory per language under `docs/ddd/cards/`. Write each language in its own idioms; do not translate one into the other.
+The model and the rules above are the same in every language. The idioms are not, and they live in one directory per language under `docs/ddd/cards/functional/`. Write each language in its own idioms; do not translate one into the other.
 
 ## Order of work
 
@@ -105,7 +110,7 @@ Work within the requested command or ticket. A ticket's kind, acceptance criteri
 For each command, in the order of the model's timeline (in model-only projects, use the existing representations, validation mechanisms and request handling in these steps; steps 3 and 4 are then wherever the project already puts that logic):
 
 1. The primitives and state types it needs that do not exist yet, with tests on their limits: lowest, highest, one outside each.
-2. Its rows of the model's Examples table, as a table test, written before the decision function and from the model alone. The row's Given, When and Then are the test's setup, call and assertion; name each case after the row number (row numbers are permanent, so the name stays true). A row that cannot be written as a test is a gap in the model: handle it as described under **When the model does not fit**.
+2. Its rows of the model's Examples table, as a table test, written before the decision function and from the model alone. The row's Given, When and Then are the test's setup, call and assertion; name each case `example <n>` after the row number (row numbers are permanent, so the name stays true), and name the context file (`docs/domain/contexts/<context>.md`) in a comment at the top of the test file. `tools/ddd-status.sh` finds tested rows by those two names. A row that cannot be written as a test is a gap in the model: handle it as described under **When the model does not fit**.
 3. The decision function, until those tests pass.
 4. The workflow: load, authorise, narrow, decide, save. Test each use-case failure. Each row of the model's Races table needs a test at some level, and which level is the repository's choice: a unit test where a stand-in repository refuses a save when the version has changed, or an integration test against the real store. Not everything fits in a unit test. If a race is left to integration or end-to-end tests that do not exist yet, say so in your summary and name the rows, so the gap is known and not silent.
 5. The boundary parser and the adapters the command needs.
@@ -138,22 +143,9 @@ In your final summary, list every suppression comment you added and why. Then re
 
 ## When the model does not fit
 
-Implementation always learns something the model did not say. What you do depends on what it is and the effective depth described above, including strict-command overrides.
+Implementation always learns something the model did not say. Handle each gap as gaps.md describes, by what it is and the effective depth: stop with a `## Pending` row, or settle it with a test and an `## Amendments` row.
 
-**A gap in the core**: a missing state, command or invariant, who may issue a command, an aggregate boundary, or a contradiction between two rules. Stop. Describe the gap, propose the change to the model, and wait. Once the user agrees, make the change with `ddd-modelling` (the same session is fine): it updates the affected sections, runs the checker, and asks for approval again. Then continue. This holds at every depth.
-
-**A gap in the rest**, at standard effective depth: a bound, what a failure or an event carries, a race nobody listed, an edge case, an example marked `(assumed)` that turns out not to hold when run. An example the user confirmed (one not marked `(assumed)`) is not a gap in the rest: if it does not hold, stop and ask. If a wrong guess could lose money or data, expose something, or be hard to undo, stop and ask. Otherwise:
-
-1. Decide the least surprising behaviour, consistent with the rules the model does state.
-2. Implement it, with a test.
-3. Add a row under `## Amendments` in the context file: the section, what the model said (or "nothing"), what you learned, and what the code now does. Do not edit the model above that heading. The model-hash leaves Amendments out, so the approval stands.
-4. Carry on.
-
-At strict effective depth, a gap in the rest also stops the work. Ask the user, update the affected model sections through `ddd-modelling`, and get reapproval before implementing the decision. Such a change needs a review of the changed rows only, not a new review of the whole model; `ddd-modelling` says how.
-
-Something marked `(assumed)` in the model is implemented as written. If implementing it shows the assumption cannot hold, that is a gap in the rest.
-
-In your final summary, list every amendment you recorded, and say that `ddd-modelling` can fold them into the model. The code and the model must not drift apart silently; an amendment is how they move together without stopping the work.
+In your final summary, list every amendment and pending row you recorded, and say that `ddd-modelling` settles the pending ones and can fold in the amendments. The code and the model must not drift apart silently.
 
 ## When the user corrects you
 

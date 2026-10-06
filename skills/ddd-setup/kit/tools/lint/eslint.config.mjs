@@ -26,6 +26,14 @@ export default tseslint.config(
       "no-restricted-imports": [
         "error",
         {
+          // Node's I/O modules also load without the node: prefix, so they are named here as well.
+          paths: [
+            "child_process", "cluster", "dgram", "dns", "dns/promises", "fs", "fs/promises", "http", "http2",
+            "https", "net", "os", "process", "readline", "tls", "worker_threads",
+          ].map((name) => ({
+            name,
+            message: "The domain does no I/O. Declare the contract here and implement it outside the domain.",
+          })),
           patterns: [
             {
               group: ["node:*"],
@@ -33,6 +41,11 @@ export default tseslint.config(
             },
           ],
         },
+      ],
+      "no-restricted-globals": [
+        "error",
+        { name: "fetch", message: "The domain does no I/O. The workflow or an adapter calls other systems." },
+        { name: "process", message: "Configuration is read at the boundary and passed in as values." },
       ],
       "no-restricted-syntax": [
         "error",

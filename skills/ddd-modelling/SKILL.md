@@ -9,11 +9,17 @@ Produce a domain model the user approves. Write no implementation code in this s
 
 The reason for the hard stop: a wrong business rule is cheap to fix in a model and expensive to fix in code. Agents tend to fill gaps while implementing; this skill makes those decisions visible first. The project's choice of code style is separate.
 
+Read [lifecycle/depth.md](lifecycle/depth.md) and [lifecycle/notes-tail.md](lifecycle/notes-tail.md) first; read [lifecycle/approval.md](lifecycle/approval.md) and [lifecycle/checker.md](lifecycle/checker.md) before step 6. They define depth, the core and the rest, strict scope, approval, the notes tail and the checker's limits, and this file does not repeat them. Whether or not you open them, these hold:
+
+- Only the user approves a model, with the word "approve". Never write an approved status yourself; `tools/stamp-model.sh approve` writes it, with the approver's name as the user gives it: ask for it, and never take it from git config, an account or an email.
+- A strict model, or one with strict commands, is reviewed in a fresh session (`ddd-model-review`) before approval.
+- Never mark the core (states, commands and who may issue them, invariants, aggregate boundaries, glossary) `(assumed)`, and never fill it with a placeholder.
+
 ## Is this repository using the kit?
 
 If `docs/domain/` does not exist and the user did not ask for a domain model or for DDD, this repository has not adopted the kit. Say in one line that `ddd-setup` and this skill exist, and carry on with the request without this skill.
 
-If the request falls inside a scope listed under `## Prototypes` in `docs/domain/context-map.md` (or in the agent instructions), and the user did not ask to model or adopt it, say in one line that modelling was postponed for that scope, and carry on without this skill.
+If the request falls inside a prototype scope ([lifecycle/adoption.md](lifecycle/adoption.md)) and the user did not ask to model or adopt it, say in one line that modelling was postponed for that scope, and carry on without this skill.
 
 A change to existing code in an area that has no model is not a modelling request either, unless the user asks for a model or the change creates a new context, aggregate or lifecycle. Carry on without this skill (`ddd-implementation` handles that case), and mention in one line that the area can be modelled.
 
@@ -25,27 +31,18 @@ A change to existing code in an area that has no model is not a modelling reques
 
 ## How deep
 
-A model is worth what it saves later, and no more. Reuse the recorded depth when resuming. For a new model, use the depth the user requested; otherwise ask once with your recommendation. Write it on the context file's `Depth:` line.
+A model is worth what it saves later, and no more. The depths and what each settles are in lifecycle/depth.md. Reuse the recorded depth when resuming. For a new model, use the depth the user requested; otherwise ask once, recommending standard unless the work is strict by that file's table. Write it on the context file's `Depth:` line.
 
-| Depth | For | What is settled before code |
-|---|---|---|
-| none (a spike) | finding out whether an idea works; code that may be thrown away | Do not model. Record the named scope and code paths, if known, under `## Prototypes` in `docs/domain/context-map.md` so another session knows modelling was postponed. If the map is absent, record it in the project's agent instructions. This exemption applies only to unmodelled code in that scope. Say that code can be written first and adopted later with [ADOPTING.md](ADOPTING.md), and stop |
-| `standard` | most work. Recommend this unless the row below applies | The **core**, confirmed by the user. The rest is your best guess, marked `(assumed)` |
-| `strict` | money, credentials, authorisation, personal data, anything that cannot be undone; or when the user asks for it | Everything, confirmed and reviewed |
-
-The **core** is what is expensive to change once code exists: the states, the commands and who may issue each, the invariants, the aggregate boundaries, and the glossary. Everything else is the **rest**: bounds, what a failure or an event carries, races, edge cases, the examples at the limits. A wrong guess in the rest costs one edit to the model and one to the code.
-
-One part of a context may be strict while the rest is standard: write `Strict commands: ChargePayment, RefundPayment` under `Depth:`, using command names from the model. Omit the line when there are none. The **strict scope** of such a command is the command, its failures, the rows that name it (examples, invariants, races, facts from outside, policies) and the primitives of the data it adds. `tools/check-model.sh` prints it for each strict command, so nobody has to work it out; show it to the user when the line is added. The strict scope follows strict depth through review, tickets and implementation. Everything else keeps the context's depth. A missing `Depth:` means strict for older models. When adopting a recorded prototype, remove its row under `## Prototypes` as the draft model is created, or narrow it to the part that is still unmodelled.
+- **None (a spike)**: do not model. Record the named scope and code paths, if known, under `## Prototypes` in `docs/domain/context-map.md` (or the agent instructions, without a map). Say that code can be written first and adopted later with [ADOPTING.md](ADOPTING.md), and stop.
+- **Strict commands**: when part of a standard context is strict, write `Strict commands: ChargePayment, RefundPayment` under `Depth:`, using command names from the model, and show the user the strict scope `tools/check-model.sh` prints for each. Omit the line when there are none.
 
 The sections below describe the strict interview. **At standard depth** adapt them as follows:
 
-- **Ask about the core. Propose the rest.** For a bound, a payload, a race or an edge case, write your best guess into the model marked `(assumed)` and do not ask. Ask about something in the rest only when a wrong guess would lose money or data, expose something, or be hard to undo.
+- **Ask about the core. Propose the rest.** For a bound, a payload, a race or an edge case, write your best guess into the model marked `(assumed)` and do not ask. Ask about something in the rest only when a wrong guess would lose money or data, expose something, or be hard to undo. Never mark the core `(assumed)`, and never fill it with a placeholder such as "TBD": `tools/check-model.sh` rejects an assumed or placeholder "Issued by" cell or invariant. A core question still unanswered goes under open questions, and the model does not pass the check until the user answers it.
 - **Fill in the matrix yourself.** Write `yes` where the signature allows the command, and for each other cell the likely reason, marked `(assumed)`. Ask only about a cell where the honest answer might be "yes, until…", because that is how a missing state shows, or where a wrong guess would cost money or data. The other reasons go into the list of assumptions.
 - **Stop after each round.** End every round with a checkpoint of a few lines: the flow as it stands now, numbered, and under it what is still unclear. The user reads the flow and says where it is wrong. The next round is about the unclear points and nothing else; do not open new subjects while one is unclear.
 - **About three rounds.** If the core is not settled by then, say what is still unclear and ask whether to go on or to continue with it under open questions. Do not keep asking to reach completeness.
 - **Show the assumptions once.** At the end, list everything marked `(assumed)` in one compact list: "correct any of these; the rest stand". The user skims it. Do not turn the list into questions.
-
-The model grows. What implementation learns comes back as rows under the context file's `## Amendments`, and a later modelling session folds them in.
 
 ## Output
 
@@ -158,6 +155,13 @@ Split where one of these holds:
 
 Do not split by technical layer or by database table. For a small domain, one context is a valid answer; say so instead of inventing boundaries.
 
+Then two questions for the context map. The cards in `docs/ddd/strategic/` quote Evans and the DDD Crew on each answer; read the README and the cards you need, and describe the patterns to the user in the cards' words, not your own.
+
+- **What kind is each context?** Ask the canvas's question, "How important is this context to the success of your organisation?", with its three answers: core, supporting or generic.
+- **What pattern is each relationship?** For every row in Relationships, describe the patterns that could fit and let the user say which describes how the teams actually work. Evans: "Map the existing terrain. Take up transformations later." Who owns each side, and whether one team plans for the other's needs, are facts about teams: ask, and do not infer them from the code.
+
+The cards give no rule for which pattern to choose. Do not add one. If the strategic cards are not installed, ask the same two questions without them.
+
 ## 3. Model each context
 
 Use the template's notation, so the model reads the same for Go and TypeScript and `tools/check-model.sh` can read it:
@@ -219,24 +223,26 @@ Security problems are cheapest to remove at modelling time.
 
 The files are already written.
 
-1. Run `tools/check-model.sh` on each context file and fix structural errors. It checks that every template section is present (write "None." where a section has nothing), state-field type references, signature/table agreement, incoming/outgoing command mentions, matrix cells, unique example numbers, and example mentions for commands and decision failures, and it prints the strict scope of each strict command. It does not prove reachability, validate payloads or outside-fact trust rules, cover use-case failures, or judge whether examples follow the rules. Read those yourself at the chosen depth; propose improvements rather than treating every missing detail as a blocker.
-2. Present the model for approval as its flow, not as its tables: the numbered steps, and under each step only what the user has to decide or might not expect. Then the open questions, and at standard depth the assumptions. Do not paste tables into the conversation; the user can open the file.
-3. Review before approval depends on the depth. Strict: tell the user to run `ddd-model-review` in a fresh session. In a standard context with strict commands, that review covers the strict scope; review of the rest is optional. Standard otherwise: offer review as optional, and say that one round is enough unless it finds a blocker in the core.
+1. Run `tools/check-model.sh` on each context file and fix structural errors. Then read what it does not check (lifecycle/checker.md) yourself at the effective depth; propose improvements rather than treating every missing detail as a blocker.
+2. Present the model for approval as its flow, not as its tables: the numbered steps, and under each step only what the user has to decide or might not expect. Then the open questions, with the unanswered core questions (who may issue a command, an invariant) first and apart from the rest: the model cannot be approved until those are answered. At standard depth, the assumptions after them. Do not paste tables into the conversation; the user can open the file.
+3. Ask for the review lifecycle/approval.md requires at this depth, or offer it as optional at standard depth.
 
-When the user brings back a review's findings, apply them. At strict depth, a proposed assumption the user accepts is confirmed: write it without the `(assumed)` marker. Once the review has no blockers left, add `, reviewed <date>` to the end of the Status line (it is outside the hash), so a later session does not ask for the review again.
+When the user brings back a review's findings, apply them. At strict depth, a proposed assumption the user accepts is confirmed: write it without the `(assumed)` marker. Once the review has no blockers left, run `tools/stamp-model.sh review <file>`, so a later session does not ask for the review again.
 
 Never ask again for something the user has answered. An answer is written to the model the moment it is given, in the section it affects, and later rounds, reviews and sessions read it there. Only a choice that meets the three conditions under **Decisions** also gets a Decisions row.
 
-When the user approves a context file, run `tools/model-hash.sh <file>` and set its status line to `Status: approved by <name> on <date>, model-hash <hash>`, keeping a `, reviewed <date>` at the end if it was there. The hash covers the context's approved body, excluding the status line and trailing notes. Approval at standard depth means the user has confirmed the core and seen the assumptions; say so when you ask for it. Never write an approved status the user did not give. After a later edit to the approved part, set the status back to `draft`. Keep `## Migration` and `## Amendments` at the end, after all model sections. The hash leaves this tail out, so recording findings or updating the migration plan does not undo an approval; model sections after it are an error.
+Approval follows lifecycle/approval.md: only the user approves, and `tools/stamp-model.sh` writes the Status line. If the approved model adopts a scope listed under `## Prototypes`, remove that row in the same step, or narrow it to the part still unmodelled.
 
 Stop here. Implementation is a separate step with the `ddd-implementation` skill.
 
-## Folding in amendments
+## Folding in amendments and settling pending gaps
 
-When the context file has rows under `## Amendments`, and the user asks to bring the model up to date or wants a larger change, fold them in first: move what each row learned into the section it names, remove the row, and show the whole change as one diff. An amendment that touched only the rest needs no discussion. One that turns out to change the core (a new state, a command, an invariant, who may issue) is put to the user as a question. Then the user approves again, once, for all of them.
+When the context file has rows under `## Pending`, settle them first: each is a question implementation is waiting on. Ask it, write the answer into the section it affects, and remove the row once the model is approved again.
+
+When it has rows under `## Amendments`, and the user asks to bring the model up to date or wants a larger change, fold them in: move what each row learned into the section it names, remove the row, and show the whole change as one diff. An amendment that touched only the rest needs no discussion. One that turns out to change the core (a new state, a command, an invariant, who may issue) is put to the user as a question. Then the user approves again, once, for all of them.
 
 ## When the request is small
 
 For a change to an existing model, update only the affected sections, including the matrix column or row and the examples the change touches. Show the change as a diff, run `tools/check-model.sh`, and still wait for approval. A new rule, state, command or term always goes through the model first.
 
-A change inside the strict scope of a model that was already reviewed needs a review of the changed rows only: give the reviewer the diff, in the earlier review session or a fresh one. It does not start a new review of the whole model. Changes outside the strict scope follow the context's depth.
+A change inside a strict scope of a model that was already reviewed needs a review of the changed rows only: give the reviewer the diff, in the earlier review session or a fresh one.

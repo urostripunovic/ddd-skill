@@ -12,13 +12,13 @@ The copying is a script and the lint rules are yours to merge. Install no progra
 
 ## 1. Choose how much of the kit
 
-The kit has two halves: the model (what the software must do) and the cards (how the code that does it is written). The model works for any language and any coding style. The cards are one style, typed and functional, with examples for Go and TypeScript. Ask which the repository wants, with your recommendation from what you see in it:
+The kit has two halves: the model (what the software must do) and the pattern cards (how the code that does it is written). The model works for any language and any coding style, and comes with the strategic cards in `docs/ddd/strategic/`, which help decide how contexts relate. The pattern cards are one style, typed and functional in the manner of Scott Wlaschin, in `docs/ddd/cards/functional/`, with examples for Go and TypeScript. Ask which the repository wants, with your recommendation from what you see in it:
 
 | Choice | When | What is installed |
 |---|---|---|
 | **Full** | Go or TypeScript, and no established style for domain code | the model, the cards, the examples and lint rules for the language: `install.sh` |
 | **Cards without examples** | another language (Python, Java, Rust), and the team wants the kit's style as far as that language allows | the model and the cards' rules: `install.sh --lang none`. The code is written from the rules in the language's own idioms, best effort; use the project's own checks, with no supplied language-specific lint rules |
-| **Model only** | the repository already has a way of writing domain code and wants to keep it (classic DDD with entity classes, say), or wants the model and nothing else | the model template and its checker: `install.sh --model-only`. No cards, no lint rules |
+| **Model only** | the repository already has a way of writing domain code and wants to keep it (classic DDD with entity classes, say), or wants the model and nothing else | the model template, its checker and the strategic cards: `install.sh --model-only`. No pattern cards, no lint rules |
 
 Recommend model only when the repository already has domain code in a consistent style of its own. Write the choice down in step 3.
 
@@ -36,6 +36,7 @@ Run `install.sh` from this skill's directory, in the repository root, with the f
 It never overwrites. A file that exists with other content is kept and listed. For each one listed:
 
 - A card: its **Corrections** section holds mistakes recorded by this team, and that is the most valuable part of the card. Show the diff above the Corrections heading and ask whether to take the kit's text; recommend taking it unless the team has edited the rules. Keep the repository's Corrections in every case. A card that still has `## Go` and `## TypeScript` sections is from an earlier version of the kit: recommend the new layout.
+- Cards directly under `docs/ddd/cards/` (`01-domain-primitive.md`, `go/`, `ts/`) are from before the style directories; the script says so. With the user's agreement, move them into `docs/ddd/cards/functional/` with `git mv`, so their history and Corrections come along, and keep the kit's new top-level `docs/ddd/cards/README.md` beside them, copying the repository's **Wanted** rows into it. Then run the script again and handle what it lists as above.
 - A context map or context file: leave it. Never modify an existing model here.
 - A tool or a reference config: show the diff and ask before replacing it.
 
@@ -52,7 +53,7 @@ Look at what the repository already does and propose that. Where it does nothing
 - **Layout.** (a) Layers: `domain/` for the model's types and decisions, `services/` or `app/` for one use case per file, `infrastructure/` for repositories and adapters; the domain imports nothing from the others. (b) One directory per bounded context with the same three inside it. (c) The repository's own layout, described in a sentence.
 - **Where tests go.** (a) Next to the code. (b) In a `__tests__` (or `__test__`) directory in each folder. (c) In a top-level `test/` directory.
 
-Write the answers, and the choice from step 1 ("Code style: the kit's cards" or "Code style: the repository's own; the kit's cards are not used"), under a heading `## Domain code` in the repository's agent instructions (`CLAUDE.md`, or `AGENTS.md` if that is what it has; create `CLAUDE.md` if neither exists), in two or three lines. Every later session reads that file. Where a rule can be linted (which layer may import which), add it in the next step, so a session that gets it wrong fails lint.
+Write the answers, and the choice from step 1 ("Code style: the kit's functional cards" or "Code style: the repository's own; the kit's cards are not used"), under a heading `## Domain code` in the repository's agent instructions (`CLAUDE.md`, or `AGENTS.md` if that is what it has; create `CLAUDE.md` if neither exists), in two or three lines. Every later session reads that file. Where a rule can be linted (which layer may import which), add it in the next step, so a session that gets it wrong fails lint.
 
 ## 4. Lint rules
 
@@ -95,4 +96,4 @@ Stricter rules will usually flag existing code. That is expected. Do not fix tho
 
 List every file added and every file changed, with one line on what changed in each. State what you could not do and why.
 
-Then give the next step: the `ddd-modelling` skill. For a repository with existing domain code, mention that the skill can also derive a draft model from that code, one aggregate at a time, if the user wants that.
+Then give the next step: the `ddd-modelling` skill. Say that asking "what's next?" at any point runs `ddd-next`, which reads `tools/ddd-status.sh` and gives the next step. For a repository with existing domain code, mention that the skill can also derive a draft model from that code, one aggregate at a time, if the user wants that.

@@ -6,9 +6,10 @@
 set -euo pipefail
 # Left out of the hash:
 # - the Status line, because writing the hash into it would change the hash
-# - the trailing "## Amendments" and "## Migration" sections,
-#   because those are written after approval: what implementation learned, and
-#   the plan for moving existing code. Recording them must not undo the approval.
+# - the trailing "## Amendments", "## Migration" and "## Pending" sections,
+#   because those are written after approval: what implementation learned, the
+#   plan for moving existing code, and the gaps implementation is waiting on.
+#   Recording them must not undo the approval.
 # - blank lines at the end of what is left, so that adding one of those sections
 #   below the model does not change the hash of the model above it
 # Validate the tail before hashing. A misplaced notes heading must not silently
@@ -34,11 +35,11 @@ for number, (line, text) in enumerate(zip(raw.splitlines(), visible.splitlines()
         elif run[0] == fence[0] and len(run) >= len(fence) and not rest.strip():
             fence = None
     elif fence is None:
-        if re.fullmatch(r"## (Amendments|Migration)\s*", text):
+        if re.fullmatch(r"## (Amendments|Migration|Pending)\s*", text):
             tail = True
             continue
         if tail and re.match(r"^#{1,2} ", text):
-            sys.exit(f"{path}:{number}: model section after Migration/Amendments; move it before the notes tail")
+            sys.exit(f"{path}:{number}: model section after Migration/Amendments/Pending; move it before the notes tail")
         if text.startswith("Status:"):
             continue
     if not tail:

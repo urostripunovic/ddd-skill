@@ -44,7 +44,7 @@ Without a model you can still run this review. Say in the report that bounds and
 
 Read the change first and decide which conditional sections it touches. Apply the core checklist, adapted to the setup choice below, and a conditional section only when the change touches that area. Name the skipped sections in the report.
 
-**Code style.** Reuse the setup choice in the agent instructions. Otherwise, installed cards mean the project chose the typed style; no cards means its existing style. Do not ask again. In model-only projects, check the security outcomes: validation before use, bounds, verified identity, authorisation, safe errors and sensitive-data handling. Do not require wrapper types, constructor-only creation, ORM-free domain types, or read-once wrappers solely to match the cards. Test bypass of the project's actual validation and authorisation boundaries. Other languages use their own tooling and idioms. A missing typed pattern alone is not a security finding.
+**Code style.** Resolve it as [code-style.md](../ddd-modelling/lifecycle/code-style.md) says, and do not ask again. In model-only projects, check the security outcomes: validation before use, bounds, verified identity, authorisation, safe errors and sensitive-data handling. Do not require wrapper types, constructor-only creation, ORM-free domain types, or read-once wrappers solely to match the cards. Test bypass of the project's actual validation and authorisation boundaries. Other languages use their own tooling and idioms. A missing typed pattern alone is not a security finding.
 
 ## Core checklist
 

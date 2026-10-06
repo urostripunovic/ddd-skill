@@ -30,9 +30,9 @@ Order every report along the flow: findings for step 1 before findings for step 
 
 Read the context file's `Depth:` line and what the system is for (the glossary's opening lines, the context map). A homelab tool and a payment system do not get the same review.
 
-Read `Strict commands:` too. The strict scope of each, as `tools/check-model.sh` prints it (the command, its failures, the rows that name it and the primitives of the data it adds), gets strict review even under `Depth: standard`. Keep standard depth for the rest; name the reviewed scope in the report.
+A missing `Depth:` line means strict. Review at the effective depth defined in [depth.md](../ddd-modelling/lifecycle/depth.md): each strict scope gets strict review even under `Depth: standard`, the rest the context's depth. Name the reviewed scope in the report.
 
-- **`standard`**: one pass, in this session, no sub-agents. Apply the three lenses to the **core** only: states, commands and who may issue them, invariants, aggregate boundaries. Skip section 3. Entries marked `(assumed)` are not findings: nobody claimed they were confirmed. Report at most five questions, the ones where a wrong answer costs most.
+- **`standard`**: one pass, in this session, no sub-agents. Apply the three lenses to the **core** only (depth.md). Skip section 3. Entries marked `(assumed)` in the rest are not findings: nobody claimed they were confirmed. An unconfirmed core fails `tools/check-model.sh` and is a blocker, because an implementer would have to invent who may issue or what must hold. Report at most five questions, the ones where a wrong answer costs most.
 - **`strict`**, or no `Depth:` line: everything below, in full.
 
 ## What stops approval, and what does not
@@ -50,7 +50,7 @@ A review that can always find one more thing never ends, and each round's fixes 
 
 Run `tools/check-model.sh <file>` for each context file and put its output in the report as it is. If structural errors prevent a useful review, report the needed corrections and pause. Warnings are information, not automatic blockers.
 
-The script checks that every template section is present, state-field type references, signature/table agreement, incoming/outgoing command mentions, matrix cells, command/decision-failure example mentions, unique example numbers, and selected glossary names and rejected synonyms. It also checks depth-override names and approval hash boundaries, and prints the strict scope of each strict command. It does not prove reachability from creation, resolve payload types, validate outside-fact trust rules, cover use-case failures or all glossary terms, or judge examples against rules. Check those yourself at the chosen depth. A passing script is a useful starting point, not a completeness verdict. If it is missing, say so and check its structural points by hand too.
+What the script does and does not check is in [checker.md](../ddd-modelling/lifecycle/checker.md); check the rest yourself at the effective depth. If it is missing, say so and check its structural points by hand too.
 
 ## 2. Three lenses
 
@@ -107,7 +107,7 @@ Write each as a question for the domain expert, quoting the entry. Do not answer
 ## 3. What the lenses do not cover
 
 - **Language**: each term has one meaning per context, and no two terms mean the same thing.
-- **Contexts**: each boundary is justified by a change in meaning, rules or ownership, not by a technical layer or a table. Each context says what it is not responsible for. Every dependency between contexts and to external systems is in the map, with what crosses and how it is translated.
+- **Contexts**: each boundary is justified by a change in meaning, rules or ownership, not by a technical layer or a table. Each context says what it is not responsible for. Every dependency between contexts and to external systems is in the map, with what crosses and how it is translated. Each context has a Kind and each relationship a Pattern, and the row agrees with the card's definition in `docs/ddd/strategic/`: for example, a conformist row with a translation, or an anti-corruption layer with none, contradicts its card. Do not judge whether the chosen pattern is wise; the cards quote their sources and give no rule for that.
 - **States**: no field is "only set in some cases". No command lists "wrong state" as a failure; if one does, its source states are too wide.
 - **Events**: past tense, and carrying what their consumers need and no more.
 - **Invariants**: each is concrete enough to write a test for, and "enforced by the type" is actually visible in the state definition.

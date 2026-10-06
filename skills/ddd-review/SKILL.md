@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 # DDD review
 
-Answer one question: does this code implement the approved domain model, using the project's chosen style? Installed cards select the typed style unless setup explicitly records otherwise. Report findings. Do not change the code unless the user asks.
+Answer one question: does this code implement the approved domain model, using the project's chosen style? Resolve the code style as [code-style.md](../ddd-modelling/lifecycle/code-style.md) says. Report findings. Do not change the code unless the user asks.
 
 Run this in a session that did not write the code. An author reviewing its own work tends to approve it. If you wrote the code under review in this session, say so at the top of the report.
 
@@ -41,7 +41,7 @@ If you are given an earlier report of yours and the commits that fix it, this is
 1. The pinned diff.
    If an original task or ticket is supplied, read its scope and explicitly deferred work so this review uses the same completion boundary. Full requirement-by-requirement task review remains `task-review`'s job.
 2. The model: the glossary (`GLOSSARY.md` at the root, or the ones `GLOSSARY-MAP.md` links to), `docs/domain/context-map.md`, and only the `docs/domain/contexts/<context>.md` files the change touches.
-3. When the project uses cards: the cards in `docs/ddd/cards/` for the patterns the change uses, including each card's **Corrections** section. Read the language README and examples only if installed; other languages use their own idioms and project checks. Do not load cards the change does not touch.
+3. When the project uses cards: the cards in `docs/ddd/cards/functional/` for the patterns the change uses, including each card's **Corrections** section. Read the language README and examples only if installed; other languages use their own idioms and project checks. Do not load cards the change does not touch.
 
 If there is no model for the code under review, stop and say so. Without it this review has nothing to compare the code with.
 
@@ -55,7 +55,7 @@ For each context file you use, read its `Status:` line.
 
 Rows under the context file's `## Amendments` are part of the model for this review: where a row says what the code does, trace the code against the row and not against the text it amends. Code that matches neither is a finding. An element marked `(assumed)` is traced like any other.
 
-Read `Depth:` and `Strict commands:` when judging amendments: an amendment inside a strict scope (as `tools/check-model.sh` prints it) needed clarification and reapproval, not an autonomous amendment. A missing depth means strict. Depth does not relax conformance to rules already written. The hash excludes the glossary and context map; flag a changed definition or relationship that changes an approved rule's meaning.
+An amendment inside a strict scope (as `tools/check-model.sh` prints it), or in a context at strict depth, should have been a `## Pending` row and a reapproval, so it is a finding. A missing `Depth:` means strict. Depth does not relax conformance to rules already written. Flag a changed glossary definition or context-map relationship that changes an approved rule's meaning; the hash does not cover them.
 
 ## A repository without the cards
 

@@ -2,7 +2,7 @@
 
 Use this when a repository already has domain code and no model, and the user has chosen to start from the code. The goal is a confirmed model for one aggregate at a time, and a plan to move the code towards it. Do not try to model the whole repository in one pass.
 
-The notation, glossary format, depth rules and way of asking are in [SKILL.md](SKILL.md). Reuse the setup choice: installed cards select the typed style unless the agent instructions explicitly record the repository's own style. Without cards, preserve the existing style. Do not ask for that choice again.
+The notation, glossary format and way of asking are in [SKILL.md](SKILL.md); the code style is resolved as [lifecycle/code-style.md](lifecycle/code-style.md) says, and depth, approval and the notes tail are in the lifecycle files SKILL.md names.
 
 ## 1. Pick one slice
 
@@ -20,7 +20,7 @@ Read that slice and write what the code does today, with a `file:line` reference
 - **Examples**: from the existing tests. A test that pins a rule with real values is an example already; cite it.
 - **Races**: whether the code does anything when two requests change the same thing: a version column, a lock, a transaction. "Nothing" is a finding, not a gap in your reading.
 
-Set the status line to `Status: derived from code, not confirmed`. Code shows what the system does, not what the business intends.
+Set the status line to `Status: derived from code, not confirmed, read at <short commit>`, where the commit is `HEAD` when you read the slice. Code shows what the system does, not what the business intends.
 
 ## 3. Cross-check with the user
 
@@ -31,11 +31,13 @@ Go through the draft with the user and compare it with what they say the busines
 - Every `no` cell that the code gave a technical reason for needs the business's reason. Ask.
 - Ask about what the code cannot show using the chosen depth: who may issue each command, which values are sensitive, and the questions under "Ask what the timeline hides". At standard depth, propose non-core details together as assumptions rather than asking about every one.
 
-Then write the target model in the normal notation: states and legal commands. This notation describes behaviour; it does not require matching state types in a model-only project's code. Remove the prototype row under `## Prototypes` for this slice when its draft is created, or narrow it to the part still unmodelled. Run `tools/check-model.sh` and get approval as usual: a fresh-session review for strict scope, optional review for standard scope.
+Then write the target model in the normal notation: states and legal commands. This notation describes behaviour; it does not require matching state types in a model-only project's code. Run `tools/check-model.sh` and get approval as lifecycle/approval.md describes.
+
+If the slice is a prototype scope, its row stays while the model is a draft ([lifecycle/adoption.md](lifecycle/adoption.md)). Before asking for approval, check what changed in the slice since you read it: `git log --oneline <commit>..HEAD -- <files>` with the commit from the Status line, and `git status -- <files>`. Update the draft for each change, or list it as a discrepancy.
 
 ## 4. Write a migration plan
 
-Add a `## Migration` section at the end of the context file, after Open questions and before `## Amendments`. The model-hash leaves it out, so writing or updating the plan does not undo an approval. Number the steps; `ddd-implementation` does one step at a time and marks it `(done <date>)`, so a later session starts at the first step not marked done. Order the steps so that the code works after each one. With the kit's cards:
+Add a `## Migration` section, the first section of the notes tail (lifecycle/notes-tail.md). Number the steps; `ddd-implementation` does one step at a time and marks it `(done <date>)`, so a later session starts at the first step not marked done. Order the steps so that the code works after each one. With the kit's cards:
 
 1. Tests that pin down current behaviour, before changing anything.
 2. Domain primitives, introduced at the boundary first so the existing code keeps receiving what it expects.
