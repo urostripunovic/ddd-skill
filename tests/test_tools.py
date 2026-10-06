@@ -4,6 +4,8 @@ Uses temporary repositories; no installed project or sibling eval is changed.
 Language compilation and lint are checked separately with check-cards.sh.
 """
 import pathlib
+import re
+import shutil
 import subprocess
 import tempfile
 import unittest
@@ -181,7 +183,7 @@ class ToolTests(unittest.TestCase):
         self.model.write_text(MODEL.replace("Depth: standard", "Depth: standard\nStrict commands: PlaceOrder"))
         result = self.run_tool("check-model.sh", self.model)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-        self.assertIn("strict scope for PlaceOrder: examples 2", result.stdout)
+        self.assertIn("strict scope for PlaceOrder: issued by: customer; matrix column PlaceOrder; examples 2", result.stdout)
 
     def test_strict_scope_lists_the_rows_that_name_the_command(self):
         model = (MODEL.replace("Depth: standard", "Depth: standard\nStrict commands: PlaceOrder")
@@ -201,8 +203,9 @@ class ToolTests(unittest.TestCase):
         line = next(l for l in result.stdout.splitlines() if "strict scope for PlaceOrder" in l)
         self.assertIn("invariants 1", line)
         self.assertIn("races PlaceOrder twice", line)
-        self.assertIn("primitives it adds Amount", line)
-        self.assertNotIn("Note", line)
+        self.assertIn("use-case failures OrderNotDraft", line)
+        # A primitive already in the starting state is in scope too: the command reads it.
+        self.assertIn("primitives Amount, Note", line)
 
     def test_missing_template_sections_are_errors(self):
         for section in ("### Invariants\nNone.\n", "### Facts from outside\nNone.\n", "## Decisions\nNone.\n"):
@@ -214,6 +217,30 @@ class ToolTests(unittest.TestCase):
         self.model.write_text(MODEL.replace("1. A customer", "A customer"))
         result = self.run_tool("check-model.sh", self.model)
         self.assertIn("no numbered steps", result.stdout)
+
+    def test_unconfirmed_core_is_rejected(self):
+        invariants = ("### Invariants\n| # | Invariant | Enforced by | Commands that could break it |\n|---|---|---|---|\n"
+                      "| 1 | {} | decision function PlaceOrder | PlaceOrder |")
+        cases = {
+            "assumed issuer": MODEL.replace("| PlaceOrder | customer |", "| PlaceOrder | anyone (assumed) |"),
+            "placeholder issuer": MODEL.replace("| PlaceOrder | customer |", "| PlaceOrder | TBD |"),
+            "question issuer": MODEL.replace("| PlaceOrder | customer |", "| PlaceOrder | ? |"),
+            "assumed invariant": MODEL.replace("### Invariants\nNone.", invariants.format("at most 10 orders a day (assumed)")),
+            "placeholder invariant": MODEL.replace("### Invariants\nNone.", invariants.format("to be decided")),
+        }
+        for name, model in cases.items():
+            with self.subTest(name=name):
+                self.model.write_text(model)
+                result = self.run_tool("check-model.sh", self.model)
+                self.assertNotEqual(result.returncode, 0, result.stdout)
+                self.assertIn("is not confirmed", result.stdout)
+
+    def test_assumed_rest_still_only_warns(self):
+        self.model.write_text(MODEL.replace("no: already placed", "no: already placed (assumed)")
+                              .replace("| PlaceOrder | customer |", "| PlaceOrder | the customer who opened the order |"))
+        result = self.run_tool("check-model.sh", self.model)
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.assertIn("1 assumption(s)", result.stdout)
 
     def test_example_numbers_are_unique(self):
         self.model.write_text(MODEL.replace("| 2 | PlaceOrder |", "| 1 | PlaceOrder |"))
@@ -244,7 +271,7 @@ class ToolTests(unittest.TestCase):
 
     def test_card_extraction_reaches_reference_domain_paths(self):
         out = self.repo / "examples"
-        result = self.run_tool("extract_cards.py", KIT / "docs/ddd/cards", out)
+        result = self.run_tool("extract_cards.py", KIT / "docs/ddd/cards/functional", out)
         self.assertEqual(result.returncode, 0, result.stderr)
         for lang, path, suffix in (("go", "internal", "x.go"), ("ts", "src", "*.ts")):
             base = out / lang / path
@@ -264,7 +291,7 @@ class ToolTests(unittest.TestCase):
         ts = (TOOLS / "lint/eslint.config.mjs").read_text().replace("src/domain/**/*.ts", "src/ordering/**/*.ts")
         (lint / "eslint.config.mjs").write_text(ts)
         out = self.repo / "examples"
-        result = self.run_tool("extract_cards.py", KIT / "docs/ddd/cards", out, lint)
+        result = self.run_tool("extract_cards.py", KIT / "docs/ddd/cards/functional", out, lint)
         self.assertEqual(result.returncode, 0, result.stderr)
         pinned_go = (out / "go/.golangci.yml").read_text()
         self.assertIn('- "**/internal/domain/**"', pinned_go)
@@ -277,7 +304,7 @@ class ToolTests(unittest.TestCase):
         lint.mkdir()
         (lint / ".golangci.yml").write_text((TOOLS / "lint/.golangci.yml").read_text().replace("DOMAIN-PATHS", "paths"))
         (lint / "eslint.config.mjs").write_text((TOOLS / "lint/eslint.config.mjs").read_text())
-        result = self.run_tool("extract_cards.py", KIT / "docs/ddd/cards", self.repo / "examples", lint)
+        result = self.run_tool("extract_cards.py", KIT / "docs/ddd/cards/functional", self.repo / "examples", lint)
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("DOMAIN-PATHS", result.stderr)
 
@@ -292,9 +319,218 @@ class ToolTests(unittest.TestCase):
                 self.assertNotEqual(result.returncode, 0)
                 self.assertIn("invalid Check as role", result.stderr)
 
+    def stamp(self, *args):
+        return self.run_tool("stamp-model.sh", args[0], self.model, *args[1:])
+
+    def test_strict_scope_includes_inputs_events_and_existing_values(self):
+        model = (MODEL.replace("Depth: standard", "Depth: standard\nStrict commands: PlaceOrder")
+                 .replace("## Domain primitives\n\nNone.",
+                          "## Domain primitives\n\n| Name | Underlying type | Rules | Why | Sensitive? |\n|---|---|---|---|---|\n"
+                          "| Amount | integer | 1..100 | cap | no |\n| Coupon | string | 1..20 | codes | no |")
+                 .replace("DraftOrder = {}", "DraftOrder = { amount: Amount }")
+                 .replace("PlacedOrder = {}", "PlacedOrder = { amount: Amount }")
+                 .replace("PlaceOrder : DraftOrder -> PlacedOrder", "PlaceOrder : DraftOrder -> PlacedOrder + [OrderPlaced]")
+                 .replace("| Command | Issued by | Notes |\n|---|---|---|\n| StartOrder | customer | |\n| PlaceOrder | customer | |",
+                          "| Command | Issued by | Input | Notes |\n|---|---|---|---|\n| StartOrder | customer | none | |\n"
+                          "| PlaceOrder | customer | coupon: Coupon | |")
+                 .replace("### Events\nNone.", "### Events\n| Event | Carries | Consumed by |\n|---|---|---|\n| OrderPlaced | id | Billing |"))
+        self.model.write_text(model)
+        result = self.run_tool("check-model.sh", self.model)
+        self.assertEqual(result.returncode, 0, result.stdout)
+        line = next(l for l in result.stdout.splitlines() if "strict scope for PlaceOrder" in l)
+        self.assertIn("events OrderPlaced", line)
+        self.assertIn("primitives Amount, Coupon", line)
+        self.model.write_text(model.replace("coupon: Coupon", "coupon: Voucher"))
+        result = self.run_tool("check-model.sh", self.model)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("takes Voucher, which is neither a primitive nor a defined type", result.stdout)
+
+    def test_approved_without_hash_is_an_error(self):
+        self.model.write_text(MODEL.replace("Status: draft", "Status: approved by test on 2026-10-06"))
+        result = self.run_tool("check-model.sh", self.model)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("approved without a model-hash", result.stdout)
+
+    def test_strict_approval_needs_a_current_review(self):
+        self.model.write_text(MODEL.replace("Depth: standard", "Depth: strict"))
+        refused = self.stamp("approve", "Ann")
+        self.assertNotEqual(refused.returncode, 0)
+        self.assertIn("without a review", refused.stdout)
+        self.assertIn("Status: draft\n", self.model.read_text())
+        self.assertEqual(self.stamp("review").returncode, 0)
+        approved = self.stamp("approve", "Ann")
+        self.assertEqual(approved.returncode, 0, approved.stdout + approved.stderr)
+        self.assertRegex(self.model.read_text(), r"Status: approved by Ann on \S+, model-hash [0-9a-f]+, reviewed \S+ at [0-9a-f]+\n")
+        self.model.write_text(self.model.read_text().replace("already placed", "placing is final"))
+        self.assertEqual(self.stamp("draft").returncode, 0)
+        self.assertRegex(self.model.read_text(), r"Status: draft, reviewed \S+ at [0-9a-f]+\n")
+        draft = self.run_tool("check-model.sh", self.model)
+        self.assertIn("the model has changed since", draft.stdout)
+        refused = self.stamp("approve", "Ann")
+        self.assertNotEqual(refused.returncode, 0)
+        self.assertIn("the review is of model-hash", refused.stdout)
+
+    def test_strict_approval_refuses_what_is_not_confirmed(self):
+        cases = {
+            "(assumed) marker": MODEL.replace("no: already placed", "no: already placed (assumed)"),
+            "open questions": MODEL.replace("## Open questions\nNone.", "## Open questions\n- Can a customer place twice?"),
+            "amendment row": MODEL + "\n## Amendments\n\n| Date | Section | The model said | What was learned, and what the code does |\n"
+                                     "|---|---|---|---|\n| 2026-10-06 | Examples | nothing | a rule |\n",
+        }
+        for name, model in cases.items():
+            with self.subTest(name=name):
+                self.model.write_text(model.replace("Depth: standard", "Depth: strict"))
+                self.stamp("review")
+                result = self.stamp("approve", "Ann")
+                self.assertNotEqual(result.returncode, 0, result.stdout)
+                self.assertIn("strict depth", result.stdout)
+
+    def test_strict_scope_in_a_standard_context_must_be_confirmed(self):
+        base = MODEL.replace("Depth: standard", "Depth: standard\nStrict commands: PlaceOrder")
+        self.model.write_text(base)
+        self.assertNotEqual(self.stamp("approve", "Ann").returncode, 0)
+        cases = {
+            "assumed": base.replace("no: already placed", "no: already placed (assumed)"),
+            "amendment": base + "\n## Amendments\n\n| Date | Section | The model said | What was learned, and what the code does |\n"
+                                "|---|---|---|---|\n| 2026-10-06 | Commands | PlaceOrder by anyone | only staff |\n",
+        }
+        for name, model in cases.items():
+            with self.subTest(name=name):
+                self.model.write_text(model)
+                self.stamp("review")
+                result = self.stamp("approve", "Ann")
+                self.assertNotEqual(result.returncode, 0, result.stdout)
+                self.assertIn("strict scope of PlaceOrder", result.stdout)
+        self.model.write_text(base)
+        self.stamp("review")
+        result = self.stamp("approve", "Ann")
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    def test_pending_is_outside_the_hash(self):
+        before = self.hash_model()
+        pending = "\n## Pending\n\n| Date | Command | The gap, and the question for the user | Found while |\n|---|---|---|---|\n| 2026-10-06 | PlaceOrder | rounding? | example 2 |\n"
+        self.model.write_text(MODEL + pending)
+        self.assertEqual(self.hash_model(), before)
+        self.model.write_text(MODEL.replace("Status: draft", f"Status: approved by test, model-hash {before}") + pending)
+        result = self.run_tool("check-model.sh", self.model)
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.assertIn("1 gap(s) under Pending", result.stdout)
+
+    def test_domain_paths_must_hold_code_and_be_linted(self):
+        (self.repo / "internal/ordering").mkdir(parents=True)
+        (self.repo / "internal/ordering/order.go").write_text("package ordering\n")
+        (self.repo / "internal/empty").mkdir(parents=True)
+        config = self.repo / ".golangci.yml"
+        cases = [
+            ("Domain paths: internal/ordering", '- "**/internal/ordering/**"\n', False),
+            ("Domain paths: internal/ordering", '- "**/internal/ordering/**"\n- path-except: internal/ordering/\n', True),
+            ("Domain paths: internal/empty", "internal/empty internal/empty\n", False),
+            ("Domain paths: none", "", True),
+            ("No paths recorded", "", False),
+        ]
+        for line, lint, passes in cases:
+            with self.subTest(line=line, lint=lint):
+                (self.repo / "CLAUDE.md").write_text(f"## Domain code\n\n{line}\n")
+                config.write_text(lint)
+                result = self.run_tool("check-domain-paths.sh")
+                self.assertEqual(result.returncode == 0, passes, result.stdout + result.stderr)
+
+    def status(self):
+        result = self.run_tool("ddd-status.sh")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        return result.stdout
+
+    def test_status_before_setup(self):
+        self.model.unlink()
+        self.model.parent.rmdir()
+        (self.repo / "docs/domain").rmdir()
+        self.assertIn("setup: not done", self.status())
+
+    def test_status_matches_tests_to_example_rows(self):
+        test = self.repo / "internal/ordering/order_test.go"
+        test.parent.mkdir(parents=True)
+        test.write_text('func TestExample1StartOrder(t *testing.T) {}\n')
+        out = self.status()
+        self.assertIn("examples: 2 rows; with a test: 1; without: 2 (commands: PlaceOrder)", out)
+        test.write_text('func TestExamples1And2(t *testing.T) {}\n')
+        self.assertIn("examples: 2 rows; with a test: 1-2\n", self.status())
+
+    def test_status_leaves_no_files_behind(self):
+        # The status script imports check_model; in an installed repository, a __pycache__ beside it is an untracked change.
+        tools = self.repo / "tools"
+        shutil.copytree(TOOLS, tools, ignore=shutil.ignore_patterns("__pycache__"))
+        result = subprocess.run([str(tools / "ddd-status.sh")], cwd=self.repo, capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertFalse((tools / "__pycache__").exists())
+
+    def test_status_reports_model_state_and_next_migration_step(self):
+        self.model.write_text(MODEL.replace("## Open questions\nNone.", "## Open questions\n- Who may cancel?\n- Is there a limit?")
+                              + "\n## Migration\n\n1. Pin current behaviour. (done 2026-10-01)\n2. Introduce OrderId.\n")
+        out = self.status()
+        self.assertIn("status: draft", out)
+        self.assertIn("depth: standard", out)
+        self.assertIn("open questions: 2", out)
+        self.assertIn("migration: 1 of 2 steps done; next: step 2: Introduce OrderId.", out)
+
+    def test_status_reports_edit_after_approval(self):
+        self.model.write_text(MODEL.replace("Status: draft", f"Status: approved by test, model-hash {self.hash_model()}")
+                              .replace("already placed", "placing is final"))
+        self.assertIn("edited after approval, so it needs approving again", self.status())
+
+    def test_status_ties_tests_to_contexts_when_there_are_several(self):
+        (self.repo / "docs/domain/contexts/billing.md").write_text(MODEL.replace("Context: Ordering", "Context: Billing"))
+        for path, text in [("src/ordering/order.test.ts", 'test("example 2: placing", () => {})'),
+                           ("test/misc.test.ts", 'test("example 1", () => {})'),
+                           ("test/billing.test.ts", '// docs/domain/contexts/billing.md\ntest("example 1", () => {})')]:
+            (self.repo / path).parent.mkdir(parents=True, exist_ok=True)
+            (self.repo / path).write_text(text)
+        out = self.status()
+        billing, ordering = out.split("context billing")[1].split("context ordering")
+        self.assertIn("with a test: 1;", billing)
+        self.assertIn("with a test: 2;", ordering)
+        self.assertIn("tied to no context: test/misc.test.ts", out)
+
     def install(self, *args, target=None):
         script = ROOT / "skills/ddd-setup/install.sh"
         return subprocess.run(["bash", str(script), *map(str, args)], cwd=target or self.repo, capture_output=True, text=True)
+
+    def test_install_puts_cards_in_their_style_and_strategic_cards_everywhere(self):
+        for args, cards in ((["--lang", "ts"], True), (["--model-only"], False)):
+            with self.subTest(args=args):
+                repo = self.repo / args[-1].strip("-")
+                subprocess.run(["git", "init", "-q", str(repo)], check=True)
+                result = self.install(*args, target=repo)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertTrue((repo / "docs/ddd/strategic/06-anti-corruption-layer.md").exists())
+                self.assertEqual((repo / "docs/ddd/cards/functional/ts/03-states-as-types.md").exists(), cards)
+                self.assertEqual((repo / "docs/ddd/cards/README.md").exists(), cards)
+                self.assertFalse((repo / "docs/ddd/cards/functional/go").exists())
+
+    def test_install_reports_the_earlier_card_layout(self):
+        old = self.repo / "docs/ddd/cards/03-states-as-types.md"
+        old.parent.mkdir(parents=True)
+        old.write_text("# States as types\n\n## Corrections\n\n- 2026-01-01: a team correction\n")
+        result = self.install("--lang", "none")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("earlier card layout", result.stdout)
+        self.assertIn("a team correction", old.read_text())
+        self.assertIn("cards: earlier layout", self.status())
+
+    def test_status_names_the_installed_style(self):
+        self.install("--lang", "ts")
+        out = self.status()
+        self.assertIn("cards: functional, examples for ts", out)
+        self.assertNotIn("strategic cards: not installed", out)
+
+    def test_relative_links_in_the_kit_and_skills_resolve(self):
+        broken = []
+        for doc in [*KIT.rglob("*.md"), *(ROOT / "skills").rglob("*.md"), ROOT / "README.md", ROOT / "REFERENCE.md"]:
+            # Links inside code and comments are examples of what a user writes, not links of the kit.
+            text = re.sub(r"```.*?```|<!--.*?-->|`[^`\n]*`", "", doc.read_text(), flags=re.S)
+            for target in re.findall(r"\]\(([^)#\s]+)(?:#[^)]*)?\)", text):
+                if "://" not in target and not (doc.parent / target).exists():
+                    broken.append(f"{doc.relative_to(ROOT)}: {target}")
+        self.assertEqual(broken, [])
 
     def test_install_accepts_options_after_the_repository(self):
         repo = self.repo / "target"

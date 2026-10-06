@@ -4,9 +4,15 @@ Checks selected structural properties: that every section of the template is
 present (with "None." where there is nothing), state-field type references, command
 signature/table agreement, incoming/outgoing command mentions, matrix cells,
 example mentions for commands and decision failures, unique example numbers,
-selected glossary names and rejected synonyms, depth override names, and approval
-hash boundaries. For each name on a "Strict commands:" line it prints the strict
-scope: the rows that name the command and the primitives its states use.
+selected glossary names and rejected synonyms, depth override names, approval
+hash boundaries, and that no 'Issued by' cell or invariant is marked (assumed) or
+left as a placeholder such as TBD. For each name on a "Strict commands:" line it
+prints the strict scope: the command's own rows, the rows that name it, and every
+primitive its states and inputs use.
+
+An approved status is checked against its depth. At strict depth it may not rest
+on (assumed) entries, open questions, amendment rows or a missing or out-of-date
+review. With strict commands, the same holds for their strict scope.
 
 It does not prove reachability from creation, resolve event/failure payload
 types, validate outside-fact trust rules, cover use-case failures or all glossary
@@ -22,6 +28,13 @@ import sys
 
 BUILTIN = {"Timestamp", "Boolean", "NonEmpty", "List", "Set", "Map", "Optional"}
 NONE = re.compile(r"^\s*none\b", re.I | re.M)
+PLACEHOLDER = re.compile(r"tbd|tbc|to be (decided|confirmed)|unknown|open( question)?|see open questions|\?+")
+
+
+def unconfirmed(cell):
+    """True for a core cell nobody confirmed: marked (assumed), or a placeholder standing in for an answer."""
+    text = (cell or "").strip().rstrip(".").strip().lower()
+    return "(assumed)" in text or bool(PLACEHOLDER.fullmatch(text))
 
 
 def split(text, marker):
@@ -105,39 +118,119 @@ def parse_glossary(path):
     return terms, avoid
 
 
-def strict_scope(command, signature, subs, examples, primitives, defs):
-    """What a strict command pulls into strict depth: the rows that name it and the primitives of the data it adds."""
-    named = lambda cell: re.search(rf"\b{command}\b", cell or "")
-    parts = []
-    rows = [r.get("#", "?") for r in examples if named(r.get("Covers")) or named(r.get("When"))]
-    if rows:
-        parts.append("examples " + ", ".join(rows))
-    rows = [r.get("#", "?") for r in table(find(subs, "Invariants"))
-            if named(r.get("Commands that could break it")) or named(r.get("Enforced by"))]
-    if rows:
-        parts.append("invariants " + ", ".join(rows))
-    rows = [r.get("Commands", "") for r in table(find(subs, "Races")) if named(r.get("Commands"))]
-    if rows:
-        parts.append("races " + "; ".join(rows))
-    rows = [(names_in(r.get("Fact", "")) or ["?"])[0] for r in table(find(subs, "Facts from outside"))
-            if named(r.get("Used by")) or re.search(r"\b(every|all)\b", r.get("Used by", ""), re.I)]
-    if rows:
-        parts.append("facts " + ", ".join(rows))
-    if signature["failures"]:
-        parts.append("failures " + ", ".join(sorted(signature["failures"])))
-    def reachable(states):
-        found, todo = set(), list(states)
-        while todo:
-            for ref in defs.get(todo.pop(), []):
-                if ref not in found:
-                    found.add(ref)
-                    todo.append(ref)
-        return found & set(primitives)
+def strict_scope(command, signature, subs, examples, primitives, defs, policies):
+    """What a strict command pulls into strict depth: its own rows, the rows that name it and the primitives it touches.
 
-    added = reachable(signature["targets"]) - reachable(signature["sources"])
-    if added:
-        parts.append("primitives it adds " + ", ".join(sorted(added)))
-    return command, parts, signature["events"]
+    Returns the command, the parts to print, the text of every row in the scope, and the names in it."""
+    named = lambda cell: bool(re.search(rf"\b{command}\b", cell or ""))
+    parts, cells, names = [], [], {command}
+
+    def take(label, rows, key, separator=", "):
+        if rows:
+            parts.append(label + " " + separator.join(key(r) for r in rows))
+            cells.extend(value for r in rows for value in r.values())
+
+    take("issued by:", [r for r in table(find(subs, "Commands")) if r.get("Command") == command],
+         lambda r: r.get("Issued by", "") or "?")
+    matrix = table(next((b for t, b in subs if t.lower().startswith("command") and "matrix" in t.lower()), None))
+    column = [r for r in matrix if r.get(command) is not None]
+    if column:
+        parts.append("matrix column " + command)
+        cells.extend(r[command] for r in column)
+    take("examples", [r for r in examples if named(r.get("Covers")) or named(r.get("When"))], lambda r: r.get("#", "?"))
+    take("invariants", [r for r in table(find(subs, "Invariants"))
+                        if named(r.get("Commands that could break it")) or named(r.get("Enforced by"))],
+         lambda r: r.get("#", "?"))
+    take("failures", [r for r in table(find(subs, "Failures")) if r.get("Failure") in signature["failures"]],
+         lambda r: r.get("Failure", ""))
+    take("use-case failures", [r for r in table(find(subs, "Use-case failures")) if named(" ".join(r.values()))],
+         lambda r: r.get("Failure", "?"))
+    take("events", [r for r in table(find(subs, "Events")) if r.get("Event") in signature["events"]],
+         lambda r: r.get("Event", ""))
+    take("races", [r for r in table(find(subs, "Races")) if named(r.get("Commands"))],
+         lambda r: r.get("Commands", ""), "; ")
+    take("facts", [r for r in table(find(subs, "Facts from outside"))
+                   if named(r.get("Used by")) or re.search(r"\b(every|all)\b", r.get("Used by", ""), re.I)],
+         lambda r: (names_in(r.get("Fact", "")) or ["?"])[0])
+    take("policies", [r for r in policies if named(r.get("Then (command)"))
+                      or any(re.search(rf"\b{e}\b", r.get("When (event)", "")) for e in signature["events"])],
+         lambda r: f"{r.get('When (event)', '')} -> {r.get('Then (command)', '')}", "; ")
+
+    # Every primitive the command reads, writes or takes as input: a value that already exists in the
+    # state it starts from (the amount being charged, say) is as much in scope as one it adds.
+    found, todo = set(), [*signature["sources"], *signature["targets"], *signature["inputs"]]
+    while todo:
+        name = todo.pop()
+        if name in found:
+            continue
+        found.add(name)
+        todo.extend(defs.get(name, []))
+    touched = sorted(found & set(primitives))
+    take("primitives", [primitives[name] for name in touched], lambda r: r.get("Name", ""))
+    names.update(signature["failures"], signature["events"], touched)
+    return command, parts, cells, names
+
+
+def check_approval(state, hashed, depth, strict_commands, scopes, top, assumed, err, warnings):
+    """What an approved status may rest on. Strict depth is held to 'everything confirmed and reviewed'."""
+    actual = hashed.stdout.strip() if hashed.returncode == 0 else None
+    review = re.search(r"\breviewed\s+[^,\s]+(?:\s+at\s+([0-9a-f]+))?", state)
+    review_hash = review.group(1) if review else None
+    stale = bool(review_hash and actual and review_hash != actual)
+    restamp = "review the changed rows with ddd-model-review, then run tools/stamp-model.sh review <file>"
+
+    if not state.lower().startswith("approved"):
+        if stale:
+            warnings.append(f"the review on the Status line is of model-hash {review_hash}; the model has changed since, so {restamp}")
+        return
+
+    recorded = re.search(r"model-hash\s+([0-9a-f]+)", state)
+    if not recorded:
+        err("approved without a model-hash, so the approval cannot be verified; approve with tools/stamp-model.sh approve <file> <name>")
+    elif actual and actual != recorded.group(1):
+        err(f"edited after approval: the Status line records model-hash {recorded.group(1)}, the file now hashes to {actual}")
+
+    questions = find(top, "Open questions")
+    open_questions = bool(questions and questions.strip() and not NONE.search(questions))
+    amendments = table(find(top, "Amendments"))
+    pending = table(find(top, "Pending"))
+    if pending:
+        warnings.append(f"{len(pending)} gap(s) under Pending: implementation is waiting for them to be settled in the model")
+
+    if not depth or depth.group(1).strip() == "strict":
+        if assumed:
+            err(f"strict depth, approved with {assumed} (assumed) marker(s): at strict depth everything is confirmed")
+        if open_questions:
+            err("strict depth, approved with open questions: answer them before approval")
+        if amendments:
+            err(f"strict depth, {len(amendments)} amendment row(s): at strict depth a gap stops implementation and changes the model through ddd-modelling")
+        if not review:
+            err("strict depth, approved without a review: run ddd-model-review in a fresh session, then tools/stamp-model.sh review <file>")
+        elif not review_hash:
+            warnings.append("the review on the Status line names no model-hash, so it cannot be tied to this version of the model")
+        elif stale:
+            err(f"strict depth: the review is of model-hash {review_hash}, the approved model is {actual}; {restamp}")
+        return
+
+    if open_questions:
+        warnings.append("approved with open questions")
+    if amendments:
+        warnings.append(f"{len(amendments)} amendment(s) since approval: fold them into the model and approve again when convenient")
+    for command, _, cells, names in scopes:
+        if any("(assumed)" in cell for cell in cells):
+            err(f"strict scope of {command} has entries marked (assumed): confirm them before approval")
+        touching = [row for row in amendments
+                    if any(re.search(rf"\b{re.escape(name)}\b", " ".join(row.values())) for name in names)]
+        if touching:
+            err(f"strict scope of {command}: {len(touching)} amendment row(s) touch it; a gap in a strict scope changes the model through ddd-modelling")
+    if strict_commands:
+        if not review:
+            err("approved with strict commands, but their strict scope was not reviewed: run ddd-model-review, then tools/stamp-model.sh review <file>")
+        elif not review_hash:
+            warnings.append("the review on the Status line names no model-hash, so it cannot be tied to this version of the model")
+        elif stale:
+            warnings.append(f"the review is of model-hash {review_hash}, the approved model is {actual}. If the change touched a strict scope, "
+                            f"{restamp}; if it touched none, re-stamp the review and say so")
 
 
 def check(path, glossary_override):
@@ -158,20 +251,6 @@ def check(path, glossary_override):
     status = re.search(r"^Status:\s*(.+)$", text, re.M)
     if not status:
         err("no Status line")
-    elif status.group(1).lower().startswith("approved"):
-        recorded = re.search(r"model-hash\s+([0-9a-f]+)", status.group(1))
-        if not recorded:
-            warnings.append("approved without a model-hash, so the approval cannot be verified")
-        else:
-            actual = hashed.stdout.strip()
-            if hashed.returncode == 0 and actual != recorded.group(1):
-                err(f"edited after approval: the Status line records model-hash {recorded.group(1)}, the file now hashes to {actual}")
-        questions = find(top, "Open questions")
-        if questions and questions.strip() and not NONE.search(questions):
-            warnings.append("approved with open questions")
-        amendments = len(table(find(top, "Amendments")))
-        if amendments:
-            warnings.append(f"{amendments} amendment(s) since approval: fold them into the model and approve again when convenient")
 
     depth = re.search(r"^Depth:\s*(.+)$", text, re.M)
     if depth and depth.group(1).strip() not in ("standard", "strict"):
@@ -297,7 +376,7 @@ def check(path, glossary_override):
                 err(f"{where}: command {name} has no resulting state")
             produced.update(targets)
             commands[name] = set() if creating else set(sources)
-            signatures[name] = {"sources": commands[name], "targets": set(targets), "events": own_events, "failures": own_failures}
+            signatures[name] = {"sources": commands[name], "targets": set(targets), "events": own_events, "failures": own_failures, "inputs": set()}
         if not commands:
             err(f"{where}: the Commands block has no 'Name : State -> State' lines")
         all_names.update([*commands, *events, *failures])
@@ -305,8 +384,16 @@ def check(path, glossary_override):
 
         listed = {r.get("Command", ""): r for r in table(find(subs, "Commands")) if r.get("Command")}
         for name in commands:
-            if not listed.get(name, {}).get("Issued by"):
+            issuer = listed.get(name, {}).get("Issued by")
+            if not issuer:
                 err(f"{where}: command {name} has no 'Issued by'")
+            elif unconfirmed(issuer):
+                err(f"{where}: command {name}: 'Issued by' is not confirmed ({issuer}); who may issue a command is part of the core, so ask the user and write their answer")
+            # The optional Input column names the values a command takes that are not in the state it starts from.
+            for ref in names_in(listed.get(name, {}).get("Input", "")):
+                if ref not in defined and ref not in BUILTIN:
+                    err(f"{where}: command {name} takes {ref}, which is neither a primitive nor a defined type")
+                signatures[name]["inputs"].add(ref)
         for name in set(listed) - set(commands):
             err(f"{where}: the Commands table lists {name}, which has no signature")
         for name in set(events) - emitted:
@@ -328,6 +415,8 @@ def check(path, glossary_override):
 
         for row in table(find(subs, "Invariants")):
             number = row.get("#", "?")
+            if unconfirmed(row.get("Invariant")):
+                err(f"{where}: invariant {number} is not confirmed ({row.get('Invariant')}); invariants are part of the core, so ask the user and write their answer")
             if not row.get("Enforced by"):
                 err(f"{where}: invariant {number} does not say where it is enforced")
             named = re.search(r"decision function (\w+)", row.get("Enforced by", ""))
@@ -395,20 +484,17 @@ def check(path, glossary_override):
             err(f"{where}: 'Races' is empty; write 'None.' if no two commands can clash")
 
         for command in [c for c in strict_commands if c in signatures and c in commands]:
-            scopes.append(strict_scope(command, signatures[command], subs, examples, primitives, all_defs))
+            scopes.append(strict_scope(command, signatures[command], subs, examples, primitives, all_defs,
+                                       table(find(top, "Policies"))))
 
-    policies = table(find(top, "Policies"))
-    for line in scopes:
-        command, parts, events_ = line
-        caused = [f"{r.get('When (event)', '')} -> {r.get('Then (command)', '')}" for r in policies
-                  if re.search(rf"\b{command}\b", r.get("Then (command)", ""))
-                  or any(re.search(rf"\b{e}\b", r.get("When (event)", "")) for e in events_)]
-        if caused:
-            parts.append("policies " + "; ".join(caused))
+    for command, parts, _, _ in scopes:
         notes.append(f"strict scope for {command}: " + ("; ".join(parts) or "the command alone"))
 
     for name in sorted(set(strict_commands) - all_commands):
         err(f"Strict commands names {name!r}, which has no command signature")
+
+    if status:
+        check_approval(status.group(1), hashed, depth, strict_commands, scopes, top, assumed, err, warnings)
 
     glossary = load_glossary(path, context, glossary_override)
     if glossary is None or not glossary.exists():

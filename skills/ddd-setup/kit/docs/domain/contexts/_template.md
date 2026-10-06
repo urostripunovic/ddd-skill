@@ -3,17 +3,18 @@
 Status: draft
 <!-- One line, always starting with "Status:". Values:
      draft
-     derived from code, not confirmed
+     derived from code, not confirmed, read at <short commit>
      approved by <name> on <date>, model-hash <output of tools/model-hash.sh for this file>
-     Either may end with ", reviewed <date>" once a model review has no blockers left.
-     The hash covers the model before the trailing "## Migration" / "## Amendments" sections,
-     except the Status line. Keep all model sections before that tail. -->
+     Either may end with ", reviewed <date> at <hash>" once a model review has no blockers left.
+     Write this line with tools/stamp-model.sh (approve, review or draft), never by hand.
+     The hash covers the model before the trailing "## Migration" / "## Amendments" / "## Pending"
+     sections, except the Status line. Keep all model sections before that tail. -->
 
 Depth: standard
 <!-- Optional: Strict commands: PlaceOrder, CancelOrder
-     Use names from the Commands blocks, comma-separated. Each one's strict scope (the command, its
-     failures, the rows that name it and the primitives of the data it adds) is strict even in a
-     standard context. tools/check-model.sh prints that scope. -->
+     Use names from the Commands blocks, comma-separated. Each one's strict scope (its Issued by row,
+     matrix column, failures, use-case failures, events, the rows that name it, and every primitive
+     its states and inputs use) is strict even in a standard context. tools/check-model.sh prints it. -->
 <!-- How much is settled before code is written.
      standard: the core is confirmed (states, commands and who may issue them, invariants, aggregate
                boundaries, the glossary). The rest is a best guess marked "(assumed)", and implementation
@@ -22,7 +23,9 @@ Depth: standard
                For money, credentials, authorisation, and anything that cannot be undone. -->
 
 <!-- "(assumed)" at the end of a cell marks a value nobody has confirmed: a bound, what a failure carries,
-     an edge case. It is implemented as written, and it is the first place to look when behaviour surprises. -->
+     an edge case. It is implemented as written, and it is the first place to look when behaviour surprises.
+     It is never used for the core: an "Issued by" cell or an invariant marked "(assumed)", or holding a
+     placeholder such as TBD, fails tools/check-model.sh. Ask, and list it under Open questions until answered. -->
 
 <!-- tools/check-model.sh reads this file. Keep the headings, the table columns and the notation in the
      code blocks as they are here, or the check cannot find them. The Order example below is only an
@@ -82,11 +85,11 @@ PlaceOrder  : DraftOrder -> PlacedOrder + [OrderPlaced] | EmptyOrder
 CancelOrder : DraftOrder | PlacedOrder -> CancelledOrder + [OrderCancelled]
 ```
 
-Who may issue each command is part of the model. A command that time issues ("48 hours after the offer") names the scheduler and the delay here.
+Who may issue each command is part of the model. A command that time issues ("48 hours after the offer") names the scheduler and the delay here. **Input** lists the values a command takes that are not in the state it starts from, as `name: Type` with a primitive or a defined type, or `none`.
 
-| Command | Issued by | Notes |
-|---|---|---|
-| <!-- PlaceOrder --> | <!-- the customer who owns the order --> | |
+| Command | Issued by | Input | Notes |
+|---|---|---|---|
+| <!-- PlaceOrder --> | <!-- the customer who owns the order --> | <!-- none --> | |
 
 ### Command × state matrix
 
@@ -183,8 +186,16 @@ Why, where the model alone does not say. Only for a decision that is hard to rev
 
 ## Amendments
 
-What implementation learned after approval. Rows here do not change the model-hash, so recording one does not undo the approval. Fold them into the sections above, and approve again, when there are enough to be worth it or before the next larger change. Write "None." when there are none.
+What implementation learned after approval, at standard depth and outside any strict scope. Rows here do not change the model-hash, so recording one does not undo the approval. At strict depth, or touching a strict scope, `tools/check-model.sh` rejects them: those gaps go under Pending and through `ddd-modelling`. Fold them into the sections above, and approve again, when there are enough to be worth it or before the next larger change. Write "None." when there are none.
 
 | Date | Section | The model said | What was learned, and what the code does |
 |---|---|---|---|
 | <!-- 2026-01-20 --> | <!-- Examples, row 44 --> | <!-- 5 attempts are recorded --> | <!-- With 1 000 requests at once the retries run out first: at most 5 are recorded. The test asserts "at most 5 tokens, exactly 1 delivered" --> |
+
+## Pending
+
+Gaps implementation found and cannot settle itself: a gap in the core, or any gap at strict depth or in a strict scope. Each row waits for an answer from the user; `ddd-modelling` settles it in the model and removes the row once the model is approved again. Rows here do not change the model-hash. Write "None." when there are none.
+
+| Date | Command | The gap, and the question for the user | Found while |
+|---|---|---|---|
+| <!-- 2026-01-21 --> | <!-- RefundPayment --> | <!-- Is a refund rounded to whole öre, and which way? The model gives no rounding rule --> | <!-- writing example 12 as a test --> |

@@ -18,8 +18,8 @@ Two things come out of this that a general ticket breakdown does not give:
 1. If `docs/domain/` does not exist, this repository has not adopted the kit. Say so and stop.
 2. Run `tools/check-model.sh` on each context file in scope. If it fails, or the status is `draft` or `derived from code, not confirmed`, stop and say which. Tickets are cut only from an approved model.
 3. Note the model-hash from the Status line. Every ticket carries it.
-4. Read `Depth:` and `Strict commands:`. The strict scope that `tools/check-model.sh` printed for each strict command uses strict depth; other work uses the context's depth. Missing depth means strict. Carry the effective depth into each ticket.
-5. Reuse the setup choice: installed cards select the kit's style unless agent instructions explicitly record otherwise. Without cards, tickets describe the model's behaviour in the project's existing style; do not add a typed refactor to the work, and see **Without the cards** below.
+4. Read [depth.md](../ddd-modelling/lifecycle/depth.md) and [code-style.md](../ddd-modelling/lifecycle/code-style.md). A missing `Depth:` means strict. Carry each ticket's effective depth into it, naming the strict scopes it touches.
+5. In the repository's own code style, tickets describe the model's behaviour in the project's existing style; do not add a typed refactor to the work, and see **Without the cards** below.
 
 ## Scope
 
@@ -170,7 +170,7 @@ Use the vocabulary of the glossary in titles and text. No code in a ticket, and 
 
 The ticket says so itself, in one line under **Model**: if `tools/model-hash.sh` on the context file no longer gives the hash in the ticket, the model was approved again since the ticket was cut. The implementer looks at what changed (`git log -p` on the context file) and at the rows this ticket lists. If none of them changed, the work goes on and the ticket gets the new hash. If one did, the ticket is updated first, as described below. Add that line to every ticket.
 
-Rows under the context file's `## Amendments` do not change the hash. An implementer reads the ones that name this ticket's command along with the rows the ticket lists.
+An implementer also reads the `## Amendments` and `## Pending` rows that name this ticket's command. A pending row blocks the ticket until `ddd-modelling` settles it.
 
 ## When the model changes
 
@@ -195,4 +195,4 @@ The templates match his, so `implement` and `task-review` read either kind. The 
 - Copy a rule, an example or a bound into a ticket. Point at the row.
 - Give a command ticket a running dependency, when the project uses the cards. If it seems to need one, I/O has leaked into the decision or the workflow is being tested against the wrong repository.
 - Build or run an image of the application in any ticket but the tracer.
-- Change the model. A core gap, a gap in a strict scope, or a guess that could lose money or data, expose something, or be hard to undo goes back to `ddd-modelling` for clarification and approval. Other standard-depth gaps may be listed in the affected ticket for the implementer to settle, test and record under `## Amendments`.
+- Change the model. A gap found while cutting tickets is handled as [gaps.md](../ddd-modelling/lifecycle/gaps.md) says: one that must stop goes to `ddd-modelling`; one the implementer may settle is listed in the affected ticket.

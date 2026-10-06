@@ -4,6 +4,8 @@
 
 **Never:** let the other system's types, field names or status strings appear in domain code.
 
+When to choose this over conforming to the other model is a modelling decision: see the strategic card, [anti-corruption layer](../../strategic/06-anti-corruption-layer.md).
+
 ## Rules
 
 - A translator at the edge maps the external model to domain types and back. Nothing else knows the external model.
