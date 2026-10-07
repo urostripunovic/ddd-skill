@@ -631,10 +631,16 @@ class ToolTests(unittest.TestCase):
     def test_domain_decisions_and_adrs_have_one_split(self):
         # Domain decisions are Decisions rows under the approval hash; technical ones are ADRs. Both places say so.
         modelling = next(l for l in (ROOT / "skills/ddd-modelling/SKILL.md").read_text().splitlines() if l.startswith("- **Decisions**"))
-        reference = next(l for l in (ROOT / "REFERENCE.md").read_text().splitlines() if "Matt Pocock's skills" in l)
+        reference = next(l for l in (ROOT / "REFERENCE.md").read_text().splitlines() if "Domain decisions go in" in l)
         for line in (modelling, reference):
             self.assertIn("`docs/adr/`", line)
             self.assertRegex(line, r"approv(al hash|ing again)")
+
+    def test_review_routing_with_code_review_is_the_same_everywhere(self):
+        # Domain code goes to ddd-review-all, and it takes the place of Matt Pocock's implement -> /code-review step.
+        for path in ("skills/ddd-review-all/SKILL.md", "skills/ddd-implementation/SKILL.md", "REFERENCE.md"):
+            text = (ROOT / path).read_text()
+            self.assertIn("takes the place of its `/code-review` step", text, path)
 
     def test_lifecycle_word_counts_match_the_files(self):
         # Counted as wc -w counts: runs of non-whitespace. Every rule file is listed.

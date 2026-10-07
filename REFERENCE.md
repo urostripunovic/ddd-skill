@@ -220,6 +220,8 @@ The task is: [link or path to the original task].
 
 Only committed changes are reviewed. Without a base branch, the reviewer uses the point where your branch left the default branch. `ddd-review-all` reviews in separate subagents and temporary Git worktrees. The full review runs three: `ddd-review` (code against the model), `secure-by-design-review` (security) and `task-review` (code against the task; skipped if you have no task). It runs when a context is strict, has no `Depth:` line, or the change names a strict command, or when you ask: `/ddd-review-all full`. Otherwise, at standard depth, one reviewer runs `ddd-review` and the Secure by Design sections on authorisation, sensitive data and input at the boundary; it does not ask for a task. Without subagents, run the review skills one by one in fresh sessions.
 
+With Matt Pocock's skills, review domain code with `ddd-review-all` and the rest of a branch (screens, endpoints, reports) with his `code-review`, which checks the repository's documented standards and common code smells. When his `implement` built domain code, `ddd-review-all` takes the place of its `/code-review` step.
+
 The combined report ends with the next step:
 
 - **No blockers:** merge. Fix should-fix findings without another round, or turn them into tickets.
