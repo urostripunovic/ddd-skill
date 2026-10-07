@@ -8,12 +8,14 @@
 # form, with the hashes in the text, is read the same way.
 #   approve  "approved by <name> on <today>" with the model-hash, only after the
 #            user said they approve. When CLAUDE.md or AGENTS.md has an
-#            "Approvers: A, B" line, <name> must be on it. Before that, it
-#            user said they approve. It runs tools/check-model.sh on the result and
+#            "Approvers: A, B" line, <name> must be on it. It runs
+#            tools/check-model.sh on the result, prints its warnings, and
 #            leaves the file unchanged if the check fails.
 #   review   appends "reviewed <today> at <hash>" once a model review has no
 #            blockers left, after its accepted changes are written. The hash ties
-#            the review to this version: a later edit makes it out of date.
+#            the review to this version: a later edit makes it out of date. With
+#            strict commands it also records a hash of each strict scope, so an
+#            approval after a change inside one is refused until it is reviewed.
 #   draft    sets the status back to draft after an edit to the approved part,
 #            keeping the review, so the checker can tell that it is out of date.
 set -euo pipefail
@@ -56,12 +58,13 @@ if action == "approve":
                  "Only the user changes that line.")
 
 sys.path.insert(0, str(here))
-from check_model import read_status
+from check_model import check, read_status, reviewed_scopes
 
 # The line reads short; the hashes the tools compare go in a comment at its end.
 state = read_status(raw)
 review = re.search(r"\breviewed\s+([^,\s]+)(?:\s+at\s+([0-9a-f]+))?", state)
 reviewed = (review.group(1), review.group(2)) if review else None
+scopes = reviewed_scopes(raw)
 base = state[:review.start()].strip().rstrip(",").strip() if review else state
 approved_hash = re.search(r",?\s*model-hash\s+([0-9a-f]+)", base)
 if approved_hash:
@@ -73,19 +76,22 @@ if action == "approve":
         sys.exit("approve needs the name of the person who approved")
     base, approved_hash = f"approved by {name} on {today}", model_hash
 elif action == "review":
-    reviewed = (today, model_hash)
+    reviewed, scopes = (today, model_hash), {}
+    check(path, None, scope_hashes=scopes)
 else:
     base, approved_hash = "draft", None
 
-hidden = ([f"model-hash {approved_hash}"] if approved_hash else []) + ([f"reviewed at {reviewed[1]}"] if reviewed and reviewed[1] else [])
+hidden = (([f"model-hash {approved_hash}"] if approved_hash else []) + ([f"reviewed at {reviewed[1]}"] if reviewed and reviewed[1] else [])
+          + ([f"scope {command} {digest}" for command, digest in sorted(scopes.items())] if reviewed else []))
 line = "Status: " + base + (f", reviewed {reviewed[0]}" if reviewed else "") + (f" <!-- {', '.join(hidden)} -->" if hidden else "")
 path.write_text(raw[:status.start()] + line + raw[status.end():])
 
 if action == "approve":
-    check = subprocess.run([sys.executable, str(here / "check_model.py"), "--approving", str(path)], capture_output=True, text=True)
-    if check.returncode:
+    checked = subprocess.run([sys.executable, str(here / "check_model.py"), "--approving", str(path)], capture_output=True, text=True)
+    if checked.returncode:
         path.write_text(raw)
-        sys.stdout.write(check.stdout)
+        sys.stdout.write(checked.stdout)
         sys.exit(f"{path}: not approved, and the file is unchanged. Settle the problems above, then approve again.")
+    sys.stdout.write("".join(l + "\n" for l in checked.stdout.splitlines() if ": warning: " in l))
 print(f"{path}: {line}")
 PY

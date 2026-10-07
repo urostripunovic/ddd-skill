@@ -178,7 +178,7 @@ Use ddd-modelling to address these review findings in
 docs/domain/contexts/ordering.md: [paste the findings].
 ```
 
-If the review found blockers, return to the review session to check the fixes; a review with no blockers needs no further round. The agent then records the review on the `Status:` line as `reviewed <date>`, with the hash it reviewed in the line's comment. If the model changes later, that review is out of date, and only the changed rows need reviewing again.
+If the review found blockers, return to the review session to check the fixes; a review with no blockers needs no further round. The agent then records the review on the `Status:` line as `reviewed <date>`, with the hash it reviewed in the line's comment. If the model changes later, that review is out of date, and only the changed rows need reviewing again. With strict commands, the review also records each strict scope, and approval is refused after a change inside one until it is reviewed again.
 
 When you have read the model and are satisfied:
 

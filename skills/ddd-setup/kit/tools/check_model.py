@@ -13,7 +13,9 @@ primitive its states and inputs use.
 
 An approved status is checked against its depth. At strict depth it may not rest
 on (assumed) entries, open questions, amendment rows or a missing or out-of-date
-review. With strict commands, the same holds for their strict scope.
+review. With strict commands, the same holds for their strict scope: tools/stamp-model.sh
+review records a hash of each scope, and a new approval is refused when one has changed
+since.
 
 It does not prove reachability from creation, resolve event/failure payload
 types, judge whether an outside fact's trust rule is sufficient, cover use-case failures or all glossary
@@ -27,6 +29,7 @@ approval rests on it.
 Exit status is 1 when any problem is found. Lines starting with "warning:" and the
 strict-scope lines do not change the exit status.
 """
+import hashlib
 import os
 import pathlib
 import re
@@ -57,6 +60,17 @@ def read_status(raw):
     if review_hash and review and not re.search(r"\breviewed\s+[^,\s]+\s+at\s", state):
         state = state[:review.end()] + f" at {review_hash.group(1)}" + state[review.end():]
     return state
+
+
+def reviewed_scopes(raw):
+    """The strict-scope hashes tools/stamp-model.sh review recorded in the Status line's comment, as {command: hash}."""
+    line = re.search(r"^Status:([^\n]*)$", raw, re.M)
+    hidden = " ".join(re.findall(r"<!--(.*?)-->", line.group(1))) if line else ""
+    return dict(re.findall(r"\bscope\s+(\w+)\s+([0-9a-f]+)", hidden))
+
+
+def scope_hash(cells):
+    return hashlib.sha1("\n".join(cells).encode()).hexdigest()[:12]
 
 
 def unconfirmed(cell):
@@ -165,19 +179,27 @@ def parse_glossary(path, context_name):
 
 
 def crossing_terms(path, context):
-    """The terms this context's glossary must hold for its rows in docs/domain/context-map.md, as (term, why) pairs.
+    """What this context's rows in docs/domain/context-map.md require of its glossary: (term, why) pairs, and the
+    problems that keep a row from being checked at all.
 
     Upstream: every term under 'What crosses the boundary'. Downstream: the same terms when Translation is 'none'
-    (conformist), otherwise the CamelCase names Translation gives, such as 'arrives in the domain as a ChargeOutcome'.
-    A side that is an outside system has no glossary and is not checked; nothing syncs the two glossaries' other terms.
-    Separate ways crosses nothing, and a published language's row names the language, not terms: neither is checked."""
+    (conformist), otherwise the names Translation gives, such as 'arrives in the domain as a ChargeOutcome' or 'as a
+    Payment'; a capitalised word that starts a sentence or names a side is not one. A Translation that names no term
+    is a problem, and so is a side written as this context's name with more around it ('Billing context'), because
+    such a row would be read as an outside system's. An outside system has no glossary and is not checked; nothing
+    syncs the two glossaries' other terms. Separate ways crosses nothing, and a published language's row names the
+    language, not terms: neither is checked."""
     context_map = path.resolve().parent.parent / "context-map.md"
     if not context_map.exists():
-        return []
+        return [], []
     top = split(re.sub(r"<!--.*?-->", "", context_map.read_text(), flags=re.S), "## ")
-    needed = []
+    needed, problems = [], []
     for row in table(find(top, "Relationships")):
         upstream, downstream = row.get("Upstream", "").strip(), row.get("Downstream", "").strip()
+        for side in (upstream, downstream):
+            if side.lower() != context.lower() and re.search(rf"\b{re.escape(context)}\b", side, re.I):
+                problems.append(f"the context map's row {upstream} -> {downstream} names '{side}'; write '{context}', as this "
+                                "context's title has it, or the row is read as an outside system's and its terms are not checked")
         if re.search(r"separate ways|published language", row.get("Pattern", ""), re.I):
             continue
         crossing = [re.split(r"[{(]", term)[0].strip() for term in row.get("What crosses the boundary", "").split(",")]
@@ -186,14 +208,18 @@ def crossing_terms(path, context):
         if upstream.lower() == context.lower():
             needed += [(term, f"crosses the boundary to {downstream}") for term in crossing]
         elif downstream.lower() == context.lower():
-            if translation.rstrip(".").lower() == "none":
+            if re.match(r"none\b", translation, re.I):
                 needed += [(term, f"arrives from {upstream} untranslated") for term in crossing]
             else:
                 sides = {upstream.replace(" ", "").lower(), downstream.replace(" ", "").lower()}
-                needed += [(name, f"is how {upstream} arrives, the Translation says")
-                           for name in re.findall(r"\b[A-Z][a-z0-9]+(?:[A-Z][a-z0-9]*)+\b", translation)
-                           if name.lower() not in sides]
-    return needed
+                names = [m.group() for m in re.finditer(r"\b[A-Z][a-z0-9]*(?:[A-Z][a-z0-9]*)*\b", translation)
+                         if m.group().lower() not in sides and not re.search(r"(^|[.;:]\s*)$", translation[:m.start()])]
+                if not names:
+                    problems.append(f"the context map's row {upstream} -> {downstream}: Translation names no term "
+                                    f"('{translation}'); write 'none' when {context} uses {upstream}'s terms as they are, "
+                                    "or the term they arrive as, in CamelCase")
+                needed += [(name, f"is how {upstream} arrives, the Translation says") for name in names]
+    return needed, problems
 
 
 def strict_scope(command, signature, subs, examples, primitives, defs, policies):
@@ -201,7 +227,7 @@ def strict_scope(command, signature, subs, examples, primitives, defs, policies)
 
     Returns the command, the parts to print, the text of every row in the scope, and the names in it."""
     named = lambda cell: bool(re.search(rf"\b{command}\b", cell or ""))
-    parts, cells, names = [], [], {command}
+    parts, cells, names = [], [signature["line"]], {command}
 
     def take(label, rows, key, separator=", "):
         if rows:
@@ -249,7 +275,7 @@ def strict_scope(command, signature, subs, examples, primitives, defs, policies)
     return command, parts, cells, names
 
 
-def check_approval(state, hashed, depth, strict_commands, scopes, top, assumed, err, warnings):
+def check_approval(state, hashed, depth, strict_commands, scopes, top, assumed, err, warnings, reviewed, approving):
     """What an approved status may rest on. Strict depth is held to 'everything confirmed and reviewed'."""
     actual = hashed.stdout.strip() if hashed.returncode == 0 else None
     review = re.search(r"\breviewed\s+[^,\s]+(?:\s+at\s+([0-9a-f]+))?", state)
@@ -306,12 +332,21 @@ def check_approval(state, hashed, depth, strict_commands, scopes, top, assumed, 
             err("approved with strict commands, but their strict scope was not reviewed: run ddd-model-review, then tools/stamp-model.sh review <file>")
         elif not review_hash:
             warnings.append("the review on the Status line names no model-hash, so it cannot be tied to this version of the model")
-        elif stale:
+        elif stale and not reviewed:
+            # A review stamped before scope hashes were recorded: the tool cannot tell which rows changed.
             warnings.append(f"the review is of model-hash {review_hash}, the approved model is {actual}. If the change touched a strict scope, "
                             f"{restamp}; if it touched none, re-stamp the review and say so")
+        elif stale:
+            changed = [command for command, _, cells, _ in scopes if reviewed.get(command) != scope_hash(cells)]
+            if changed:
+                message = (f"the strict scope of {', '.join(changed)} changed after the review (model-hash {review_hash}), "
+                           f"or was never reviewed; {restamp}")
+                # Only a new approval is refused: a model approved before scopes were hashed keeps its approval.
+                (err if approving else warnings.append)(message)
 
 
-def check(path, glossary_override, approving=False):
+def check(path, glossary_override, approving=False, scope_hashes=None):
+    """Returns problems, warnings and notes. A dict passed as scope_hashes receives a hash of each strict scope's rows."""
     problems, warnings, notes = [], [], []
     err = problems.append
     raw = path.read_text()
@@ -457,7 +492,8 @@ def check(path, glossary_override, approving=False):
                 err(f"{where}: command {name} has no resulting state")
             produced.update(targets)
             commands[name] = set() if creating else set(sources)
-            signatures[name] = {"sources": commands[name], "targets": set(targets), "events": own_events, "failures": own_failures, "inputs": set()}
+            signatures[name] = {"sources": commands[name], "targets": set(targets), "events": own_events, "failures": own_failures,
+                                "inputs": set(), "line": line.strip()}
         if not commands:
             err(f"{where}: the Commands block has no 'Name : State -> State' lines")
         all_names.update([*commands, *events, *failures])
@@ -586,7 +622,10 @@ def check(path, glossary_override, approving=False):
         err(f"Strict commands names {name!r}, which has no command signature")
 
     if status:
-        check_approval(status.group(1), hashed, depth, strict_commands, scopes, top, assumed, err, warnings)
+        check_approval(status.group(1), hashed, depth, strict_commands, scopes, top, assumed, err, warnings,
+                       reviewed_scopes(raw), approving)
+    if scope_hashes is not None:
+        scope_hashes.update({command: scope_hash(cells) for command, _, cells, _ in scopes})
 
     glossary, found = load_glossary(path, context, glossary_override)
     if found and found.startswith("GLOSSARY"):
@@ -599,13 +638,13 @@ def check(path, glossary_override, approving=False):
         for name in sorted(glossary_needed):
             if re.sub(r"[^a-z0-9]", "", name.lower()) not in terms:
                 err(f"{name} is not in {glossary.name}")
-        for term, why in crossing_terms(path, context):
-            if re.sub(r"[^a-z0-9]", "", term.lower()) in own:
-                continue
-            message = (f"{term} {why} (docs/domain/context-map.md), but it is not in {context}'s {glossary.name}. "
-                       "Define it there, or, if the map cell is prose, rewrite it as glossary terms, comma-separated")
+        needed, unreadable = crossing_terms(path, context)
+        messages = [f"{term} {why} (docs/domain/context-map.md), but it is not in {context}'s {glossary.name}. "
+                    "Define it there, or, if the map cell is prose, rewrite it as glossary terms, comma-separated"
+                    for term, why in needed if re.sub(r"[^a-z0-9]", "", term.lower()) not in own]
+        for message in unreadable + messages:
             if earlier_approval:
-                warnings.append(message + "; add it at the next change to this model")
+                warnings.append(message + "; settle it at the next change to this model")
             else:
                 err(message)
         for phrase, preferred in avoid:
