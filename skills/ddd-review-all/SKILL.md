@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 # Review with all reviewers
 
-Run `ddd-review`, `secure-by-design-review` and `task-review` on the same change, each in a sub-agent that has not seen this conversation, and combine their reports. You orchestrate. You do not review, and you do not edit the reviewers' findings.
+Run `ddd-review`, `secure-by-design-review` and `task-review` on the same change, each in a sub-agent that has not seen this conversation, and combine their reports. At standard depth one sub-agent does a shorter review instead (**1b**). You orchestrate. You do not review, and you do not edit the reviewers' findings.
 
 The three answer different questions: does the code match the model, is it hard to misuse, and does it do what was asked. A change can pass any two and fail the third.
 
@@ -21,7 +21,20 @@ If you have no tool for starting sub-agents, say so and stop. Tell the user to r
 3. Confirm that `git diff --stat <base>...<head>` is not empty. A bad ref or an empty diff should stop here, not inside three sub-agents.
 4. If the working tree has uncommitted changes, tell the user they will not be reviewed, and ask whether to continue or commit first.
 
+## 1b. Full or standard
+
+Run the **full** review, all three reviewers, when any of these holds:
+
+- the user asked for it (`/ddd-review-all full`, "the full review", "all three")
+- a context file under `docs/domain/contexts/` (not `_template.md`) has `Depth: strict` or no `Depth:` line
+- the diff names a command listed on a `Strict commands:` line
+- there is no `docs/domain/`, or you are unsure
+
+Otherwise run the **standard** review: one sub-agent, in one worktree, that follows `ddd-review` and also applies three sections of `secure-by-design-review`: **Authorisation**, **Sensitive data** and **Input at the boundary**. There is no task reviewer, and the rest of the Secure by Design checklist and its abuse attempts are not run. Say which review runs, and why, in one line before starting, and end the report with: "For the full three-reviewer review, run `/ddd-review-all full`."
+
 ## 2. Find the task
+
+Standard review: look for the task as below and pass it to the reviewer as the scope reference if there is one, but do not ask the user for it.
 
 The task reviewer needs the task, and a sub-agent cannot ask the user for it. Find it now, in the order the `task-review` skill gives: what the user gave you, issue references in the commit messages, a migration step in the context file, a specification matching the branch. Fetch an issue's text and save it to a file outside the repository.
 
@@ -31,7 +44,7 @@ If there is none, ask the user. If they say there is no written task, skip the t
 
 The DDD and security reviewers write and compile scratch files for their break-it attempts. In a shared checkout, one reviewer's deliberately broken file would fail another's build or tests.
 
-Create a temporary worktree per reviewer at the head commit, outside the repository directory:
+Create a temporary worktree per reviewer at the head commit, outside the repository directory (the standard review needs only the first):
 
 ```
 git worktree add --detach <tmp>/ddd-review <head>
@@ -57,6 +70,7 @@ Give each sub-agent a prompt containing only:
 - the base and head hashes, stated as already pinned so it does not ask
 - for the task reviewer: the path of the task file, stated as the task so it does not search for another; also pass that original file to the DDD reviewer as the scope reference, so explicitly deferred adapters, storage or property tests are not mistaken for missing work in this ticket
 - for the DDD reviewer only: the absolute path of a file outside the repository and outside the worktree, `<tmp>/ddd-tracing.md`, as the place to write its complete tracing tables
+- for the standard review: also the absolute path of `../secure-by-design-review/SKILL.md`, with the instruction to read and apply only its sections **Authorisation**, **Sensitive data** and **Input at the boundary**, to tag those findings `[SbD]` with that skill's severities, and to say under what it did not check that the rest of that checklist and its abuse attempts were not run, instead of saying that security was not reviewed
 - the absolute path of a file outside the repository and outside the worktree, `<tmp>/<reviewer>-report.md`, with the instruction to write its full report there and to return only its verdict, its number of blockers and that path
 - the part to review, when the user named one
 - for a re-review (see **7. What comes next**): the path of that reviewer's earlier report, stated as a re-review of the fix commits

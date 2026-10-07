@@ -600,6 +600,17 @@ class ToolTests(unittest.TestCase):
         actual = {f.name: str(len(f.read_text().split())) for f in lifecycle.glob("*.md") if f.name != "README.md"}
         self.assertEqual(listed, actual, "update the Words column in skills/ddd-modelling/lifecycle/README.md")
 
+    def test_standard_review_names_sections_that_exist(self):
+        # ddd-review-all's standard review applies named sections of secure-by-design-review; a renamed heading would silently drop one.
+        review_all = (ROOT / "skills/ddd-review-all/SKILL.md").read_text()
+        headings = set(re.findall(r"^### (.+)$", (ROOT / "skills/secure-by-design-review/SKILL.md").read_text(), re.M))
+        line = next(l for l in review_all.splitlines() if l.startswith("Otherwise run the **standard** review"))
+        named = re.findall(r"\*\*([^*]+)\*\*", line.split("applies three sections", 1)[1])
+        self.assertEqual(len(named), 3, line)
+        self.assertEqual([n for n in named if n not in headings], [], "a section the standard review names is not a heading in secure-by-design-review")
+        prompt = next(l for l in review_all.splitlines() if l.startswith("- for the standard review:"))
+        self.assertEqual(re.findall(r"\*\*([^*]+)\*\*", prompt), named, "the 1b list and the sub-agent prompt name different sections")
+
     def test_every_list_of_the_core_names_the_same_items(self):
         # depth.md defines the core. The safety rules repeat it inline on purpose, so a test keeps the copies together.
         items = {"states": r"\bstates?\b", "commands": r"\bcommands?\b", "who may issue": r"who may issue",

@@ -47,7 +47,7 @@ docs/ddd/cards/      Pattern cards per code style; functional/ holds 20, with Go
 tools/               Model checker, approval stamping, workflow status, card checks and lint configs
 ```
 
-Modelling creates `GLOSSARY.md` when the first term is agreed. Projects with several glossaries use a root `GLOSSARY-MAP.md` to link them.
+Modelling creates `GLOSSARY.md` when the first term is agreed. Several contexts share it, with a heading each, until a word means different things in two of them; then each context gets its own glossary and a root `GLOSSARY-MAP.md` links them.
 
 ### Prerequisites
 
@@ -59,7 +59,7 @@ The kit works without other skills. You need a coding agent that can read skills
 | Go implementation with the supplied rules | Go and `golangci-lint`; the reference lint config uses v2 format. Checking the card examples needs Go 1.24 or later and `golangci-lint` v2 |
 | TypeScript implementation with the supplied rules | Node.js, TypeScript, ESLint and `typescript-eslint`, plus your project's test tooling. The reference ESLint config uses flat config and type-aware rules |
 | Model only, or another language | Your project's compiler or runtime, lint and test tools |
-| Combined code review | An agent that can start subagents, and the project's build and test dependencies. Without subagents, run the three review skills one by one in fresh sessions |
+| Combined code review | An agent that can start subagents, and the project's build and test dependencies. Without subagents, run the review skills one by one in fresh sessions |
 
 `tools/check-cards.sh` is only needed after editing a card example. Its TypeScript checks need npm and download their own tooling into `.cards-check/`.
 
@@ -124,7 +124,7 @@ The agent writes as the conversation goes: the glossary in `GLOSSARY.md`, the co
 
 ### Choose a depth
 
-Depth controls how much you confirm before coding. It is a sentence in your prompt, not a flag. If you leave it out, the agent asks and recommends one. The exact rules are in [lifecycle/depth.md](skills/ddd-modelling/lifecycle/depth.md).
+Depth controls how much you confirm before coding. It is a sentence in your prompt, not a flag. If you leave it out, the agent picks one (standard, or strict for money, credentials, authorisation, personal data or anything that cannot be undone) and says so in one line, so you can change it. The exact rules are in [lifecycle/depth.md](skills/ddd-modelling/lifecycle/depth.md).
 
 | Depth | What you confirm |
 |---|---|
@@ -143,7 +143,7 @@ The context file records `Depth: standard` and `Strict commands: ChargePayment, 
 
 ### The context map
 
-When the model has more than one context, or depends on another system, the agent asks two questions for `docs/domain/context-map.md`: how important each context is to the organisation (its **Kind**: core, supporting or generic), and which **Pattern** describes each relationship between contexts. Describe how the teams actually work today; the strategic cards quote Evans: "Map the existing terrain. Take up transformations later."
+When the model has more than one context, or depends on another system, the agent asks two questions for `docs/domain/context-map.md`: how important each context is to the organisation (its **Kind**: core, supporting or generic), and which **Pattern** describes each relationship between contexts. At standard depth, when one person or team owns both sides, the agent proposes the pattern as an assumption instead of asking. Describe how the teams actually work today; the strategic cards quote Evans: "Map the existing terrain. Take up transformations later."
 
 ### Start from existing code
 
@@ -218,7 +218,7 @@ Work on a branch, commit the changes, and ask:
 The task is: [link or path to the original task].
 ```
 
-Only committed changes are reviewed. Without a base branch, the reviewer uses the point where your branch left the default branch. `ddd-review-all` runs three reviews in separate subagents and temporary Git worktrees: `ddd-review` (code against the model), `secure-by-design-review` (security) and `task-review` (code against the task; skipped if you have no task). Without subagents, run them one by one in fresh sessions.
+Only committed changes are reviewed. Without a base branch, the reviewer uses the point where your branch left the default branch. `ddd-review-all` reviews in separate subagents and temporary Git worktrees. The full review runs three: `ddd-review` (code against the model), `secure-by-design-review` (security) and `task-review` (code against the task; skipped if you have no task). It runs when a context is strict, has no `Depth:` line, or the change names a strict command, or when you ask: `/ddd-review-all full`. Otherwise, at standard depth, one reviewer runs `ddd-review` and the Secure by Design sections on authorisation, sensitive data and input at the boundary; it does not ask for a task. Without subagents, run the review skills one by one in fresh sessions.
 
 The combined report ends with the next step:
 
