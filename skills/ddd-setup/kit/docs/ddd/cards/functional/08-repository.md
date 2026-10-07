@@ -24,9 +24,7 @@
 func (r *OrderRepo) FindAllWhere(sql string, args ...any) ([]map[string]any, error)
 ```
 
-## Example
-
-One file per language: [Go](go/08-repository.md), [TypeScript](ts/08-repository.md). Read only the one for the language you are writing.
+Examples: [Go](go/08-repository.md) · [TypeScript](ts/08-repository.md). Read only the one for your language.
 
 ## Corrections
 

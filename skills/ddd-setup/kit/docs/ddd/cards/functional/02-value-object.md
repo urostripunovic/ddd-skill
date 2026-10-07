@@ -22,9 +22,7 @@
 const total = a.amount + b.amount; // currencies never compared
 ```
 
-## Example
-
-One file per language: [Go](go/02-value-object.md), [TypeScript](ts/02-value-object.md). Read only the one for the language you are writing.
+Examples: [Go](go/02-value-object.md) · [TypeScript](ts/02-value-object.md). Read only the one for your language.
 
 ## Corrections
 

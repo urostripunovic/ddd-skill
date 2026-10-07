@@ -27,9 +27,7 @@
 const order = (await req.json()) as Order;
 ```
 
-## Example
-
-One file per language: [Go](go/07-parse-at-the-boundary.md), [TypeScript](ts/07-parse-at-the-boundary.md). Read only the one for the language you are writing.
+Examples: [Go](go/07-parse-at-the-boundary.md) · [TypeScript](ts/07-parse-at-the-boundary.md). Read only the one for your language.
 
 ## Corrections
 

@@ -32,9 +32,7 @@ class OrderService {
 }
 ```
 
-## Example
-
-One file per language: [Go](go/06-workflow-as-function.md), [TypeScript](ts/06-workflow-as-function.md). Read only the one for the language you are writing.
+Examples: [Go](go/06-workflow-as-function.md) · [TypeScript](ts/06-workflow-as-function.md). Read only the one for your language.
 
 ## Corrections
 

@@ -24,9 +24,7 @@ When to choose this over conforming to the other model is a modelling decision: 
 if (order.stripeStatus === "requires_capture") { /* domain logic */ }
 ```
 
-## Example
-
-One file per language: [Go](go/09-anticorruption-layer.md), [TypeScript](ts/09-anticorruption-layer.md). Read only the one for the language you are writing.
+Examples: [Go](go/09-anticorruption-layer.md) · [TypeScript](ts/09-anticorruption-layer.md). Read only the one for your language.
 
 ## Corrections
 

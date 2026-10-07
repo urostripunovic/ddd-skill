@@ -27,9 +27,7 @@ type Credentials struct {
 }
 ```
 
-## Example
-
-One file per language: [Go](go/17-read-once-secret.md), [TypeScript](ts/17-read-once-secret.md). Read only the one for the language you are writing.
+Examples: [Go](go/17-read-once-secret.md) · [TypeScript](ts/17-read-once-secret.md). Read only the one for your language.
 
 ## Corrections
 

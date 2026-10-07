@@ -29,9 +29,7 @@ func PlaceOrder(ctx context.Context, id OrderID) error {
 }
 ```
 
-## Example
-
-One file per language: [Go](go/16-policy.md), [TypeScript](ts/16-policy.md). Read only the one for the language you are writing.
+Examples: [Go](go/16-policy.md) · [TypeScript](ts/16-policy.md). Read only the one for your language.
 
 ## Corrections
 

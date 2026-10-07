@@ -17,11 +17,11 @@ Read [lifecycle/depth.md](lifecycle/depth.md) and [lifecycle/notes-tail.md](life
 
 ## Is this repository using the kit?
 
-If `docs/domain/` does not exist and the user did not ask for a domain model or for DDD, this repository has not adopted the kit. Say in one line that `ddd-setup` and this skill exist, and carry on with the request without this skill.
+Carry on with the request without this skill, and say in one line what it could do, when:
 
-If the request falls inside a prototype scope ([lifecycle/adoption.md](lifecycle/adoption.md)) and the user did not ask to model or adopt it, say in one line that modelling was postponed for that scope, and carry on without this skill.
-
-A change to existing code in an area that has no model is not a modelling request either, unless the user asks for a model or the change creates a new context, aggregate or lifecycle. Carry on without this skill (`ddd-implementation` handles that case), and mention in one line that the area can be modelled.
+- `docs/domain/` does not exist and the user did not ask for a domain model or for DDD: name `ddd-setup` and this skill
+- the request falls inside a prototype scope ([lifecycle/adoption.md](lifecycle/adoption.md)) and the user did not ask to model or adopt it: say that modelling was postponed for that scope
+- the request changes existing code in an area with no model, and creates no new context, aggregate or lifecycle: say that the area can be modelled; `ddd-implementation` handles the change
 
 ## Which mode
 
@@ -180,8 +180,9 @@ PlaceOrder  : DraftOrder -> PlacedOrder + [OrderPlaced] | EmptyOrder
 CancelOrder : DraftOrder | PlacedOrder -> CancelledOrder + [OrderCancelled]
 ```
 
+- **Notation**, which `tools/check-model.sh` reads: `Timestamp` and `Boolean` are built in; every other type is a primitive or is defined in the States block. `terminal` lists the states nothing leads out of. A command that creates the aggregate starts from `()`. Under the States block, one line per state that is not terminal says what ends it if nothing happens, or "no expiry". The Commands table's **Input** lists the values a command takes that are not in its starting state, as `name: Type`, or `none`; a command that time issues names the scheduler and the delay under **Issued by**. The matrix has one row per state and one column per command, without the creating commands. A section with nothing in it says `None.`
 - **The flow**: the model told as a story, at the top of the context file: five to fifteen numbered sentences in the order things happen, each naming its command. Write it first, from the timeline, and keep it true as the model changes. It is what a person reads; the tables are what they look things up in.
-- **Domain primitives**: every value with rules gets a named type with stated bounds, and the reason for each bound. No bare strings or numbers in the model.
+- **Domain primitives**: every value with rules gets a named type with stated bounds, and the reason for each bound; a bound nobody confirmed says `(assumed)` in the Why column. No bare strings or numbers in the model.
 - **States**: one type per state, holding only the data that exists in that state. No status field with optional fields.
 - **Commands**: a function from the specific state or states it is legal in, to a new state plus events, or a named failure. A command that is illegal in a state is simply not defined for that state's type, so "wrong state" is never listed as a failure of the command.
 - **Matrix**: every state against every command. `yes`, or `no:` and the reason the business gave.
@@ -189,7 +190,7 @@ CancelOrder : DraftOrder | PlacedOrder -> CancelledOrder + [OrderCancelled]
 - **Invariants**: each one names where it is enforced (the type, a constructor, a decision function, or "not in types" with how it is checked instead) and every command that could break it.
 - **Failures**: each business failure gets a name and the data needed to explain it.
 - **Use-case failures**: "not found", "not allowed" and "not in a state this command accepts" are raised by the workflow, not by a decision. Name them in their own table.
-- **Examples**: the confirmed rows from the interview. Values, not descriptions.
+- **Examples**: the confirmed rows from the interview. Values, not descriptions. Every command and every failure has at least one, and every bound one on each side.
 - **Races**: which command wins and what the other is told.
 - **Facts from outside**: any data a command needs that the aggregate does not hold gets a named type, its source, what is checked before it is believed, what happens when that check fails or the source does not answer, and whether it may be slightly out of date. The caller's identity is such a fact: "Requester", from the sign-in token, believed once its signature, issuer, audience and expiry are checked.
 - **Aggregates**: keep them small. Data belongs in the same aggregate only if a rule requires it to change together. Other aggregates are referenced by ID.
@@ -235,14 +236,6 @@ Approval follows lifecycle/approval.md: only the user approves, and `tools/stamp
 
 Stop here. Implementation is a separate step with the `ddd-implementation` skill.
 
-## Folding in amendments and settling pending gaps
+## Changing a model
 
-When the context file has rows under `## Pending`, settle them first: each is a question implementation is waiting on. Ask it, write the answer into the section it affects, and remove the row once the model is approved again.
-
-When it has rows under `## Amendments`, and the user asks to bring the model up to date or wants a larger change, fold them in: move what each row learned into the section it names, remove the row, and show the whole change as one diff. An amendment that touched only the rest needs no discussion. One that turns out to change the core (a new state, a command, an invariant, who may issue) is put to the user as a question. Then the user approves again, once, for all of them.
-
-## When the request is small
-
-For a change to an existing model, update only the affected sections, including the matrix column or row and the examples the change touches. Show the change as a diff, run `tools/check-model.sh`, and still wait for approval. A new rule, state, command or term always goes through the model first.
-
-A change inside a strict scope of a model that was already reviewed needs a review of the changed rows only: give the reviewer the diff, in the earlier review session or a fresh one.
+When the context file has rows under `## Pending`, settle them first: each is a question implementation is waiting on. A new rule, state, command or term always goes through the model first. For pending rows, amendments and small changes, read [CHANGING.md](CHANGING.md).

@@ -19,7 +19,7 @@ Read the style's README, then only the cards the task needs, and the examples on
 A card is added when a project has needed the pattern, not before. A card written ahead of a real case teaches a guess.
 
 1. The agent says that no card covers the pattern, names it, and adds a row under **Wanted** below.
-2. It implements the code from the core rules in the `ddd-implementation` skill, and the reviews run as usual.
+2. It implements the code from the rules in the `ddd-implementation` skill, and the reviews run as usual.
 3. Once that code is reviewed and merged, it becomes the card: copy an existing card's headings, put the merged code in the language directory as the example, and run `tools/check-cards.sh`. The check fails while an installed language has no example for a card.
 4. Remove the row from **Wanted**.
 

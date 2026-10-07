@@ -27,9 +27,7 @@ if !repo.WasHandled(cmdID) { // two retries can both get false here
 }
 ```
 
-## Example
-
-One file per language: [Go](go/15-idempotent-command.md), [TypeScript](ts/15-idempotent-command.md). Read only the one for the language you are writing.
+Examples: [Go](go/15-idempotent-command.md) · [TypeScript](ts/15-idempotent-command.md). Read only the one for your language.
 
 ## Corrections
 

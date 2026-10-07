@@ -23,9 +23,7 @@
 throw new Error("Not enough stock for " + sku);
 ```
 
-## Example
-
-One file per language: [Go](go/10-errors-as-values.md), [TypeScript](ts/10-errors-as-values.md). Read only the one for the language you are writing.
+Examples: [Go](go/10-errors-as-values.md) · [TypeScript](ts/10-errors-as-values.md). Read only the one for your language.
 
 ## Corrections
 

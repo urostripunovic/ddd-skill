@@ -29,9 +29,7 @@
 func (o *Order) SetStatus(s string) { o.Status = s }
 ```
 
-## Example
-
-One file per language: [Go](go/04-aggregate-as-decision-functions.md), [TypeScript](ts/04-aggregate-as-decision-functions.md). Read only the one for the language you are writing.
+Examples: [Go](go/04-aggregate-as-decision-functions.md) · [TypeScript](ts/04-aggregate-as-decision-functions.md). Read only the one for your language.
 
 ## Corrections
 

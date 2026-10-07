@@ -43,9 +43,7 @@ if (current === loadedVersion) {
 }
 ```
 
-## Example
-
-One file per language: [Go](go/12-event-stream-repository.md), [TypeScript](ts/12-event-stream-repository.md). Read only the one for the language you are writing.
+Examples: [Go](go/12-event-stream-repository.md) · [TypeScript](ts/12-event-stream-repository.md). Read only the one for your language.
 
 ## Corrections
 

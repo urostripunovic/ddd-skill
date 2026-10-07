@@ -23,9 +23,7 @@
 type OrderEvent = { name: string; payload: any };
 ```
 
-## Example
-
-One file per language: [Go](go/05-domain-event.md), [TypeScript](ts/05-domain-event.md). Read only the one for the language you are writing.
+Examples: [Go](go/05-domain-event.md) · [TypeScript](ts/05-domain-event.md). Read only the one for your language.
 
 ## Corrections
 
