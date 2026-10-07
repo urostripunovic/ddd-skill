@@ -77,7 +77,7 @@ If the task asks for behaviour the approved model does not have, or forbids, the
 
 ## Report
 
-Start with the base and head hashes and where the task came from, then the verdict: **approve**, **approve with changes**, or **reject**.
+Open and close the report as [review-range.md](../ddd-modelling/lifecycle/review-range.md) says. Next to the hashes, say where the task came from.
 
 Then the requirements table:
 
@@ -93,6 +93,4 @@ Then the findings, most severe first. For each one:
 
 Then the questions about the task that only its author can answer.
 
-End with what you did not check and why, and state that model conformance and security were not reviewed here. A reader must be able to tell a clean result from an unchecked one.
-
-Do not pad the report with praise.
+What was not checked includes that model conformance and security were not reviewed here.
