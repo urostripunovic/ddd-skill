@@ -137,7 +137,7 @@ Never make a check pass by weakening it:
 - follow the "Never, to make a check pass" list in the language's `README.md` when installed, including its documented exceptions; no escape from the type checker or unexplained suppression
 - no rule turned off in a config, and no domain path narrowed
 
-In your final summary, list every suppression comment you added and why. Then remind the user to run `ddd-review-all`, which runs the reviews in isolated sub-agents; do not review your own work here.
+In your final summary, list every suppression comment you added and why. Then remind the user to run `ddd-review-all`, which runs the reviews in isolated sub-agents; do not review your own work here. If Matt Pocock's `implement` is driving the work, `ddd-review-all` takes the place of its `/code-review` step for domain code.
 
 ## When the model does not fit
 
