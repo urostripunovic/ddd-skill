@@ -136,9 +136,7 @@ A test suite that only covers the happy path is a finding in its own right. [SbD
 
 For the primitives and commands the change touches, try a few misuses and record what stopped each one.
 
-- **One attempt, one file, one run.** A compile error stops the compiler, so several attempts in one file hide each other.
-- **Where the files go.** Somewhere the toolchain sees them and that is never committed. Go: a new package directory inside the module, such as `internal/zz_abuse/<attempt>/`, because a file outside the module cannot import the domain package. TypeScript: a new directory covered by the project's `tsconfig.json`, such as `src/zz_abuse/`.
-- **Clean up and prove it.** Delete the directories, run `git status --porcelain`, and confirm in the report that nothing you created remains.
+Run each attempt, clean up and record its outcome as [break-it.md](../ddd-modelling/lifecycle/break-it.md) says. **test** does not apply here.
 
 | Attempt | Example |
 |---|---|
@@ -151,13 +149,9 @@ For the primitives and commands the change touches, try a few misuses and record
 | Unknown external value | a status string the adapter has never seen |
 | Oversized input | a body or field far beyond the limit |
 
-Record each outcome as **compile**, **lint**, **runtime** (rejected, with a test proving it) or **not prevented**.
-
 ## Report
 
-Start with the base and head hashes, then the verdict: **approve**, **approve with changes**, or **reject**.
-
-Then the findings, most severe first. For each one:
+Open and close the report as [review-range.md](../ddd-modelling/lifecycle/review-range.md) says. Between the verdict and the end come the findings, most severe first. For each one:
 
 - location as `file:line`
 - the rule it breaks, with its `[SbD n]` reference when it has one
@@ -166,6 +160,4 @@ Then the findings, most severe first. For each one:
 
 Then the abuse-attempt table.
 
-End with what you did not check and why: conditional sections skipped, steps you could not run, and that model conformance was not reviewed here. A reader must be able to tell a clean result from an unchecked one.
-
-Do not pad the report with praise or with style comments that a formatter would handle.
+What was not checked includes conditional sections skipped, steps you could not run, and that model conformance was not reviewed here.

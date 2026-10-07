@@ -11,4 +11,5 @@ The rules every ddd skill shares, one topic per file, so that each skill reads o
 | [The notes tail](notes-tail.md) | 182 |
 | [When code learns what the model did not say](gaps.md) | 216 |
 | [What `tools/check-model.sh` checks](checker.md) | 129 |
-| [The range a code review covers](review-range.md) | 168 |
+| [The range a code review covers, and its report](review-range.md) | 229 |
+| [Trying to break the code](break-it.md) | 226 |

@@ -134,14 +134,7 @@ The verdict is one of **ok**, **wrong name**, **wrong place**, **differs** (say 
 
 Reading code tells you what it claims. Trying to break it tells you what it enforces.
 
-### How to run it
-
-- **One attempt, one file, one run.** A compile error stops the compiler, so several attempts in one file hide each other. Write each attempt in its own file and compile it separately.
-- **Where the files go.** They must be somewhere the toolchain sees them, and must never be committed:
-  - Go: a new package directory inside the module, for example `internal/zz_breakit/<attempt>/`, one directory per attempt. A file outside the module cannot import the domain package.
-  - TypeScript: a new directory covered by the project's `tsconfig.json`, for example `src/zz_breakit/`, one file per attempt, and run `tsc --noEmit` once per file's presence.
-  - An attempt that needs unexported access goes in a `_test.go` file inside the package under test, or the equivalent for TypeScript.
-- **Clean up and prove it.** Delete the directories, then run `git status --porcelain` and confirm it shows nothing you created. Put that confirmation in the report.
+Run each attempt, clean up and record its outcome as [break-it.md](../ddd-modelling/lifecycle/break-it.md) says.
 
 ### What to attempt
 
@@ -159,14 +152,6 @@ The first four ask what the types reject, so the expected outcome is **compile**
 
 Attempts on primitives, bounds and constructor bypass belong to `secure-by-design-review`.
 
-Record each outcome as one of:
-
-- **compile**: does not compile
-- **lint**: compiles, fails lint
-- **runtime**: rejected by a constructor, decision function or parser, with a test proving it
-- **test**: a removed rule made a test fail
-- **not prevented**: nothing stops it
-
 Compare each outcome with the model's "enforced by" column. A rule the model says is enforced by the type but that only fails at runtime is a finding. **Not prevented** for a model invariant is a blocker.
 
 Some attempts cannot be stopped by the language, such as a TypeScript object literal for an unbranded state type. Report these as known limits, with what compensates for them, not as blockers.
@@ -175,9 +160,7 @@ For a small change, limit the pass to the states and commands the change touches
 
 ## Report
 
-Start with the base and head hashes, then the verdict: **approve**, **approve with changes**, or **reject**.
-
-Then the findings, most severe first. For each one:
+Open and close the report as [review-range.md](../ddd-modelling/lifecycle/review-range.md) says. Between the verdict and the end come the findings, most severe first. For each one:
 
 - location as `file:line`
 - which part of the model or which card it breaks
@@ -191,9 +174,7 @@ After the findings:
 
 Write both tracing tables in full to a file outside the repository, `ddd-review-<first 12 characters of the head hash>.md` in the system's temporary directory, and give its path. If you were told where to write it, write it there.
 
-End with what you did not check and why, for example "lint not run: no config in the repository", and state that security was not reviewed here. A reader must be able to tell a clean result from an unchecked one.
-
-Do not pad the report with praise or with style comments that a formatter would handle.
+What was not checked includes, for example, "lint not run: no config in the repository", and that security was not reviewed here.
 
 ## Feeding the cards
 
