@@ -12,7 +12,7 @@ Run this in a session that did not write the model. An author reviewing its own 
 
 ## What is reviewed
 
-Only the model: `GLOSSARY.md` (or the glossaries `GLOSSARY-MAP.md` links to), `docs/domain/context-map.md`, and the context files the user names, or every file under `docs/domain/contexts/` whose status is not approved, except `_template.md`. Do not read code. A model that needs the code to be understood is a finding.
+Only the model: the glossary `CONTEXT.md` (or the glossaries `CONTEXT-MAP.md` links to), `docs/domain/context-map.md`, and the context files the user names, or every file under `docs/domain/contexts/` whose status is not approved, except `_template.md`. Do not read code. A model that needs the code to be understood is a finding.
 
 If you are given a diff of an earlier-reviewed model (a change inside its strict scope, or the fixes for your blockers), review only the changed rows and what they touch, and say so at the top.
 

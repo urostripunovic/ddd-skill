@@ -47,7 +47,7 @@ docs/ddd/cards/      Pattern cards per code style; functional/ holds 20, with Go
 tools/               Model checker, approval stamping, workflow status, card checks and lint configs
 ```
 
-Modelling creates `GLOSSARY.md` when the first term is agreed. Several contexts share it, with a heading each, until a word means different things in two of them; then each context gets its own glossary and a root `GLOSSARY-MAP.md` links them.
+Modelling creates `CONTEXT.md`, the glossary, when the first term is agreed. Several contexts share it, with a heading each, until a word means different things in two of them; then each context gets its own `CONTEXT.md` and a root `CONTEXT-MAP.md` links them.
 
 ### Prerequisites
 
@@ -120,7 +120,7 @@ Use ddd-modelling to update docs/domain/contexts/ordering.md
 so customers can cancel a placed order until picking starts.
 ```
 
-The agent writes as the conversation goes: the glossary in `GLOSSARY.md`, the contexts and how they relate in `docs/domain/context-map.md`, and a model per context in `docs/domain/contexts/<context>.md`. It runs `tools/check-model.sh` on the structure. You decide whether the business rules are right.
+The agent writes as the conversation goes: the glossary in `CONTEXT.md`, the contexts and how they relate in `docs/domain/context-map.md`, and a model per context in `docs/domain/contexts/<context>.md`. It runs `tools/check-model.sh` on the structure. You decide whether the business rules are right.
 
 ### Choose a depth
 
@@ -260,11 +260,12 @@ The `Status:` line is always written by `tools/stamp-model.sh`. The approval has
 
 ## Optional integrations
 
-With [Matt Pocock's skills](https://github.com/mattpocock/skills) installed, the kit uses `grilling` for interviews and `tdd` for the failing-test-to-passing-code loop. Neither is required. The glossary uses a shared `GLOSSARY.md` format, so other skills can read and extend the same terms.
+With [Matt Pocock's skills](https://github.com/mattpocock/skills) installed, the kit uses `grilling` for interviews and `tdd` for the failing-test-to-passing-code loop. Neither is required. The glossary is his `CONTEXT.md`, in his format, so his `domain-modeling`, `tdd` and other skills read and extend the same terms.
 
 ## Compatibility
 
 - A model with no `Depth:` line is treated as strict.
+- A glossary under its earlier name, `GLOSSARY.md` or `GLOSSARY-MAP.md`, is still read, with a warning. `/ddd-setup` renames it to `CONTEXT.md` with your agreement.
 - An approval recorded without a hash is accepted with a warning and cannot be verified.
 - Cards installed before the style directories sit directly under `docs/ddd/cards/`. `/ddd-setup` reports them and, with your agreement, moves them into `docs/ddd/cards/functional/`, keeping their Corrections.
 

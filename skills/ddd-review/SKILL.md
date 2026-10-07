@@ -34,7 +34,7 @@ Follow [review-range.md](../ddd-modelling/lifecycle/review-range.md). In a re-re
 
 1. The pinned diff.
    If an original task or ticket is supplied, read its scope and explicitly deferred work so this review uses the same completion boundary. Full requirement-by-requirement task review remains `task-review`'s job.
-2. The model: the glossary (`GLOSSARY.md` at the root, or the ones `GLOSSARY-MAP.md` links to), `docs/domain/context-map.md`, and only the `docs/domain/contexts/<context>.md` files the change touches.
+2. The model: the glossary (`CONTEXT.md` at the root, or the ones `CONTEXT-MAP.md` links to), `docs/domain/context-map.md`, and only the `docs/domain/contexts/<context>.md` files the change touches.
 3. When the project uses cards: the cards in `docs/ddd/cards/functional/` for the patterns the change uses, including each card's **Corrections** section. Read the language README and examples only if installed; other languages use their own idioms and project checks. Do not load cards the change does not touch.
 
 If there is no model for the code under review, stop and say so. Without it this review has nothing to compare the code with.

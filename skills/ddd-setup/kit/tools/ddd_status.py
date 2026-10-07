@@ -14,6 +14,7 @@ is none; it means none was named the way ddd-implementation names them.
 
 Exit status is 2 outside a git repository, otherwise 0.
 """
+import os
 import pathlib
 import re
 import subprocess
@@ -89,12 +90,11 @@ def setup_lines():
     else:
         lines.append("conventions: not recorded (no '## Domain code' in CLAUDE.md or AGENTS.md)")
 
-    if pathlib.Path("GLOSSARY-MAP.md").exists():
-        lines.append("glossary: GLOSSARY-MAP.md")
-    elif pathlib.Path("GLOSSARY.md").exists():
-        lines.append("glossary: GLOSSARY.md")
+    found = next((n for n in ("CONTEXT-MAP.md", "CONTEXT.md", "GLOSSARY-MAP.md", "GLOSSARY.md") if n in os.listdir(".")), None)
+    if found and found.startswith("GLOSSARY"):
+        lines.append(f"glossary: earlier name, {found}; it belongs in {found.replace('GLOSSARY', 'CONTEXT')}")
     else:
-        lines.append("glossary: none yet")
+        lines.append(f"glossary: {found or 'none yet'}")
 
     context_map = pathlib.Path("docs/domain/context-map.md")
     if context_map.exists():

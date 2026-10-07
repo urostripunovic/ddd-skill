@@ -52,7 +52,7 @@ The sections below describe the strict interview. **At standard depth** adapt th
 
 ## Output
 
-- `GLOSSARY.md` at the repository root: the ubiquitous language
+- `CONTEXT.md` at the repository root: the glossary, the ubiquitous language
 - `docs/domain/context-map.md`: bounded contexts and how they relate
 - `docs/domain/contexts/<context>.md`: one file per context, following `contexts/_template.md`
 
@@ -62,7 +62,7 @@ If any of these already has content, read it first and extend it. Do not start o
 
 ### The glossary is shared
 
-Other skills read and write the same `GLOSSARY.md`, so its format is fixed:
+Other skills read and write the same `CONTEXT.md`, among them Matt Pocock's `domain-modeling` and `tdd`, so its name and format are fixed. It holds the glossary and nothing else:
 
 ```md
 # Ordering
@@ -78,7 +78,7 @@ _Avoid_: Submitted order
 
 - One or two sentences per term, written so a newcomer can tell it from its neighbours. Business words only: no record, entity, DTO, manager, handler or status.
 - When several words exist for one concept, pick one and list the others under `_Avoid_`. The checks search for those words, so a rejected synonym that is not written down will come back.
-- With one context, or several that share their words, there is one `GLOSSARY.md` at the root, with a heading per context once there are two. Split it into a `GLOSSARY.md` per context and a `GLOSSARY-MAP.md` at the root only when a word means different things in two contexts, or the user asks: `- [Ordering](./src/ordering/GLOSSARY.md): one line on what it is`. How the contexts relate stays in `docs/domain/context-map.md`; the map points there.
+- With one context, or several that share their words, there is one `CONTEXT.md` at the root, with a heading per context once there are two. Split it into a `CONTEXT.md` per context and a `CONTEXT-MAP.md` at the root only when a word means different things in two contexts, or the user asks: `- [Ordering](./src/ordering/CONTEXT.md): one line on what it is`. How the contexts relate is written only in `docs/domain/context-map.md`: the map's `## Relationships` section is the one line `See docs/domain/context-map.md.` If it holds relationships written by another skill, move each into `docs/domain/context-map.md`, ask about any the two files describe differently, and leave that line in their place.
 - Create the file when the first term is settled, not before.
 - A term is written the moment it is settled, with no separate approval step. Approval hashes cover context files, not the glossary or context map. When a shared definition or relationship changes, identify the affected contexts and show the impact to the user. If it changes an approved rule's meaning, record that change in the context, set it to draft and get approval again. The checker catches some missing names and rejected synonyms; it cannot detect a change of meaning.
 

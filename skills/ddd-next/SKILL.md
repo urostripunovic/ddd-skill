@@ -22,7 +22,7 @@ Take the first row that applies to the chosen context. Use the context's file pa
 | # | When the status shows | Next step |
 |---|---|---|
 | 1 | `setup: not done` | `/ddd-setup` |
-| 2 | `conventions: not recorded`, `cards: earlier layout` or `strategic cards: not installed` | `/ddd-setup`; it adds what is missing, moves earlier cards with the user's agreement, and keeps existing files |
+| 2 | `conventions: not recorded`, `cards: earlier layout`, `glossary: earlier name` or `strategic cards: not installed` | `/ddd-setup`; it adds what is missing, moves earlier cards and renames an earlier glossary with the user's agreement, and keeps existing files |
 | 3 | `contexts: none modelled yet` | `Use ddd-modelling at standard depth to model <the flow the user is about to build>.` Ask which flow if you cannot tell |
 | 4 | `edited after approval` | `Use ddd-modelling to show what changed in <file> since approval, and approve it again.` |
 | 5 | unconfirmed core, or any other model check problem | `Use ddd-modelling to settle the check problems in <file>.` Name the first problem |
