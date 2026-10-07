@@ -467,6 +467,39 @@ class ToolTests(unittest.TestCase):
         result = self.stamp("approve", "Ann")
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
+    def test_change_inside_a_reviewed_strict_scope_needs_a_new_review(self):
+        base = MODEL.replace("Depth: standard", "Depth: standard\nStrict commands: PlaceOrder")
+        self.model.write_text(base)
+        self.assertEqual(self.stamp("review").returncode, 0)
+        self.assertRegex(self.model.read_text(), r"<!-- reviewed at [0-9a-f]+, scope PlaceOrder [0-9a-f]+ -->")
+        # A change outside every strict scope keeps the review good enough to approve.
+        self.model.write_text(self.model.read_text().replace("| no order | StartOrder |", "| nothing yet | StartOrder |"))
+        approved = self.stamp("approve", "Ann")
+        self.assertEqual(approved.returncode, 0, approved.stdout + approved.stderr)
+        self.assertIn("scope PlaceOrder", self.model.read_text())
+        # A change inside PlaceOrder's scope is refused until it is reviewed again.
+        self.model.write_text(self.model.read_text().replace("| DraftOrder | PlaceOrder | PlacedOrder |", "| DraftOrder | PlaceOrder | DraftOrder |"))
+        self.assertEqual(self.stamp("draft").returncode, 0)
+        refused = self.stamp("approve", "Ann")
+        self.assertNotEqual(refused.returncode, 0)
+        self.assertIn("the strict scope of PlaceOrder changed after the review", refused.stdout)
+        self.assertEqual(self.stamp("review").returncode, 0)
+        self.assertEqual(self.stamp("approve", "Ann").returncode, 0)
+        # A model approved over a changed scope before scopes were hashed keeps its approval, with a warning.
+        text = self.model.read_text().replace("| DraftOrder | PlaceOrder | DraftOrder |", "| DraftOrder | PlaceOrder | PlacedOrder |")
+        self.model.write_text(text)
+        hashed = self.hash_model()
+        self.model.write_text(re.sub(r"model-hash [0-9a-f]+", f"model-hash {hashed}", text))
+        result = self.run_tool("check-model.sh", self.model)
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.assertIn("warning: the strict scope of PlaceOrder changed after the review", result.stdout)
+
+    def test_approval_prints_the_checks_warnings(self):
+        self.model.write_text(MODEL.replace("no: already placed", "no: already placed (assumed)"))
+        approved = self.stamp("approve", "Ann")
+        self.assertEqual(approved.returncode, 0, approved.stdout + approved.stderr)
+        self.assertIn("warning: 1 assumption(s)", approved.stdout)
+
     def test_pending_is_outside_the_hash(self):
         before = self.hash_model()
         pending = "\n## Pending\n\n| Date | Command | The gap, and the question for the user | Found while |\n|---|---|---|---|\n| 2026-10-06 | PlaceOrder | rounding? | example 2 |\n"
@@ -615,6 +648,37 @@ class ToolTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stdout)
         self.assertIn("warning: OrderPlaced crosses the boundary to Billing", result.stdout)
         self.assertIn("at the next change", result.stdout)
+
+    def test_a_context_map_row_the_check_cannot_read_is_an_error(self):
+        context_map = self.repo / "docs/domain/context-map.md"
+        header = ("# Context map\n\n## Relationships\n\n"
+                  "| Upstream | Downstream | Pattern | What crosses the boundary | Translation |\n|---|---|---|---|---|\n")
+        cases = {
+            # A single word is a name too.
+            "| Payments | Ordering | anticorruption layer | Charge status | arrives in Ordering as a Payment |":
+                "Payment is how Payments arrives",
+            "| Payments | Ordering | anticorruption layer | Charge status | Ordering reads it as a payment received |":
+                "Translation names no term",
+            "| Payments | Ordering | anticorruption layer | Charge status | |": "Translation names no term",
+            "| Ordering context | Billing | conformist | Order placed | none |": "names 'Ordering context'; write 'Ordering'",
+        }
+        for row, expected in cases.items():
+            with self.subTest(row=row):
+                context_map.write_text(header + row + "\n")
+                result = self.run_tool("check-model.sh", self.model)
+                self.assertNotEqual(result.returncode, 0, result.stdout)
+                self.assertIn(expected, result.stdout)
+        # Words that start a sentence or name a side are not terms; "none" may carry a note.
+        context_map.write_text(header + "| Payments | Ordering | anticorruption layer | Charge status | In Ordering. Arrives as an Order |\n"
+                               "| Catalog | Ordering | conformist | Order | none (conformist) |\n")
+        result = self.run_tool("check-model.sh", self.model)
+        self.assertEqual(result.returncode, 0, result.stdout)
+        # A model approved before this check keeps its approval, with a warning.
+        context_map.write_text(header + "| Payments | Ordering | anticorruption layer | Charge status | |\n")
+        self.model.write_text(MODEL.replace("Status: draft", f"Status: approved by Ann on 2026-10-01, model-hash {self.hash_model()}"))
+        result = self.run_tool("check-model.sh", self.model)
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.assertIn("warning: the context map's row Payments -> Ordering: Translation names no term", result.stdout)
 
     def test_status_reports_edit_after_approval(self):
         self.model.write_text(MODEL.replace("Status: draft", f"Status: approved by test, model-hash {self.hash_model()}")
