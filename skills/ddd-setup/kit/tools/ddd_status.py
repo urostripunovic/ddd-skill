@@ -162,7 +162,7 @@ def context_lines(path, tested):
         if edited:
             line += "; edited after approval, so it needs approving again"
         if core:
-            line += f"; {len(core)} of them unconfirmed core (Issued by or invariant)"
+            line += f"; {len(core)} of them unconfirmed core (Issued by, invariant or Believed when)"
         lines.append(line)
         lines.extend(f"  {p}" for p in problems[:3])
         if len(problems) > 3:

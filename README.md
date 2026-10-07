@@ -35,7 +35,7 @@ The agent asks questions in rounds, each with a proposed answer, and writes the 
 **4. Approve it.** Read the model it shows you. When it is right:
 
 ```text
-I approve docs/domain/contexts/ordering.md.
+I approve docs/domain/contexts/ordering.md. Approver: <your name>.
 ```
 
 For money, credentials, personal data or anything hard to undo, model at `strict` depth and review it in a fresh session first: `/ddd-model-review docs/domain/contexts/ordering.md`.
