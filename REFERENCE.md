@@ -260,7 +260,7 @@ The `Status:` line is always written by `tools/stamp-model.sh`. The approval has
 
 ## Optional integrations
 
-With [Matt Pocock's skills](https://github.com/mattpocock/skills) installed, the kit uses `grilling` for interviews and `tdd` for the failing-test-to-passing-code loop. Neither is required. The glossary is his `CONTEXT.md`, in his format, so his `domain-modeling`, `tdd` and other skills read and extend the same terms.
+With [Matt Pocock's skills](https://github.com/mattpocock/skills) installed, the kit uses `grilling` for interviews and `tdd` for the failing-test-to-passing-code loop. Neither is required. The glossary is his `CONTEXT.md`, in his format, so his `domain-modeling`, `tdd` and other skills read and extend the same terms. Domain decisions go in the context file's `## Decisions`, under the approval hash; technical ones are his ADRs in `docs/adr/`.
 
 ## Compatibility
 

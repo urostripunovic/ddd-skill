@@ -628,6 +628,14 @@ class ToolTests(unittest.TestCase):
         found = {n for n in tracked if not n.startswith("evals/results/") and "GLOSSARY" in (ROOT / n).read_text(errors="ignore")}
         self.assertEqual(sorted(found - allowed), [], "the glossary is CONTEXT.md")
 
+    def test_domain_decisions_and_adrs_have_one_split(self):
+        # Domain decisions are Decisions rows under the approval hash; technical ones are ADRs. Both places say so.
+        modelling = next(l for l in (ROOT / "skills/ddd-modelling/SKILL.md").read_text().splitlines() if l.startswith("- **Decisions**"))
+        reference = next(l for l in (ROOT / "REFERENCE.md").read_text().splitlines() if "Matt Pocock's skills" in l)
+        for line in (modelling, reference):
+            self.assertIn("`docs/adr/`", line)
+            self.assertRegex(line, r"approv(al hash|ing again)")
+
     def test_lifecycle_word_counts_match_the_files(self):
         # Counted as wc -w counts: runs of non-whitespace. Every rule file is listed.
         lifecycle = ROOT / "skills/ddd-modelling/lifecycle"
