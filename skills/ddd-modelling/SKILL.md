@@ -238,4 +238,4 @@ Stop here. Implementation is a separate step with the `ddd-implementation` skill
 
 ## Changing a model
 
-When the context file has rows under `## Pending`, settle them first: each is a question implementation is waiting on. A new rule, state, command or term always goes through the model first. For pending rows, amendments and small changes, read [CHANGING.md](CHANGING.md).
+When the context file has rows under `## Pending`, settle them first: each is a question implementation is waiting on. A new rule, state, command or term always goes through the model first. At standard depth, a change to only the rest of an approved model is an `## Amendments` row and the approval stands; a change to the core sets it back to draft. For pending rows, amendments and small changes, read [CHANGING.md](CHANGING.md).

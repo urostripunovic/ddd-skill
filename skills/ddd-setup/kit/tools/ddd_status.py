@@ -145,9 +145,9 @@ def context_lines(path, tested):
     top = check_model.split(text, "## ")
     lines = []
 
-    status = re.search(r"^Status:\s*(.+)$", text, re.M)
-    state = status.group(1).strip() if status else "no Status line"
-    lines.append(f"status: {state}")
+    state = check_model.read_status(raw) or "no Status line"
+    # Shown as the file reads; the hashes are compared below and by the check.
+    lines.append("status: " + re.sub(r",\s*model-hash\s+[0-9a-f]+|\s+at\s+[0-9a-f]+", "", state))
 
     depth = re.search(r"^Depth:\s*(.+)$", text, re.M)
     strict = re.search(r"^Strict commands:[ \t]*(.+)$", text, re.M)

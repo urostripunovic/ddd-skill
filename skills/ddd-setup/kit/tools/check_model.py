@@ -36,6 +36,27 @@ NONE = re.compile(r"^\s*none\b", re.I | re.M)
 PLACEHOLDER = re.compile(r"tbd|tbc|to be (decided|confirmed)|unknown|open( question)?|see open questions|\?+")
 
 
+def read_status(raw):
+    """The Status line in its long form, "approved by X on D, model-hash H, reviewed D at H", whichever form
+    the file uses. tools/stamp-model.sh writes the hashes in a comment at the end of the line, so the line
+    reads short; models stamped before that have them in the text. None without a Status line."""
+    line = re.search(r"^Status:([^\n]*)$", raw, re.M)
+    if not line:
+        return None
+    hidden = " ".join(re.findall(r"<!--(.*?)-->", line.group(1)))
+    state = re.sub(r"<!--.*?-->", "", line.group(1)).strip().rstrip(",").strip()
+    approved_hash = re.search(r"model-hash\s+([0-9a-f]+)", hidden)
+    review_hash = re.search(r"reviewed at\s+([0-9a-f]+)", hidden)
+    review = re.search(r"\breviewed\s+[^,\s]+", state)
+    if approved_hash and "model-hash" not in state:
+        end = review.start() if review else len(state)
+        state = state[:end].rstrip().rstrip(",") + f", model-hash {approved_hash.group(1)}" + (", " + state[end:] if review else "")
+        review = re.search(r"\breviewed\s+[^,\s]+", state)
+    if review_hash and review and not re.search(r"\breviewed\s+[^,\s]+\s+at\s", state):
+        state = state[:review.end()] + f" at {review_hash.group(1)}" + state[review.end():]
+    return state
+
+
 def unconfirmed(cell):
     """True for a core cell nobody confirmed: marked (assumed), or a placeholder standing in for an answer."""
     text = (cell or "").strip().rstrip(".").strip().lower()
@@ -253,7 +274,8 @@ def check(path, glossary_override, approving=False):
     if hashed.returncode:
         err("model hash failed: " + (hashed.stderr.strip() or "no diagnostic"))
 
-    status = re.search(r"^Status:\s*(.+)$", text, re.M)
+    state = read_status(raw)
+    status = re.match(r"(.+)", state) if state else None
     if not status:
         err("no Status line")
     # A rule added to the core after approval is settled at the next change, not by breaking the approval.

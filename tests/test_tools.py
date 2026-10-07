@@ -384,6 +384,17 @@ class ToolTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("takes Voucher, which is neither a primitive nor a defined type", result.stdout)
 
+    def test_status_line_in_the_older_form_still_reads(self):
+        # Models stamped before the hashes moved into a comment keep their approval, and a new stamp shortens the line.
+        hashed = self.run_tool("model-hash.sh", self.model).stdout.strip()
+        self.model.write_text(MODEL.replace("Status: draft", f"Status: approved by Ann on 2026-10-01, model-hash {hashed}"))
+        self.assertEqual(self.run_tool("check-model.sh", self.model).returncode, 0)
+        self.assertEqual(self.stamp("review").returncode, 0)
+        self.assertRegex(self.model.read_text(), rf"Status: approved by Ann on 2026-10-01, reviewed \S+ <!-- model-hash {hashed}, reviewed at {hashed} -->\n")
+        self.assertEqual(self.run_tool("check-model.sh", self.model).returncode, 0)
+        self.model.write_text(self.model.read_text().replace("already placed", "placing is final"))
+        self.assertIn("edited after approval", self.run_tool("check-model.sh", self.model).stdout)
+
     def test_approved_without_hash_is_an_error(self):
         self.model.write_text(MODEL.replace("Status: draft", "Status: approved by test on 2026-10-06"))
         result = self.run_tool("check-model.sh", self.model)
@@ -399,10 +410,10 @@ class ToolTests(unittest.TestCase):
         self.assertEqual(self.stamp("review").returncode, 0)
         approved = self.stamp("approve", "Ann")
         self.assertEqual(approved.returncode, 0, approved.stdout + approved.stderr)
-        self.assertRegex(self.model.read_text(), r"Status: approved by Ann on \S+, model-hash [0-9a-f]+, reviewed \S+ at [0-9a-f]+\n")
+        self.assertRegex(self.model.read_text(), r"Status: approved by Ann on \S+, reviewed \S+ <!-- model-hash [0-9a-f]+, reviewed at [0-9a-f]+ -->\n")
         self.model.write_text(self.model.read_text().replace("already placed", "placing is final"))
         self.assertEqual(self.stamp("draft").returncode, 0)
-        self.assertRegex(self.model.read_text(), r"Status: draft, reviewed \S+ at [0-9a-f]+\n")
+        self.assertRegex(self.model.read_text(), r"Status: draft, reviewed \S+ <!-- reviewed at [0-9a-f]+ -->\n")
         draft = self.run_tool("check-model.sh", self.model)
         self.assertIn("the model has changed since", draft.stdout)
         refused = self.stamp("approve", "Ann")
