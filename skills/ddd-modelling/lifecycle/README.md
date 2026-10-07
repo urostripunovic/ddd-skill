@@ -10,5 +10,5 @@ The rules every ddd skill shares, one topic per file, so that each skill reads o
 | [Status and approval](approval.md) | 497 |
 | [The notes tail](notes-tail.md) | 182 |
 | [When code learns what the model did not say](gaps.md) | 216 |
-| [What `tools/check-model.sh` checks](checker.md) | 118 |
+| [What `tools/check-model.sh` checks](checker.md) | 129 |
 | [The range a code review covers](review-range.md) | 168 |
