@@ -128,7 +128,7 @@ Depth controls how much you confirm before coding. It is a sentence in your prom
 
 | Depth | What you confirm |
 |---|---|
-| `standard` | The usual choice. You confirm the **core**: states, commands, who may issue them, invariants, aggregate boundaries and terms. The agent proposes the rest, such as limits and edge cases, marks it `(assumed)` and shows one list to correct. Who may issue a command and the invariants are never assumed: the checker rejects them until you answer. About three interview rounds; review is optional |
+| `standard` | The usual choice. You confirm the **core**: states, commands, who may issue them, what makes callers and outside data trusted, invariants, aggregate boundaries and terms. The agent proposes the rest, such as limits and edge cases, marks it `(assumed)` and shows one list to correct. Who may issue a command and the invariants are never assumed: the checker rejects them until you answer. About three interview rounds; review is optional |
 | `strict` | The details too: limits, failures, concurrent actions that conflict, worked examples. A review in a fresh session before approval. Recommended for money, credentials, authorisation, personal data and anything hard to undo |
 | `none` | Postpone modelling for a prototype. The scope is recorded under `## Prototypes` in the context map, and no model is written. Ask your agent separately to write the prototype; it can be adopted into a model later |
 
@@ -183,7 +183,7 @@ If the review found blockers, return to the review session to check the fixes; a
 When you have read the model and are satisfied:
 
 ```text
-I approve docs/domain/contexts/ordering.md.
+I approve docs/domain/contexts/ordering.md. Approver: <your name>.
 ```
 
 The agent stamps it with `tools/stamp-model.sh`: `Status: approved by <name> on <date>, model-hash <hash>`. The script refuses while the model fails its check. At standard depth, approval also accepts the listed assumptions you did not correct.
@@ -230,7 +230,7 @@ Implementation always learns something the model did not say. The exact rules ar
 
 | The gap | What happens |
 |---|---|
-| In the core (a missing state, command, invariant, permission, boundary, or two rules that contradict), at any depth | Implementation stops and writes the question under `## Pending` in the context file |
+| In the core (a missing state, command, invariant, permission, trust rule, boundary, or two rules that contradict), at any depth | Implementation stops and writes the question under `## Pending` in the context file |
 | Anything, at strict depth or in a strict scope | The same |
 | A guess that could lose money or data, expose something or be hard to undo, or a confirmed example that does not hold | The same |
 | Anything else, at standard depth | The agent decides, tests it, and records it under `## Amendments`; work goes on |

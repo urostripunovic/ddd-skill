@@ -55,7 +55,7 @@ line = "Status: " + base + (f", {reviewed}" if reviewed else "")
 path.write_text(raw[:status.start()] + line + raw[status.end():])
 
 if action == "approve":
-    check = subprocess.run([sys.executable, str(here / "check_model.py"), str(path)], capture_output=True, text=True)
+    check = subprocess.run([sys.executable, str(here / "check_model.py"), "--approving", str(path)], capture_output=True, text=True)
     if check.returncode:
         path.write_text(raw)
         sys.stdout.write(check.stdout)

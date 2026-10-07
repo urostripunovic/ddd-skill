@@ -39,7 +39,7 @@ A missing `Depth:` line means strict. Review at the effective depth defined in [
 
 A review that can always find one more thing never ends, and each round's fixes add text for the next round to question. These rules make it end.
 
-- **A blocker is one of three things**: an example that contradicts a rule; a place in the core where an implementer would have to invent a state, a command, an invariant or who may issue; an abuse sequence that causes real loss or exposure for this system and that nothing limits. Nothing else is a blocker, at either depth.
+- **A blocker is one of three things**: an example that contradicts a rule; a place in the core where an implementer would have to invent a state, a command, an invariant, who may issue, or what makes a caller or fact trusted; an abuse sequence that causes real loss or exposure for this system and that nothing limits. Nothing else is a blocker, at either depth.
 - **Everything else does not stop approval.** Write it as a proposed assumption: the value or behaviour you would pick, as a diff that adds it marked `(assumed)`. The user accepts them all in a word. Do not turn them into questions. At strict depth, an accepted assumption counts as confirmed, and the modelling session writes it without the marker.
 - **Settled is settled.** A row under Decisions, a bound the model says was confirmed, and anything an earlier review asked and the user answered, is not asked again. If you think a decision is wrong, say so once, as a note.
 - **Abuse is scaled to the system.** Do not report abuse that needs an administrator of another system, a second account in the identity provider, or a restart of the service, unless the model says that is in scope.

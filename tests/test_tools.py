@@ -221,12 +221,16 @@ class ToolTests(unittest.TestCase):
     def test_unconfirmed_core_is_rejected(self):
         invariants = ("### Invariants\n| # | Invariant | Enforced by | Commands that could break it |\n|---|---|---|---|\n"
                       "| 1 | {} | decision function PlaceOrder | PlaceOrder |")
+        facts = ("### Facts from outside\n| Fact | Used by | Source | Believed when | If not, or no answer | May it be stale? |\n"
+                 "|---|---|---|---|---|---|\n| Requester | PlaceOrder | the sign-in token | {} | NotAuthenticated | no |")
         cases = {
             "assumed issuer": MODEL.replace("| PlaceOrder | customer |", "| PlaceOrder | anyone (assumed) |"),
             "placeholder issuer": MODEL.replace("| PlaceOrder | customer |", "| PlaceOrder | TBD |"),
             "question issuer": MODEL.replace("| PlaceOrder | customer |", "| PlaceOrder | ? |"),
             "assumed invariant": MODEL.replace("### Invariants\nNone.", invariants.format("at most 10 orders a day (assumed)")),
             "placeholder invariant": MODEL.replace("### Invariants\nNone.", invariants.format("to be decided")),
+            "assumed trust": MODEL.replace("### Facts from outside\nNone.", facts.format("the token signature is checked (assumed)")),
+            "placeholder trust": MODEL.replace("### Facts from outside\nNone.", facts.format("TBD")),
         }
         for name, model in cases.items():
             with self.subTest(name=name):
@@ -234,6 +238,41 @@ class ToolTests(unittest.TestCase):
                 result = self.run_tool("check-model.sh", self.model)
                 self.assertNotEqual(result.returncode, 0, result.stdout)
                 self.assertIn("is not confirmed", result.stdout)
+
+    def test_guessed_trust_rule_blocks_approval_but_not_an_earlier_one(self):
+        facts = ("### Facts from outside\n| Fact | Used by | Source | Believed when | If not, or no answer | May it be stale? |\n"
+                 "|---|---|---|---|---|---|\n| Requester | PlaceOrder | the sign-in token | the signature is checked (assumed) | NotAuthenticated | no |")
+        self.model.write_text(MODEL.replace("### Facts from outside\nNone.", facts))
+        glossary = self.repo / "GLOSSARY.md"
+        glossary.write_text(glossary.read_text() + "\n**Requester**:\nWho sent the request.\n")
+        refused = self.stamp("approve", "Ann")
+        self.assertNotEqual(refused.returncode, 0)
+        self.assertIn("'Believed when' is not confirmed", refused.stdout)
+        self.assertIn("Status: draft\n", self.model.read_text())
+        # A model approved before trust rules joined the core keeps working, with a warning.
+        hashed = self.run_tool("model-hash.sh", self.model).stdout.strip()
+        self.model.write_text(self.model.read_text().replace("Status: draft", f"Status: approved by Ann on 2026-10-01, model-hash {hashed}"))
+        result = self.run_tool("check-model.sh", self.model)
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.assertIn("warning:", result.stdout)
+        self.assertIn("at the next change", result.stdout)
+        # The same for a model written before the template had the column.
+        old = MODEL.replace("### Facts from outside\nNone.", "### Facts from outside\n| Fact | Used by | Source | May it be stale? |\n"
+                            "|---|---|---|---|\n| Requester | PlaceOrder | the sign-in token | no |")
+        self.model.write_text(old)
+        self.assertNotEqual(self.stamp("approve", "Ann").returncode, 0)
+        hashed = self.run_tool("model-hash.sh", self.model).stdout.strip()
+        self.model.write_text(old.replace("Status: draft", f"Status: approved by Ann on 2026-10-01, model-hash {hashed}"))
+        result = self.run_tool("check-model.sh", self.model)
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.assertIn("'Believed when' is missing", result.stdout)
+
+    def test_confirmed_trust_rule_passes(self):
+        facts = ("### Facts from outside\n| Fact | Used by | Source | Believed when | If not, or no answer | May it be stale? |\n"
+                 "|---|---|---|---|---|---|\n| Requester | PlaceOrder | the sign-in token | signature, issuer, audience and expiry are checked | NotAuthenticated | no |")
+        self.model.write_text(MODEL.replace("### Facts from outside\nNone.", facts))
+        result = self.run_tool("check-model.sh", self.model)
+        self.assertNotIn("Believed when", result.stdout)
 
     def test_assumed_rest_still_only_warns(self):
         self.model.write_text(MODEL.replace("no: already placed", "no: already placed (assumed)")
@@ -531,6 +570,35 @@ class ToolTests(unittest.TestCase):
                 if "://" not in target and not (doc.parent / target).exists():
                     broken.append(f"{doc.relative_to(ROOT)}: {target}")
         self.assertEqual(broken, [])
+
+    def test_lifecycle_word_counts_match_the_files(self):
+        # Counted as wc -w counts: runs of non-whitespace. Every rule file is listed.
+        lifecycle = ROOT / "skills/ddd-modelling/lifecycle"
+        listed = dict(re.findall(r"\]\(([\w-]+\.md)\) \| (\d+) \|", (lifecycle / "README.md").read_text()))
+        actual = {f.name: str(len(f.read_text().split())) for f in lifecycle.glob("*.md") if f.name != "README.md"}
+        self.assertEqual(listed, actual, "update the Words column in skills/ddd-modelling/lifecycle/README.md")
+
+    def test_every_list_of_the_core_names_the_same_items(self):
+        # depth.md defines the core. The safety rules repeat it inline on purpose, so a test keeps the copies together.
+        items = {"states": r"\bstates?\b", "commands": r"\bcommands?\b", "who may issue": r"who may issue",
+                 "trust": r"\btrusted\b", "invariants": r"\binvariants?\b", "aggregate boundaries": r"aggregate boundar",
+                 "glossary": r"glossary|\bterms\b"}
+        definition = set(items)
+        stop = {"states", "commands", "who may issue", "trust", "invariants"}
+        places = [
+            ("skills/ddd-modelling/lifecycle/depth.md", "The **core** is", definition),
+            ("skills/ddd-modelling/SKILL.md", "- Never mark the core (", definition),
+            ("REFERENCE.md", "You confirm the **core**", definition),
+            ("skills/ddd-modelling/lifecycle/gaps.md", "- **A gap in the core**", stop | {"aggregate boundaries"}),
+            ("skills/ddd-implementation/SKILL.md", "- When the model is missing", stop),
+            ("skills/ddd-model-review/SKILL.md", "- **A blocker is one of three things**", stop),
+        ]
+        missing = []
+        for path, marker, required in places:
+            line = next((l for l in (ROOT / path).read_text().splitlines() if marker in l), None)
+            self.assertIsNotNone(line, f"{path}: no line with {marker!r}")
+            missing += [f"{path}: {name}" for name in sorted(required) if not re.search(items[name], line, re.I)]
+        self.assertEqual(missing, [], "the core is defined in depth.md; make these lists name the same items")
 
     def test_install_accepts_options_after_the_repository(self):
         repo = self.repo / "target"

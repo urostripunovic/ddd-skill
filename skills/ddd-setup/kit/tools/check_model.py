@@ -1,12 +1,12 @@
-"""Usage: check_model.py [--glossary PATH] <context-file>...
+"""Usage: check_model.py [--glossary PATH] [--approving] <context-file>...
 
 Checks selected structural properties: that every section of the template is
 present (with "None." where there is nothing), state-field type references, command
 signature/table agreement, incoming/outgoing command mentions, matrix cells,
 example mentions for commands and decision failures, unique example numbers,
 selected glossary names and rejected synonyms, depth override names, approval
-hash boundaries, and that no 'Issued by' cell or invariant is marked (assumed) or
-left as a placeholder such as TBD. For each name on a "Strict commands:" line it
+hash boundaries, and that no 'Issued by' cell, invariant or 'Believed when' cell of
+a fact from outside is marked (assumed) or left as a placeholder such as TBD. For each name on a "Strict commands:" line it
 prints the strict scope: the command's own rows, the rows that name it, and every
 primitive its states and inputs use.
 
@@ -15,8 +15,13 @@ on (assumed) entries, open questions, amendment rows or a missing or out-of-date
 review. With strict commands, the same holds for their strict scope.
 
 It does not prove reachability from creation, resolve event/failure payload
-types, validate outside-fact trust rules, cover use-case failures or all glossary
+types, judge whether an outside fact's trust rule is sufficient, cover use-case failures or all glossary
 terms, or judge examples against rules. Review those at the chosen depth.
+
+A missing or unconfirmed 'Believed when' cell joined the core after models were approved without
+it, so in an approved model it is a warning, to settle at the next change. It is an
+error in a draft, and with --approving, which tools/stamp-model.sh passes, so no new
+approval rests on it.
 
 Exit status is 1 when any problem is found. Lines starting with "warning:" and the
 strict-scope lines do not change the exit status.
@@ -233,7 +238,7 @@ def check_approval(state, hashed, depth, strict_commands, scopes, top, assumed, 
                             f"{restamp}; if it touched none, re-stamp the review and say so")
 
 
-def check(path, glossary_override):
+def check(path, glossary_override, approving=False):
     problems, warnings, notes = [], [], []
     err = problems.append
     raw = path.read_text()
@@ -251,6 +256,8 @@ def check(path, glossary_override):
     status = re.search(r"^Status:\s*(.+)$", text, re.M)
     if not status:
         err("no Status line")
+    # A rule added to the core after approval is settled at the next change, not by breaking the approval.
+    earlier_approval = bool(status and status.group(1).lower().startswith("approved") and not approving)
 
     depth = re.search(r"^Depth:\s*(.+)$", text, re.M)
     if depth and depth.group(1).strip() not in ("standard", "strict"):
@@ -429,6 +436,17 @@ def check(path, glossary_override):
                 if name not in commands:
                     err(f"{where}: invariant {number} names {name}, which is not a command")
 
+        for row in table(find(subs, "Facts from outside")):
+            fact = row.get("Fact", "?")
+            believed = row.get("Believed when")
+            if (not believed or unconfirmed(believed)) and earlier_approval:
+                warnings.append(f"{where}: fact {fact}: 'Believed when' is {'missing' if not believed else f'not confirmed ({believed})'}. "
+                                "The model was approved before trust rules were part of the core; confirm it with the user at the next change to this model")
+            elif not believed:
+                err(f"{where}: fact {fact} does not say when it is believed")
+            elif unconfirmed(believed):
+                err(f"{where}: fact {fact}: 'Believed when' is not confirmed ({believed}); what makes a caller or an outside fact trusted is part of the core, so ask the user and write their answer")
+
         columns = {c: s for c, s in commands.items() if s}
         matrix = table(next((b for t, b in subs if t.lower().startswith("command") and "matrix" in t.lower()), None))
         if not matrix:
@@ -515,6 +533,8 @@ def check(path, glossary_override):
 
 def main(argv):
     glossary = None
+    approving = "--approving" in argv
+    argv = [a for a in argv if a != "--approving"]
     if argv[:1] == ["--glossary"]:
         glossary, argv = argv[1], argv[2:]
     if not argv:
@@ -522,7 +542,7 @@ def main(argv):
         return 2
     failed = False
     for name in argv:
-        problems, warnings, notes = check(pathlib.Path(name), glossary)
+        problems, warnings, notes = check(pathlib.Path(name), glossary, approving)
         for message in notes:
             print(f"{name}: {message}")
         for message in warnings:
