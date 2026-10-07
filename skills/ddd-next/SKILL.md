@@ -56,4 +56,4 @@ Next: implement CancelOrder in ordering.
 
 Give one next step. If a second context also needs something, name it in the state lines; do not give a second prompt. Do not paste the status output, tables or check messages beyond the first problem.
 
-Do not run the step, and do not edit any file, even if the fix looks small.
+Do not run the step, and do not edit any file, even if the fix looks small. Advise only from this table and the kit's rules: add no rule of your own, such as who ought to approve.

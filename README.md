@@ -57,6 +57,8 @@ It writes the model's examples as tests first, then the code, and runs compile, 
 /ddd-review-all Review this branch against main.
 ```
 
+At standard depth this is one reviewer: the code against the model, plus the security checks for authorisation, sensitive data and input. Strict models get all three reviewers; add `full` to ask for them at any depth.
+
 **Not sure what comes next?** Ask "what's next?" at any point. `ddd-next` reads the state of the repository and gives the one next step, with the prompt to type.
 
 ## The skills
@@ -72,7 +74,7 @@ It writes the model's examples as tests first, then the code, and runs compile, 
 | [`ddd-review`](skills/ddd-review/SKILL.md) | by name | Check code against the model |
 | [`secure-by-design-review`](skills/secure-by-design-review/SKILL.md) | by name | Review domain code with the Secure by Design checklist |
 | [`task-review`](skills/task-review/SKILL.md) | by name | Check code against the task that asked for it |
-| [`ddd-review-all`](skills/ddd-review-all/SKILL.md) | by name | Run the three code reviews in isolated subagents |
+| [`ddd-review-all`](skills/ddd-review-all/SKILL.md) | by name | Review the code in isolated subagents: one reviewer at standard depth, all three at strict or with `full` |
 
 The skills are opt-in per repository: in a project without `docs/domain/`, they stay out of the way. Setup and the reviews never start on their own.
 
