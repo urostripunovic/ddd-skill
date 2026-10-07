@@ -52,7 +52,7 @@ if [ -n "${lang_given}" ]; then
 fi
 [ -z "${model_only}" ] || langs=none
 cd "${target:-.}"
-top="$(git rev-parse --show-toplevel 2>/dev/null)" || { echo "not a git repository: $(pwd)" >&2; exit 2; }
+top="$(git rev-parse --show-toplevel 2>/dev/null)" || { echo "not a git repository: $(pwd); run git init first" >&2; exit 2; }
 # The skills look for docs/domain/ and tools/ at the repository root.
 [ "$(pwd -P)" = "$(cd "${top}" && pwd -P)" ] || { echo "not the repository root: $(pwd); run it for ${top}" >&2; exit 2; }
 
