@@ -47,7 +47,7 @@ The second column is the line that connects each pattern to the context map in t
 | [03 Shared kernel](03-shared-kernel.md) | overlap allied contexts through a shared kernel |
 | [04 Customer/supplier](04-customer-supplier.md) | relate allied contexts as customer/supplier teams |
 | [05 Conformist](05-conformist.md) | overlap unilaterally as conformist |
-| [06 Anticorruption layer](06-anti-corruption-layer.md) | translate and insulate unilaterally with an anticorruption layer |
+| [06 Anticorruption layer](06-anticorruption-layer.md) | translate and insulate unilaterally with an anticorruption layer |
 | [07 Open-host service](07-open-host-service.md) | support multiple clients through an open host service |
 | [08 Published language](08-published-language.md) | formalize as published language (from open host service) |
 | [09 Separate ways](09-separate-ways.md) | free teams to go separate ways |

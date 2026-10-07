@@ -4,6 +4,7 @@ The rules are in [the card](../05-domain-event.md).
 
 ```ts
 export type OrderId = string & { readonly __brand: "OrderId" };
+export type CancellationReason = string & { readonly __brand: "CancellationReason" };
 
 export type OrderPlaced = {
   readonly type: "order-placed";
@@ -14,7 +15,7 @@ export type OrderPlaced = {
 export type OrderCancelled = {
   readonly type: "order-cancelled";
   readonly orderId: OrderId;
-  readonly reason: string;
+  readonly reason: CancellationReason;
   readonly at: Date;
 };
 

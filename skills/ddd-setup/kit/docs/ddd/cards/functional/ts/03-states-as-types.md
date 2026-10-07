@@ -4,16 +4,17 @@ The rules are in [the card](../03-states-as-types.md).
 
 ```ts
 export type OrderId = string & { readonly __brand: "OrderId" };
+export type CancellationReason = string & { readonly __brand: "CancellationReason" };
 
 export type DraftOrder = { readonly kind: "draft"; readonly id: OrderId };
 export type PlacedOrder = { readonly kind: "placed"; readonly id: OrderId; readonly placedAt: Date };
-export type CancelledOrder = { readonly kind: "cancelled"; readonly id: OrderId; readonly reason: string };
+export type CancelledOrder = { readonly kind: "cancelled"; readonly id: OrderId; readonly reason: CancellationReason };
 
 export type Order = DraftOrder | PlacedOrder | CancelledOrder;
 
 export type CancellableOrder = DraftOrder | PlacedOrder;
 
-export function cancel(order: CancellableOrder, reason: string): CancelledOrder {
+export function cancel(order: CancellableOrder, reason: CancellationReason): CancelledOrder {
   return { kind: "cancelled", id: order.id, reason };
 }
 

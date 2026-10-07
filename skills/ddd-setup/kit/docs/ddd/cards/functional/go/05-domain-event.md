@@ -14,6 +14,10 @@ type OrderID struct{ v string }
 
 func (id OrderID) String() string { return id.v }
 
+type CancellationReason struct{ v string }
+
+func (r CancellationReason) String() string { return r.v }
+
 //sumtype:decl
 type Event interface {
 	isEvent()
@@ -27,7 +31,7 @@ type OrderPlaced struct {
 
 type OrderCancelled struct {
 	OrderID OrderID
-	Reason  string
+	Reason  CancellationReason
 	At      time.Time
 }
 

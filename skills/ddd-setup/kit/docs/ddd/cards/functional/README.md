@@ -7,7 +7,7 @@ Typed DDD in the functional style of Scott Wlaschin's *Domain Modeling Made Func
 | [go/](go/README.md) | Go idioms and check commands, and one example per card |
 | [ts/](ts/README.md) | the same for TypeScript |
 
-Every example compiles and passes the applicable reference lint rules in `tools/lint/`. The checker extracts examples into domain directories by default. Examples of workflows, adapters and other boundary code declare `Check as: boundary` and receive the general rules instead of the no-I/O domain rules. Read the cards the task needs, and the examples only for the language being written.
+Every example compiles and passes the applicable reference lint rules in `tools/lint/`. The checker extracts examples into domain directories by default. Examples of workflows, adapters and other boundary code declare `Check as: boundary` and receive the general rules instead of the no-I/O domain rules. Read the cards the task needs, and the examples only for the language being written. The bounds and values in an example (`1000`, `64`) show the pattern; they are not rules. The real ones come from the model.
 
 | Card | Load it when |
 |---|---|
@@ -19,7 +19,7 @@ Every example compiles and passes the applicable reference lint rules in `tools/
 | [06 Workflow as function](06-workflow-as-function.md) | wiring a use case: load, decide, persist, publish |
 | [07 Parse at the boundary](07-parse-at-the-boundary.md) | data enters from HTTP, a queue, a database or config |
 | [08 Repository](08-repository.md) | loading or storing an aggregate |
-| [09 Anti-corruption layer](09-anti-corruption-layer.md) | talking to another system or bounded context |
+| [09 Anticorruption layer](09-anticorruption-layer.md) | talking to another system or bounded context |
 | [10 Errors as values](10-errors-as-values.md) | an operation can fail for a business reason |
 | [11 Decider](11-decider.md) | the aggregate is event-sourced, or all its commands should go through one `decide` function |
 | [12 Event stream repository](12-event-stream-repository.md) | storing and loading an event-sourced aggregate |

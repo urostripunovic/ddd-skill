@@ -10,11 +10,11 @@ Kind answers "How important is this context to the success of your organisation?
 
 ## Relationships
 
-One row per dependency between contexts or to an external system. Upstream is the side whose actions affect the other's success, but not the other way round (Evans). Pattern is one or more of the strategic cards in `docs/ddd/strategic/`: partnership, shared kernel, customer/supplier, conformist, anti-corruption layer, open host service, published language, separate ways. Mark a big ball of mud in the table above, after the context's name.
+One row per dependency between contexts or to an external system. Upstream is the side whose actions affect the other's success, but not the other way round (Evans). Pattern is one or more of the strategic cards in `docs/ddd/strategic/`: partnership, shared kernel, customer/supplier, conformist, anticorruption layer, open host service, published language, separate ways. Mark a big ball of mud in the table above, after the context's name.
 
 | Upstream | Downstream | Pattern | What crosses the boundary | Translation |
 |---|---|---|---|---|
-| <!-- Payment provider --> | <!-- Billing --> | <!-- anti-corruption layer --> | <!-- Charge status --> | <!-- in Billing; arrives in the domain as a ChargeOutcome --> |
+| <!-- Payment provider --> | <!-- Billing --> | <!-- anticorruption layer --> | <!-- Charge status --> | <!-- in Billing; arrives in the domain as a ChargeOutcome --> |
 
 ## Open questions
 

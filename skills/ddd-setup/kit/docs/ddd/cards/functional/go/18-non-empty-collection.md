@@ -17,9 +17,13 @@ var (
 
 const maxItems = 200
 
-type Item struct{ sku string }
+type SKU struct{ v string }
 
-func (l Item) SKU() string { return l.sku }
+func (s SKU) String() string { return s.v }
+
+type Item struct{ sku SKU }
+
+func (l Item) SKU() SKU { return l.sku }
 
 // The first item is its own field, so a Items built by NewItems always has one.
 type Items struct {

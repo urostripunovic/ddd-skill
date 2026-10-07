@@ -1,10 +1,10 @@
-# Anti-corruption layer
+# Anticorruption layer
 
 **Use when:** the domain depends on another system's model: a payment provider, a legacy database, another team's API, another bounded context.
 
 **Never:** let the other system's types, field names or status strings appear in domain code.
 
-When to choose this over conforming to the other model is a modelling decision: see the strategic card, [anti-corruption layer](../../strategic/06-anti-corruption-layer.md).
+When to choose this over conforming to the other model is a modelling decision: see the strategic card, [anticorruption layer](../../strategic/06-anticorruption-layer.md).
 
 ## Rules
 
@@ -26,7 +26,7 @@ if (order.stripeStatus === "requires_capture") { /* domain logic */ }
 
 ## Example
 
-One file per language: [Go](go/09-anti-corruption-layer.md), [TypeScript](ts/09-anti-corruption-layer.md). Read only the one for the language you are writing.
+One file per language: [Go](go/09-anticorruption-layer.md), [TypeScript](ts/09-anticorruption-layer.md). Read only the one for the language you are writing.
 
 ## Corrections
 

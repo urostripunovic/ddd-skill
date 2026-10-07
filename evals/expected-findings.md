@@ -71,6 +71,7 @@ Neither has seeds. Score a run by what it reports:
 Known and deliberate, so not a finding:
 
 - Go: state types can be written as zero values from another package (`ordering.DraftOrder{}` in `internal/app`), which the kit names as a limit of the language.
+- Go: decision functions do not re-check primitives for zero values. Each primitive's zero value is either detectable (`IsZero`, tested in `TestZeroValuesAreDetectable`) or meaningful (a zero `Price` is nothing to pay), which is what card 01 and `secure-by-design-review` ask for.
 - TypeScript: a state or an event is a plain object type, so any code can write one as an object literal (`{ kind: "placed", ... }`) without going through a decision function. The primitives inside it still have to come from their parsers. The kit names this as a limit of the language.
 - TypeScript: times are a `Timestamp` primitive (milliseconds since the epoch) and not a `Date` as in the cards, because a `Date` can be changed by whoever holds it. The tests are in `test/` and not beside the code, because the domain lint rules apply to every file under `src/ordering` and a test needs `node:test`.
 - TypeScript: `Actor` has one variant, so the two authorisation functions do not switch on its kind.

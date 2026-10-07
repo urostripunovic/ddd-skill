@@ -8,20 +8,22 @@ export type Result<T, E> =
   | { readonly ok: false; readonly error: E };
 
 export type OrderId = string & { readonly __brand: "OrderId" };
+export type Sku = string & { readonly __brand: "Sku" };
+export type Item = { readonly sku: Sku };
 
 export type NoOrder = { readonly kind: "none" };
-export type DraftOrder = { readonly kind: "draft"; readonly id: OrderId; readonly itemCount: number };
+export type DraftOrder = { readonly kind: "draft"; readonly id: OrderId; readonly items: readonly Item[] };
 export type PlacedOrder = { readonly kind: "placed"; readonly id: OrderId; readonly placedAt: Date };
 export type Order = NoOrder | DraftOrder | PlacedOrder;
 
 export type Command =
   | { readonly type: "create-order"; readonly id: OrderId }
-  | { readonly type: "add-item" }
+  | { readonly type: "add-item"; readonly sku: Sku }
   | { readonly type: "place-order"; readonly at: Date };
 
 export type OrderEvent =
   | { readonly type: "order-created"; readonly id: OrderId }
-  | { readonly type: "item-added" }
+  | { readonly type: "item-added"; readonly item: Item }
   | { readonly type: "order-placed"; readonly at: Date };
 
 export type DecideError = "order-already-exists" | "order-not-draft" | "empty-order";
@@ -37,7 +39,7 @@ export const initialState: Order = { kind: "none" };
 
 // The rule lives here, behind a parameter type that only a draft satisfies.
 function place(order: DraftOrder, at: Date): Decision {
-  if (order.itemCount === 0) return { ok: false, error: "empty-order" };
+  if (order.items.length === 0) return { ok: false, error: "empty-order" };
   return { ok: true, value: [{ type: "order-placed", at }] };
 }
 
@@ -48,7 +50,7 @@ export function decide(command: Command, state: Order): Decision {
       return { ok: true, value: [{ type: "order-created", id: command.id }] };
     case "add-item":
       if (state.kind !== "draft") return { ok: false, error: "order-not-draft" };
-      return { ok: true, value: [{ type: "item-added" }] };
+      return { ok: true, value: [{ type: "item-added", item: { sku: command.sku } }] };
     case "place-order":
       if (state.kind !== "draft") return { ok: false, error: "order-not-draft" };
       return place(state, command.at);
@@ -66,10 +68,10 @@ function corruptHistory(state: Order, event: OrderEvent): never {
 export function evolve(state: Order, event: OrderEvent): Order {
   switch (event.type) {
     case "order-created":
-      return { kind: "draft", id: event.id, itemCount: 0 };
+      return { kind: "draft", id: event.id, items: [] };
     case "item-added":
       if (state.kind !== "draft") return corruptHistory(state, event);
-      return { ...state, itemCount: state.itemCount + 1 };
+      return { ...state, items: [...state.items, event.item] };
     case "order-placed":
       if (state.kind !== "draft") return corruptHistory(state, event);
       return { kind: "placed", id: state.id, placedAt: event.at };

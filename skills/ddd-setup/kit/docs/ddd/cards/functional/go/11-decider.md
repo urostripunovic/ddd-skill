@@ -8,6 +8,7 @@ package ordering
 import (
 	"errors"
 	"fmt"
+	"slices"
 	"time"
 )
 
@@ -21,14 +22,22 @@ type OrderID struct{ v string }
 
 func (id OrderID) String() string { return id.v }
 
+type SKU struct{ v string }
+
+func (s SKU) String() string { return s.v }
+
+type Item struct{ sku SKU }
+
+func (i Item) SKU() SKU { return i.sku }
+
 //sumtype:decl
 type Order interface{ isOrder() }
 
 type NoOrder struct{}
 
 type DraftOrder struct {
-	id        OrderID
-	itemCount int
+	id    OrderID
+	items []Item
 }
 
 type PlacedOrder struct {
@@ -47,7 +56,7 @@ func (PlacedOrder) isOrder() {}
 type Command interface{ isCommand() }
 
 type CreateOrder struct{ ID OrderID }
-type AddItem struct{}
+type AddItem struct{ SKU SKU }
 type PlaceOrder struct{ At time.Time }
 
 func (CreateOrder) isCommand() {}
@@ -58,7 +67,7 @@ func (PlaceOrder) isCommand()  {}
 type Event interface{ isEvent() }
 
 type OrderCreated struct{ OrderID OrderID }
-type ItemAdded struct{}
+type ItemAdded struct{ Item Item }
 type OrderPlaced struct{ At time.Time }
 
 func (OrderCreated) isEvent() {}
@@ -78,7 +87,7 @@ func Decide(cmd Command, state Order) ([]Event, error) {
 		if _, ok := state.(DraftOrder); !ok {
 			return nil, ErrOrderNotDraft
 		}
-		return []Event{ItemAdded{}}, nil
+		return []Event{ItemAdded{Item: Item{sku: c.SKU}}}, nil
 	case PlaceOrder:
 		draft, ok := state.(DraftOrder)
 		if !ok {
@@ -91,7 +100,7 @@ func Decide(cmd Command, state Order) ([]Event, error) {
 
 // The rule lives here, behind a parameter type that only a draft satisfies.
 func place(o DraftOrder, at time.Time) ([]Event, error) {
-	if o.itemCount == 0 {
+	if len(o.items) == 0 {
 		return nil, ErrEmptyOrder
 	}
 	return []Event{OrderPlaced{At: at}}, nil
@@ -107,7 +116,8 @@ func Evolve(state Order, event Event) (Order, error) {
 		if !ok {
 			return nil, fmt.Errorf("ordering: corrupt history: %T after %T", e, state)
 		}
-		draft.itemCount++
+		// Cloned so the earlier state keeps its own items.
+		draft.items = append(slices.Clone(draft.items), e.Item)
 		return draft, nil
 	case OrderPlaced:
 		draft, ok := state.(DraftOrder)

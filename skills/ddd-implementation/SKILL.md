@@ -32,7 +32,7 @@ If `docs/domain/` does not exist, this repository has not adopted the kit. Do th
 | A command or business rule | 04 aggregate as decision functions, 05 domain event, 10 errors as values |
 | A use case end to end | 06 workflow as function, 08 repository |
 | Input from HTTP, queue, database, config | 07 parse at the boundary |
-| Another system or context, and each row of Facts from outside (a sign-in token, a price, a webhook) | 09 anti-corruption layer, with 07 and 14 |
+| Another system or context, and each row of Facts from outside (a sign-in token, a price, a webhook) | 09 anticorruption layer, with 07 and 14 |
 | An event-sourced aggregate | 11 decider, 12 event stream repository, with 04 and 05 |
 | A decision that needs outside data (a price, stock, uniqueness) | 13 facts from outside the aggregate |
 | A command with an "Issued by" rule | 14 authorisation |

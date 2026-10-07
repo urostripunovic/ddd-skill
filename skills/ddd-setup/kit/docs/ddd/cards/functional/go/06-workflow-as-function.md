@@ -23,9 +23,17 @@ type OrderID struct{ v string }
 
 func (id OrderID) String() string { return id.v }
 
+type SKU struct{ v string }
+
+func (s SKU) String() string { return s.v }
+
+type Item struct{ sku SKU }
+
+func (i Item) SKU() SKU { return i.sku }
+
 type DraftOrder struct {
 	id    OrderID
-	items int
+	items []Item
 }
 type PlacedOrder struct {
 	id       OrderID
@@ -48,7 +56,7 @@ type OrderPlaced struct{ OrderID OrderID }
 func (OrderPlaced) isEvent() {}
 
 func Place(o DraftOrder, now time.Time) (PlacedOrder, []Event, error) {
-	if o.items == 0 {
+	if len(o.items) == 0 {
 		return PlacedOrder{}, nil, ErrEmptyOrder
 	}
 	return PlacedOrder{id: o.id, placedAt: now}, []Event{OrderPlaced{OrderID: o.id}}, nil

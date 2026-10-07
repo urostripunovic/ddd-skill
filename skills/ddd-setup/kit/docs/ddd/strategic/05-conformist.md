@@ -8,7 +8,7 @@ From Evans' Reference, "Conformist":
 >
 > **Eliminate the complexity of translation between bounded contexts by slavishly adhering to the model of the upstream team. Although this cramps the style of the downstream designers and probably does not yield the ideal model for the application, choosing conformity enormously simplifies integration. Also, you will share a ubiquitous language with your upstream team. The upstream is in the driver's seat, so it is good to make communication easy for them. Altruism may be sufficient to get them to share information with you.**
 
-The alternative Evans names, when conforming is impractical, is the [anticorruption layer](06-anti-corruption-layer.md): "even the exception that is clearly designed may not fit the needs of the current project, making it impractical to conform to the upstream model."
+The alternative Evans names, when conforming is impractical, is the [anticorruption layer](06-anticorruption-layer.md): "even the exception that is clearly designed may not fit the needs of the current project, making it impractical to conform to the upstream model."
 
 ## In this kit
 

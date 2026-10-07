@@ -501,7 +501,7 @@ class ToolTests(unittest.TestCase):
                 subprocess.run(["git", "init", "-q", str(repo)], check=True)
                 result = self.install(*args, target=repo)
                 self.assertEqual(result.returncode, 0, result.stderr)
-                self.assertTrue((repo / "docs/ddd/strategic/06-anti-corruption-layer.md").exists())
+                self.assertTrue((repo / "docs/ddd/strategic/06-anticorruption-layer.md").exists())
                 self.assertEqual((repo / "docs/ddd/cards/functional/ts/03-states-as-types.md").exists(), cards)
                 self.assertEqual((repo / "docs/ddd/cards/README.md").exists(), cards)
                 self.assertFalse((repo / "docs/ddd/cards/functional/go").exists())
