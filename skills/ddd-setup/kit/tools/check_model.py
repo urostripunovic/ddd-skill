@@ -137,10 +137,16 @@ def load_glossary(context_file, context_name, override):
     return None, None
 
 
-def parse_glossary(path):
-    terms, avoid = set(), []
-    current = None
+def parse_glossary(path, context_name):
+    """An _Avoid_ under another context's '# <Context>' heading is that context's, when the file has one for this context:
+    Billing may avoid a word that Payments uses. Without a heading for this context, every _Avoid_ applies."""
+    terms, avoid, scoped = set(), [], []
+    current, section, sections = None, None, set()
     for line in path.read_text().splitlines():
+        heading = re.match(r"#\s+(.+?)\s*$", line)
+        if heading:
+            section = heading.group(1).lower()
+            sections.add(section)
         term = re.match(r"\*\*(.+?)\*\*\s*:", line)
         if term:
             current = term.group(1).strip()
@@ -149,7 +155,10 @@ def parse_glossary(path):
         if rejected and current:
             for phrase in rejected.group(1).split(","):
                 if phrase.strip():
-                    avoid.append((phrase.strip(), current))
+                    scoped.append((phrase.strip(), current, section))
+    for phrase, preferred, where in scoped:
+        if context_name.lower() not in sections or where in (None, context_name.lower()):
+            avoid.append((phrase, preferred))
     return terms, avoid
 
 
@@ -552,7 +561,7 @@ def check(path, glossary_override, approving=False):
     if glossary is None or not glossary.exists():
         err("no glossary found: expected CONTEXT.md at the repository root, or an entry for this context in CONTEXT-MAP.md")
     else:
-        terms, avoid = parse_glossary(glossary)
+        terms, avoid = parse_glossary(glossary, context)
         for name in sorted(glossary_needed):
             if re.sub(r"[^a-z0-9]", "", name.lower()) not in terms:
                 err(f"{name} is not in {glossary.name}")

@@ -30,7 +30,7 @@ Use ddd-modelling at standard depth to model the ordering flow,
 from adding the first item to placing or cancelling the order.
 ```
 
-The agent asks questions in rounds, each with a proposed answer, and writes the model as you go.
+The agent asks questions in rounds, each with a proposed answer, and writes the model as you go. Anything you state in the prompt (how contexts relate, who owns them, the words to use and to avoid) is written down, not asked again.
 
 **4. Approve it.** Read the model it shows you. When it is right:
 
@@ -57,7 +57,7 @@ It writes the model's examples as tests first, then the code, and runs compile, 
 /ddd-review-all Review this branch against main.
 ```
 
-At standard depth this is one reviewer: the code against the model, plus the security checks for authorisation, sensitive data and input. Strict models get all three reviewers; add `full` to ask for them at any depth.
+At standard depth this is one reviewer: the code against the model, plus the security checks for authorisation, sensitive data and input. Strict models get all three reviewers; add `full` to ask for them at any depth. It reviews domain code only; general code smells and the rest of the branch are for a general review, such as Matt Pocock's `code-review`.
 
 **Not sure what comes next?** Ask "what's next?" at any point. `ddd-next` reads the state of the repository and gives the one next step, with the prompt to type.
 

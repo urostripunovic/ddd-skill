@@ -559,6 +559,24 @@ class ToolTests(unittest.TestCase):
         result = self.run_tool("check-model.sh", self.model)
         self.assertIn("no glossary found: expected CONTEXT.md", result.stdout)
 
+    def test_avoid_applies_to_its_own_context_in_a_shared_glossary(self):
+        glossary = self.repo / "CONTEXT.md"
+        ordering = glossary.read_text()
+        billing = "\n# Billing\n\n## Language\n\n**Settlement**:\nMoney received against an invoice.\n_Avoid_: draft\n"
+        # Billing avoids a word Ordering uses: the Ordering model passes.
+        glossary.write_text(ordering + billing)
+        result = self.run_tool("check-model.sh", self.model)
+        self.assertEqual(result.returncode, 0, result.stdout)
+        # Under Ordering's own heading, the same word fails Ordering's names.
+        glossary.write_text(ordering + "_Avoid_: draft\n" + billing)
+        result = self.run_tool("check-model.sh", self.model)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("DraftOrder uses 'draft'", result.stdout)
+        # With no heading for this context, every _Avoid_ applies, as before.
+        glossary.write_text(ordering.replace("# Ordering", "# Shop") + billing)
+        result = self.run_tool("check-model.sh", self.model)
+        self.assertIn("DraftOrder uses 'draft'", result.stdout)
+
     def test_status_reports_edit_after_approval(self):
         self.model.write_text(MODEL.replace("Status: draft", f"Status: approved by test, model-hash {self.hash_model()}")
                               .replace("already placed", "placing is final"))
