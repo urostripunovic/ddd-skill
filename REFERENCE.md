@@ -178,7 +178,7 @@ Use ddd-modelling to address these review findings in
 docs/domain/contexts/ordering.md: [paste the findings].
 ```
 
-If the review found blockers, return to the review session to check the fixes; a review with no blockers needs no further round. The agent then records the review on the `Status:` line as `reviewed <date> at <hash>`. If the model changes later, that review is out of date, and only the changed rows need reviewing again.
+If the review found blockers, return to the review session to check the fixes; a review with no blockers needs no further round. The agent then records the review on the `Status:` line as `reviewed <date>`, with the hash it reviewed in the line's comment. If the model changes later, that review is out of date, and only the changed rows need reviewing again.
 
 When you have read the model and are satisfied:
 
@@ -186,7 +186,7 @@ When you have read the model and are satisfied:
 I approve docs/domain/contexts/ordering.md. Approver: <your name>.
 ```
 
-The agent stamps it with `tools/stamp-model.sh`: `Status: approved by <name> on <date>, model-hash <hash>`. The script refuses while the model fails its check. At standard depth, approval also accepts the listed assumptions you did not correct.
+The agent stamps it with `tools/stamp-model.sh`: `Status: approved by <name> on <date>`, with the model-hash in a comment at the end of the line. The script refuses while the model fails its check. At standard depth, approval also accepts the listed assumptions you did not correct.
 
 ## Implementation
 
@@ -248,7 +248,7 @@ You approve the updated model once.
 
 A context file follows `docs/domain/contexts/_template.md`. `tools/check-model.sh` requires every section (write `None.` where there is nothing) and checks the structure, but not whether the business rules are right; [lifecycle/checker.md](skills/ddd-modelling/lifecycle/checker.md) lists what it checks and what it does not. Example row numbers are permanent, because tests and tickets refer to them.
 
-The `Status:` line is always written by `tools/stamp-model.sh`. The approval hash covers the whole file except the `Status:` line and the **notes tail**: `## Migration`, `## Amendments` and `## Pending`, in that order, at the end. Writing to the tail never undoes an approval; every other edit does. A model section placed after the tail is an error. The hash does not cover the glossary or the context map: when a change there alters what an approved rule means, the agent shows the affected contexts and asks for approval again. See [lifecycle/notes-tail.md](skills/ddd-modelling/lifecycle/notes-tail.md).
+The `Status:` line is always written by `tools/stamp-model.sh`. The approval hash covers the whole file except the `Status:` line and the **notes tail**: `## Migration`, `## Amendments` and `## Pending`, in that order, at the end. Writing to the tail never undoes an approval; every other edit does. That is why, at standard depth, a change to the rest of an approved model (a bound, a payload, an edge case) is written as an `## Amendments` row and the approval stands, while a change to the core sets the model back to draft. A model section placed after the tail is an error. The hash does not cover the glossary or the context map: when a change there alters what an approved rule means, the agent shows the affected contexts and asks for approval again. See [lifecycle/notes-tail.md](skills/ddd-modelling/lifecycle/notes-tail.md).
 
 ## Strategic and pattern cards
 

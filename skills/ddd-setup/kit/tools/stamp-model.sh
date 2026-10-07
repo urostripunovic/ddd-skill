@@ -3,7 +3,10 @@
 #        tools/stamp-model.sh review  docs/domain/contexts/<context>.md
 #        tools/stamp-model.sh draft   docs/domain/contexts/<context>.md
 # Writes the Status line, so every skill writes it the same way.
-#   approve  "approved by <name> on <today>, model-hash <hash>", only after the
+# The line reads "approved by <name> on <date>, reviewed <date>"; the hashes go in a comment
+# at its end, "<!-- model-hash <hash>, reviewed at <hash> -->". A line in the older
+# form, with the hashes in the text, is read the same way.
+#   approve  "approved by <name> on <today>" with the model-hash, only after the
 #            user said they approve. It runs tools/check-model.sh on the result and
 #            leaves the file unchanged if the check fails.
 #   review   appends "reviewed <today> at <hash>" once a model review has no
@@ -36,22 +39,30 @@ if hashed.returncode:
 model_hash = hashed.stdout.strip()
 today = datetime.date.today().isoformat()
 
-state = status.group(0)[len("Status:"):].strip()
-review = re.search(r",?\s*\breviewed\s+[^,]*$", state)
-reviewed = review.group(0).strip().lstrip(",").strip() if review else None
-base = state[:review.start()].strip() if review else state
+sys.path.insert(0, str(here))
+from check_model import read_status
+
+# The line reads short; the hashes the tools compare go in a comment at its end.
+state = read_status(raw)
+review = re.search(r"\breviewed\s+([^,\s]+)(?:\s+at\s+([0-9a-f]+))?", state)
+reviewed = (review.group(1), review.group(2)) if review else None
+base = state[:review.start()].strip().rstrip(",").strip() if review else state
+approved_hash = re.search(r",?\s*model-hash\s+([0-9a-f]+)", base)
+if approved_hash:
+    base, approved_hash = (base[:approved_hash.start()] + base[approved_hash.end():]).strip(), approved_hash.group(1)
 
 if action == "approve":
     name = args[2].strip()
     if not name:
         sys.exit("approve needs the name of the person who approved")
-    base = f"approved by {name} on {today}, model-hash {model_hash}"
+    base, approved_hash = f"approved by {name} on {today}", model_hash
 elif action == "review":
-    reviewed = f"reviewed {today} at {model_hash}"
+    reviewed = (today, model_hash)
 else:
-    base = "draft"
+    base, approved_hash = "draft", None
 
-line = "Status: " + base + (f", {reviewed}" if reviewed else "")
+hidden = ([f"model-hash {approved_hash}"] if approved_hash else []) + ([f"reviewed at {reviewed[1]}"] if reviewed and reviewed[1] else [])
+line = "Status: " + base + (f", reviewed {reviewed[0]}" if reviewed else "") + (f" <!-- {', '.join(hidden)} -->" if hidden else "")
 path.write_text(raw[:status.start()] + line + raw[status.end():])
 
 if action == "approve":
