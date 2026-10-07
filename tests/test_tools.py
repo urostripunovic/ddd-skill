@@ -384,6 +384,17 @@ class ToolTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("takes Voucher, which is neither a primitive nor a defined type", result.stdout)
 
+    def test_approvers_line_limits_who_may_approve(self):
+        (self.repo / "CLAUDE.md").write_text("## Domain code\n\nApprovers: Ann, Bo\n")
+        self.model.write_text(MODEL)
+        refused = self.stamp("approve", "Mallory")
+        self.assertNotEqual(refused.returncode, 0)
+        self.assertIn("not on the Approvers line", refused.stderr + refused.stdout)
+        self.assertIn("Status: draft\n", self.model.read_text())
+        approved = self.stamp("approve", "ann")
+        self.assertEqual(approved.returncode, 0, approved.stdout + approved.stderr)
+        self.assertIn("Status: approved by ann on", self.model.read_text())
+
     def test_status_line_in_the_older_form_still_reads(self):
         # Models stamped before the hashes moved into a comment keep their approval, and a new stamp shortens the line.
         hashed = self.run_tool("model-hash.sh", self.model).stdout.strip()

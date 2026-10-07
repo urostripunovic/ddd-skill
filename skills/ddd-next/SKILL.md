@@ -29,7 +29,7 @@ Take the first row that applies to the chosen context. Use the context's file pa
 | 6 | `pending gaps` above 0 | `Use ddd-modelling to settle the pending gaps in <file>.` Implementation is waiting for these |
 | 7 | status `draft` or `derived from code`, with open questions | `Use ddd-modelling to continue <file>: answer the open questions.` |
 | 8 | status `draft` or `derived from code`, depth strict or strict commands, and review `none` or of an earlier version | `/ddd-model-review <file>`, in a fresh session |
-| 9 | status `draft` or `derived from code`, otherwise | Read the model's flow and its assumptions, then type `I approve <file>. Approver: <your name>.` |
+| 9 | status `draft` or `derived from code`, otherwise | Read the model's flow and its assumptions, then type `I approve <file>.`, with `Approver: <your name>` when `## Domain code` lists no approvers or several |
 | 10 | approved, strict, review of an earlier version | `/ddd-model-review <file>`, in a fresh session, for the changed rows |
 | 11 | `migration:` with a next step | `Use ddd-implementation for migration step <n> of <file>.` |
 | 12 | example rows `without` a test | `Use ddd-implementation to implement <command> from <file>.` Take the first listed command in the order of the model's `## The flow`. Optional before the first command: `/ddd-to-tickets <file>` |
