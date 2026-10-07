@@ -35,12 +35,11 @@ Run `install.sh` from this skill's directory, in the repository root, with the f
 
 It never overwrites. A file that exists with other content is kept and listed. For each one listed:
 
-- A card: its **Corrections** section holds mistakes recorded by this team, and that is the most valuable part of the card. Show the diff above the Corrections heading and ask whether to take the kit's text; recommend taking it unless the team has edited the rules. Keep the repository's Corrections in every case. A card that still has `## Go` and `## TypeScript` sections is from an earlier version of the kit: recommend the new layout.
-- Cards directly under `docs/ddd/cards/` (`01-domain-primitive.md`, `go/`, `ts/`) are from before the style directories; the script says so. With the user's agreement, move them into `docs/ddd/cards/functional/` with `git mv`, so their history and Corrections come along, and keep the kit's new top-level `docs/ddd/cards/README.md` beside them, copying the repository's **Wanted** rows into it. Then run the script again and handle what it lists as above.
+- A card: its **Corrections** section holds mistakes recorded by this team, and that is the most valuable part of the card. Show the diff above the Corrections heading and ask whether to take the kit's text; recommend taking it unless the team has edited the rules. Keep the repository's Corrections in every case. If the script reports the earlier card layout, or a card has `## Go` and `## TypeScript` sections, follow [UPGRADING.md](UPGRADING.md).
 - A context map or context file: leave it. Never modify an existing model here.
 - A tool or a reference config: show the diff and ask before replacing it.
 
-The script installs no glossary. The glossary is `GLOSSARY.md` at the repository root, shared with any other skill that reads one, and `ddd-modelling` creates it when the first term is settled. If `docs/domain/glossary.md` exists, an earlier version of this kit wrote it as a table: offer to move its terms into `GLOSSARY.md` in the format `ddd-modelling` describes.
+The script installs no glossary. The glossary is `GLOSSARY.md` at the repository root, shared with any other skill that reads one, and `ddd-modelling` creates it when the first term is settled. If `docs/domain/glossary.md` exists, follow [UPGRADING.md](UPGRADING.md).
 
 Repeat what the script printed about programs that are not installed, and what each is needed for.
 

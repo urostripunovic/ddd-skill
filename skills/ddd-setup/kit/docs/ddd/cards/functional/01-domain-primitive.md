@@ -22,9 +22,7 @@
 func Transfer(amount int, account string) error
 ```
 
-## Example
-
-One file per language: [Go](go/01-domain-primitive.md), [TypeScript](ts/01-domain-primitive.md). Read only the one for the language you are writing.
+Examples: [Go](go/01-domain-primitive.md) · [TypeScript](ts/01-domain-primitive.md). Read only the one for your language.
 
 ## Corrections
 

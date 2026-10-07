@@ -28,9 +28,7 @@ type OrderPlaced = {
 };
 ```
 
-## Example
-
-One file per language: [Go](go/20-event-versioning.md), [TypeScript](ts/20-event-versioning.md). Read only the one for the language you are writing.
+Examples: [Go](go/20-event-versioning.md) · [TypeScript](ts/20-event-versioning.md). Read only the one for your language.
 
 ## Corrections
 

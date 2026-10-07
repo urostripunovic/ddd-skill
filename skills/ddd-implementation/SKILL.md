@@ -45,48 +45,47 @@ If `docs/domain/` does not exist, this repository has not adopted the kit. Do th
 
 Read each card's **Corrections** section. Those are mistakes already made in this codebase.
 
-**Code style.** Resolve it as code-style.md says. In the repository's own style, read **Without the cards** below and skip the card table, core rules and language section. If cards are installed but your language's examples are not, follow the cards in that language's idioms, best effort, and use the project's own compile, lint and test commands. Missing kit examples or lint rules are expected in that mode.
+**Code style.** Resolve it as code-style.md says. In the repository's own style, follow **Rules in every style** and **Without the cards** below, and skip the card table, **With the cards, also** and the language section. If cards are installed but your language's examples are not, follow the cards in that language's idioms, best effort, and use the project's own compile, lint and test commands. Missing kit examples or lint rules are expected in that mode.
 
-If the task needs a pattern that no card covers, say so before writing it, and add a row to the **Wanted** table in `docs/ddd/cards/README.md`. Implement it from the core rules. Do not write the card yourself at this point: a card is made from code that has been reviewed and merged, as that README describes.
+If the task needs a pattern that no card covers, say so before writing it, and add a row to the **Wanted** table in `docs/ddd/cards/README.md`. Implement it from **Rules in every style** and **With the cards, also** below. Do not write the card yourself at this point: a card is made from code that has been reviewed and merged, as that README describes.
 
 ## Which case applies
 
 **The code belongs to a context with an approved model.** Follow the model, with its `## Amendments`. Run `tools/check-model.sh <file>` first; a changed approved body or a structural error needs correction before implementation. If the glossary or context map conflicts with an approved rule, show the discrepancy and ask for a model update (approval.md).
 
-**The model exists but is a draft, or derived from code and not confirmed.** If the scope is still listed under `## Prototypes`, an adoption is in progress: follow **A recorded prototype** below instead. Otherwise stop and say what is needed: the user's approval, and first the review approval.md requires at this depth, unless the Status line has a current one.
+**The model exists but is a draft, or derived from code and not confirmed.** If the scope is still listed under `## Prototypes`, an adoption is in progress: read [MIGRATION.md](MIGRATION.md) instead. Otherwise stop and say what is needed: the user's approval, and first the review approval.md requires at this depth, unless the Status line has a current one.
 
-**A recorded prototype.** Inside a prototype scope (adoption.md), implement without requiring a model, in the project's chosen style and checks. While a draft model for the scope is being adopted, say in your summary that the draft must be checked against this change before approval.
-
-**A step from the migration plan.** The task is a step under the context file's `## Migration` (the user names it, or a ticket points at it), and the model is approved. Do that step and nothing else, in the order the plan gives, instead of the per-command order below: a step that adds characterisation tests adds only tests, and a rename step only renames. When it is done, add `(done <date>)` to the end of the step, so the next session starts at the first step not marked done.
+**A recorded prototype, or a step from the migration plan.** The scope is listed under `## Prototypes`, or the task is a step under the context file's `## Migration` and the model is approved: read [MIGRATION.md](MIGRATION.md).
 
 **A new aggregate or context with no model or prototype exemption.** A new context, a new aggregate, or a new lifecycle, and nothing in `docs/domain/` for it: stop and offer `ddd-modelling`. Do not invent the model while coding. A new state, command or rule in a context that has a model is a gap in the core: see **When the model does not fit**.
 
 **Existing code in an area that has no model.** Do not block. Most of an existing repository will be in this case, and that includes adding or changing a rule in that code.
 
 - Make the requested change in the style the surrounding code already uses. Do not restructure it into typed DDD as a side effect.
-- When using cards, apply their core rules to genuinely new code where they do not force changes to existing callers.
+- When using cards, apply **With the cards, also** to genuinely new code where they do not force changes to existing callers.
 - Say in your summary that this area is unmodelled, and that `ddd-modelling` can model it, optionally starting from a draft derived from the code.
 
 When unsure which case applies, ask.
 
-## Without the cards
+## Rules in every style
 
-Write the code the way the surrounding code is written: its classes or functions, its way of reporting failures, its layout. From the model, these still hold, in whatever form that style gives them:
+From the model, whatever the code style:
 
-- Names in code are the model's and the glossary's names. A word under `_Avoid_` never appears in new code. Existing code in an adopted area may still use such a word until the rename step of its `## Migration` plan is done: do not rename it as part of another change.
+- Names in code are the model's and the glossary's names, exactly. A word under `_Avoid_` never appears in new code. Existing code in an adopted area may still use such a word until the rename step of its `## Migration` plan is done: do not rename it as part of another change.
 - Every state, command, failure and event in the model exists in the code under its name, and nothing the model does not have is added.
-- A command in a state the matrix says `no` for is refused, with the failure the model names. Whether a type or a runtime check refuses it is the style's business.
+- A command in a state the matrix says `no` for is refused, with the failure the model names.
 - Each invariant is enforced where the model says, in one place.
 - Each row of the Examples table is a test with that row's values.
 - A value with rules is checked against its bounds before it is used, and input from outside is checked before the rules run.
-- Values the model marks sensitive do not appear in logs, errors or events.
 - Each row of Facts from outside is checked as its "Believed when" column says.
+- Values the model marks sensitive do not appear in logs, errors or events.
 
-"Done means" is then the repository's own compile, lint and test commands. The order of work is the same: one command at a time, examples as tests first.
+## Without the cards
 
-## Core rules
+Write the code the way the surrounding code is written: its classes or functions, its way of reporting failures, its layout. Whether a type or a runtime check refuses a command is the style's business. "Done means" is then the repository's own compile, lint and test commands. The order of work is the same: one command at a time, examples as tests first.
 
-- Names in code are the model's and the glossary's names, exactly. A word under `_Avoid_` never appears in new code; existing code keeps such a word until its migration plan's rename step, as above.
+## With the cards, also
+
 - No raw `string`, `int` or `number` crosses a domain function boundary. Use domain primitives built by a validating constructor.
 - One type per state. No status field with optional fields.
 - A command is a pure function from a specific state type to a new state, events, or a named failure. No I/O, clock or randomness inside; time and IDs are parameters.
@@ -96,7 +95,6 @@ Write the code the way the surrounding code is written: its classes or functions
 - Data is immutable. Operations return new values.
 - Untrusted input is parsed into domain types at the boundary, checking size before content before format before meaning. Database rows count as untrusted.
 - Expected business failures are returned as values. Exceptions and panics are for bugs.
-- Sensitive values never appear in events, errors or logs.
 - The domain does not import infrastructure. Repository and adapter contracts are declared in the domain and implemented outside it.
 
 ## Languages
@@ -132,7 +130,7 @@ All of these pass, run by you, before you report the work as finished:
 - lint, with the project's rules and the kit's rules when that setup supplies them
 - tests, covering the examples and acceptance criteria for this command or ticket; aggregate completion also needs the property test, where the setup calls for one (above)
 
-If an expected linter or config is not set up, say so instead of skipping it silently. Model-only and cards-without-examples modes use the project's own checks and need no kit lint config. If you created a new domain directory and the project uses the kit's domain lint rules, add it to their domain paths, so the rules apply to it: for Go, in both places marked `DOMAIN-PATHS` (the `depguard` file globs and the `path-except` expression for `forbidigo`); for TypeScript, the `files` of the domain block. In the summary, distinguish this ticket's completion from any remaining storage, adapter, race-test or property-test work.
+If an expected linter or config is not set up, say so instead of skipping it silently. Model-only and cards-without-examples modes use the project's own checks and need no kit lint config. If you created a new domain directory and the project uses the kit's domain lint rules, add it to their domain paths, the places marked `DOMAIN-PATHS` that [ddd-setup](../ddd-setup/SKILL.md) step 4 names, so the rules apply to it. In the summary, distinguish this ticket's completion from any remaining storage, adapter, race-test or property-test work.
 
 Never make a check pass by weakening it:
 

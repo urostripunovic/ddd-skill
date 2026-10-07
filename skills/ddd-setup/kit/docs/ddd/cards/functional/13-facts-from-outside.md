@@ -29,9 +29,7 @@ func AddItem(o DraftOrder, sku SKU, qty Quantity, prices PriceService) (DraftOrd
 }
 ```
 
-## Example
-
-One file per language: [Go](go/13-facts-from-outside.md), [TypeScript](ts/13-facts-from-outside.md). Read only the one for the language you are writing.
+Examples: [Go](go/13-facts-from-outside.md) · [TypeScript](ts/13-facts-from-outside.md). Read only the one for your language.
 
 ## Corrections
 

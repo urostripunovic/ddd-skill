@@ -27,9 +27,7 @@
 if (req.body.customerId !== order.customerId) return res.status(403).end();
 ```
 
-## Example
-
-One file per language: [Go](go/14-authorisation.md), [TypeScript](ts/14-authorisation.md). Read only the one for the language you are writing.
+Examples: [Go](go/14-authorisation.md) · [TypeScript](ts/14-authorisation.md). Read only the one for your language.
 
 ## Corrections
 

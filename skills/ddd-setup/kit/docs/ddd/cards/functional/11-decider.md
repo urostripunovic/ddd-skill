@@ -33,9 +33,7 @@ function evolve(state: Order, event: OrderEvent): Order {
 }
 ```
 
-## Example
-
-One file per language: [Go](go/11-decider.md), [TypeScript](ts/11-decider.md). Read only the one for the language you are writing.
+Examples: [Go](go/11-decider.md) · [TypeScript](ts/11-decider.md). Read only the one for your language.
 
 ## Corrections
 

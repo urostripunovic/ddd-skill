@@ -29,9 +29,7 @@ type Order struct {
 }
 ```
 
-## Example
-
-One file per language: [Go](go/03-states-as-types.md), [TypeScript](ts/03-states-as-types.md). Read only the one for the language you are writing.
+Examples: [Go](go/03-states-as-types.md) · [TypeScript](ts/03-states-as-types.md). Read only the one for your language.
 
 ## Corrections
 

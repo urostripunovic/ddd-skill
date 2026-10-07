@@ -28,13 +28,7 @@ For a diff that touches more than about six commands, propose going through it i
 
 ## Pin what is reviewed
 
-A review of "the current code" cannot be repeated or compared. Fix the range first.
-
-If you are given an earlier report of yours and the commits that fix it, this is a re-review: the range is those fix commits. Check that each blocker in the earlier report is fixed, and that the fix commits add no new blocker. Do not review the rest again, and do not fill the tracing tables again. Report each earlier blocker as fixed or not fixed.
-
-1. Ask for a base ref if none was given. If the user has no preference, use the merge base with the default branch: `git merge-base HEAD origin/main` (or the repository's default branch).
-2. Review exactly `git diff <base>...HEAD`. Uncommitted changes are not part of the review unless the user says so; if there are any, say that they were excluded.
-3. Put the base and head commit hashes at the top of the report.
+Follow [review-range.md](../ddd-modelling/lifecycle/review-range.md). In a re-review, do not fill the tracing tables again either.
 
 ## Inputs
 

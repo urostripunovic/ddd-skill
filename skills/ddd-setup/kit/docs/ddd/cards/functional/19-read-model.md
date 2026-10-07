@@ -28,9 +28,7 @@ for _, o := range orders { // to count items for a list page
 }
 ```
 
-## Example
-
-One file per language: [Go](go/19-read-model.md), [TypeScript](ts/19-read-model.md). Read only the one for the language you are writing.
+Examples: [Go](go/19-read-model.md) · [TypeScript](ts/19-read-model.md). Read only the one for your language.
 
 ## Corrections
 

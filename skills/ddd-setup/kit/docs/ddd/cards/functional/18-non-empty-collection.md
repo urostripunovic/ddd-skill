@@ -28,9 +28,7 @@ func Total(o PlacedOrder) Price {
 }
 ```
 
-## Example
-
-One file per language: [Go](go/18-non-empty-collection.md), [TypeScript](ts/18-non-empty-collection.md). Read only the one for the language you are writing.
+Examples: [Go](go/18-non-empty-collection.md) · [TypeScript](ts/18-non-empty-collection.md). Read only the one for your language.
 
 ## Corrections
 
