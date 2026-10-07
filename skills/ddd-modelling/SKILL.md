@@ -78,7 +78,7 @@ _Avoid_: Submitted order
 
 - One or two sentences per term, written so a newcomer can tell it from its neighbours. Business words only: no record, entity, DTO, manager, handler or status.
 - When several words exist for one concept, pick one and list the others under `_Avoid_`. The checks search for those words, so a rejected synonym that is not written down will come back.
-- With one context, or several that share their words, there is one `CONTEXT.md` at the root, with a heading per context once there are two. Split it into a `CONTEXT.md` per context and a `CONTEXT-MAP.md` at the root only when a word means different things in two contexts, or the user asks: `- [Ordering](./src/ordering/CONTEXT.md): one line on what it is`. How the contexts relate is written only in `docs/domain/context-map.md`: the map's `## Relationships` section is the one line `See docs/domain/context-map.md.` If it holds relationships written by another skill, move each into `docs/domain/context-map.md`, ask about any the two files describe differently, and leave that line in their place.
+- With one context, or several that share their words, there is one `CONTEXT.md` at the root, with a `# <Context>` heading per context once there are two; an `_Avoid_` under one context's heading applies to that context only, so Billing can avoid a word that Payments uses. Split it into a `CONTEXT.md` per context and a `CONTEXT-MAP.md` at the root only when a word means different things in two contexts, or the user asks: `- [Ordering](./src/ordering/CONTEXT.md): one line on what it is`. How the contexts relate is written only in `docs/domain/context-map.md`: the map's `## Relationships` section is the one line `See docs/domain/context-map.md.` If it holds relationships written by another skill, move each into `docs/domain/context-map.md`, ask about any the two files describe differently, and leave that line in their place.
 - Create the file when the first term is settled, not before.
 - A term is written the moment it is settled, with no separate approval step. Approval hashes cover context files, not the glossary or context map. When a shared definition or relationship changes, identify the affected contexts and show the impact to the user. If it changes an approved rule's meaning, record that change in the context, set it to draft and get approval again. The checker catches some missing names and rejected synonyms; it cannot detect a change of meaning.
 
@@ -101,7 +101,7 @@ You do not know this domain. The user or their domain expert does. The model is 
 
 - Work in rounds. A round holds every question you can ask now without guessing an answer you have not heard yet. Number the questions, and wait for the answers before the next round.
 - Give a proposed answer with every question. Correcting a proposal is quicker for the user than composing an answer.
-- Facts are yours to find; decisions are the user's. Read what the repository can already answer (the glossary, `docs/domain/`, `docs/adr/`, code, schemas, API specifications, a ticket the user points to) before asking. What the code does today is a fact. Whether the business intends it is a decision.
+- Facts are yours to find; decisions are the user's. Read what the repository can already answer (the glossary, `docs/domain/`, `docs/adr/`, code, schemas, API specifications, a ticket the user points to) before asking. What the code does today is a fact. Whether the business intends it is a decision. A decision the user has already stated, in the request or earlier, is answered: write it without `(assumed)` and do not ask it again.
 
 Whichever way you ask: a proposal is not a fact. If the user does not confirm it, it goes under open questions as an assumption. Never invent a domain fact to fill a gap. Use the user's words, not DDD jargon.
 
@@ -165,6 +165,8 @@ Then two questions for the context map. The cards in `docs/ddd/strategic/` quote
 
 - **What kind is each context?** Ask the canvas's question, "How important is this context to the success of your organisation?", with its three answers: core, supporting or generic.
 - **What pattern is each relationship?** For every row in Relationships, describe the patterns that could fit and let the user say which describes how the teams actually work. Evans: "Map the existing terrain. Take up transformations later." Who owns each side, and whether one team plans for the other's needs, are facts about teams: ask, and do not infer them from the code.
+
+A kind, pattern or owner the user has already stated is answered: write it into the map and ask only for what is missing.
 
 The cards give no rule for which pattern to choose. Do not add one. If the strategic cards are not installed, ask the same two questions without them.
 
