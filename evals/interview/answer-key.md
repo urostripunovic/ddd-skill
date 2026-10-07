@@ -1,6 +1,6 @@
 # Answer key for the interview eval
 
-The expert in `expert-brief.md` holds ten rules it gives only when asked about their subject. Score the model the interview produced (`GLOSSARY.md` and `docs/domain/` in the run's repository) against this table.
+The expert in `expert-brief.md` holds ten rules it gives only when asked about their subject. Score the model the interview produced (`CONTEXT.md` and `docs/domain/` in the run's repository) against this table.
 
 | # | Hidden rule | Found when the model has | The kind of question that finds it |
 |---|---|---|---|

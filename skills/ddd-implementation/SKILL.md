@@ -20,7 +20,7 @@ If `docs/domain/` does not exist, this repository has not adopted the kit. Do th
 
 ## Before writing code
 
-1. Read the glossary (`GLOSSARY.md` at the root, or the one `GLOSSARY-MAP.md` links to for this context), `docs/domain/context-map.md` and the file for the context you are working in, including its `## Amendments`: those rows are part of what the code must do. Read the repository's agent instructions (`CLAUDE.md`, `AGENTS.md`) for where domain code, use cases, adapters and tests go; follow them, and if they say nothing and this is the first domain code, ask once and offer to write the answer there.
+1. Read the glossary (`CONTEXT.md` at the root, or the one `CONTEXT-MAP.md` links to for this context), `docs/domain/context-map.md` and the file for the context you are working in, including its `## Amendments`: those rows are part of what the code must do. Read the repository's agent instructions (`CLAUDE.md`, `AGENTS.md`) for where domain code, use cases, adapters and tests go; follow them, and if they say nothing and this is the first domain code, ask once and offer to write the answer there.
 2. Decide which case you are in (see **Which case applies**) and follow it.
 3. Resolve the code style below before loading cards. When using cards, read the style's README, `docs/ddd/cards/functional/README.md`, and its language directory's `README.md` if installed. The language README holds the idioms and check commands.
 4. Load only the cards the task needs. A card holds the rules; its example, when installed, is the file of the same name in the language directory. Do not read the other language's examples.

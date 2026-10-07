@@ -16,7 +16,7 @@ count() { { grep -rn --include='*.go' -E "$1" internal 2>/dev/null || true; } | 
 
 check "work is committed"            test -z "$(git status --porcelain)"
 check "something was implemented"    test -n "$(git diff --stat "${base}" HEAD -- internal)"
-check "model and glossary untouched" git diff --quiet "${base}" HEAD -- docs/domain GLOSSARY.md
+check "model and glossary untouched" git diff --quiet "${base}" HEAD -- docs/domain CONTEXT.md
 check "lint config untouched"        git diff --quiet "${base}" HEAD -- .golangci.yml tools
 check "model check"                  tools/check-model.sh
 check "go build"                     go build ./...

@@ -103,7 +103,7 @@ class ToolTests(unittest.TestCase):
         self.model = self.repo / "docs/domain/contexts/ordering.md"
         self.model.parent.mkdir(parents=True)
         self.model.write_text(MODEL)
-        (self.repo / "GLOSSARY.md").write_text(
+        (self.repo / "CONTEXT.md").write_text(
             "# Ordering\n\n## Language\n\n"
             "**Order**:\nAn order.\n\n"
             "**Draft order**:\nAn editable order.\n\n"
@@ -243,7 +243,7 @@ class ToolTests(unittest.TestCase):
         facts = ("### Facts from outside\n| Fact | Used by | Source | Believed when | If not, or no answer | May it be stale? |\n"
                  "|---|---|---|---|---|---|\n| Requester | PlaceOrder | the sign-in token | the signature is checked (assumed) | NotAuthenticated | no |")
         self.model.write_text(MODEL.replace("### Facts from outside\nNone.", facts))
-        glossary = self.repo / "GLOSSARY.md"
+        glossary = self.repo / "CONTEXT.md"
         glossary.write_text(glossary.read_text() + "\n**Requester**:\nWho sent the request.\n")
         refused = self.stamp("approve", "Ann")
         self.assertNotEqual(refused.returncode, 0)
@@ -533,6 +533,32 @@ class ToolTests(unittest.TestCase):
         self.assertIn("open questions: 2", out)
         self.assertIn("migration: 1 of 2 steps done; next: step 2: Introduce OrderId.", out)
 
+    def test_glossary_under_its_earlier_name_still_reads_with_a_warning(self):
+        # Earlier versions wrote GLOSSARY.md; an approved model there keeps passing, and the status names the rename.
+        (self.repo / "CONTEXT.md").rename(self.repo / "GLOSSARY.md")
+        # The kit's own context map must not pass for CONTEXT-MAP.md on a case-insensitive file system.
+        (self.repo / "docs/domain/context-map.md").write_text("# Context map\n")
+        self.model.write_text(MODEL.replace("Status: draft", f"Status: approved by test, model-hash {self.hash_model()}"))
+        result = self.run_tool("check-model.sh", self.model)
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.assertIn("warning: GLOSSARY.md is the glossary's earlier name; rename it to CONTEXT.md", result.stdout)
+        self.assertIn("glossary: earlier name, GLOSSARY.md; it belongs in CONTEXT.md", self.status())
+        (self.repo / "GLOSSARY.md").rename(self.repo / "CONTEXT.md")
+        result = self.run_tool("check-model.sh", self.model)
+        self.assertNotIn("warning", result.stdout)
+        self.assertIn("glossary: CONTEXT.md\n", self.status())
+
+    def test_glossary_per_context_through_a_context_map(self):
+        glossary = self.repo / "src/ordering/CONTEXT.md"
+        glossary.parent.mkdir(parents=True)
+        (self.repo / "CONTEXT.md").rename(glossary)
+        (self.repo / "CONTEXT-MAP.md").write_text("# Context Map\n\n- [Ordering](./src/ordering/CONTEXT.md): takes orders\n")
+        result = self.run_tool("check-model.sh", self.model)
+        self.assertEqual(result.returncode, 0, result.stdout)
+        (self.repo / "CONTEXT-MAP.md").write_text("# Context Map\n\n- [Billing](./src/billing/CONTEXT.md): bills\n")
+        result = self.run_tool("check-model.sh", self.model)
+        self.assertIn("no glossary found: expected CONTEXT.md", result.stdout)
+
     def test_status_reports_edit_after_approval(self):
         self.model.write_text(MODEL.replace("Status: draft", f"Status: approved by test, model-hash {self.hash_model()}")
                               .replace("already placed", "placing is final"))
@@ -592,6 +618,15 @@ class ToolTests(unittest.TestCase):
                 if "://" not in target and not (doc.parent / target).exists():
                     broken.append(f"{doc.relative_to(ROOT)}: {target}")
         self.assertEqual(broken, [])
+
+    def test_glossary_has_one_name(self):
+        # The glossary is CONTEXT.md, the name Matt Pocock's skills read. GLOSSARY.md is named only where an earlier repository is upgraded.
+        allowed = {"skills/ddd-setup/SKILL.md", "skills/ddd-setup/UPGRADING.md", "REFERENCE.md",
+                   "skills/ddd-setup/kit/tools/check_model.py", "skills/ddd-setup/kit/tools/ddd_status.py"}
+        tracked = subprocess.run(["git", "ls-files", "skills", "evals", "README.md", "REFERENCE.md"], cwd=ROOT,
+                                 capture_output=True, text=True, check=True).stdout.split()
+        found = {n for n in tracked if not n.startswith("evals/results/") and "GLOSSARY" in (ROOT / n).read_text(errors="ignore")}
+        self.assertEqual(sorted(found - allowed), [], "the glossary is CONTEXT.md")
 
     def test_lifecycle_word_counts_match_the_files(self):
         # Counted as wc -w counts: runs of non-whitespace. Every rule file is listed.

@@ -39,7 +39,7 @@ It never overwrites. A file that exists with other content is kept and listed. F
 - A context map or context file: leave it. Never modify an existing model here.
 - A tool or a reference config: show the diff and ask before replacing it.
 
-The script installs no glossary. The glossary is `GLOSSARY.md` at the repository root, shared with any other skill that reads one, and `ddd-modelling` creates it when the first term is settled. If `docs/domain/glossary.md` exists, follow [UPGRADING.md](UPGRADING.md).
+The script installs no glossary. The glossary is `CONTEXT.md` at the repository root, shared with any other skill that reads one, and `ddd-modelling` creates it when the first term is settled. If `GLOSSARY.md`, `GLOSSARY-MAP.md` or `docs/domain/glossary.md` exists, follow [UPGRADING.md](UPGRADING.md).
 
 Repeat what the script printed about programs that are not installed, and what each is needed for.
 

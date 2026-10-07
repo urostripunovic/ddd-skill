@@ -26,6 +26,7 @@ approval rests on it.
 Exit status is 1 when any problem is found. Lines starting with "warning:" and the
 strict-scope lines do not change the exit status.
 """
+import os
 import pathlib
 import re
 import subprocess
@@ -110,22 +111,30 @@ def contains(haystack, needle):
     return any(haystack[i:i + len(needle)] == needle for i in range(len(haystack) - len(needle) + 1))
 
 
+# CONTEXT.md is the name Matt Pocock's skills read; GLOSSARY.md is the name earlier versions of the kit wrote.
+GLOSSARY_NAMES = [("CONTEXT-MAP.md", "CONTEXT.md"), ("GLOSSARY-MAP.md", "GLOSSARY.md")]
+
+
 def load_glossary(context_file, context_name, override):
-    """Follows the layout of the shared glossary: a root GLOSSARY.md, or a GLOSSARY-MAP.md that links to one per context."""
+    """Follows the layout of the shared glossary: a root CONTEXT.md, or a CONTEXT-MAP.md that links to one per context.
+    Returns the glossary's path and the name of the file that led to it."""
     if override:
-        return pathlib.Path(override)
+        return pathlib.Path(override), None
     for folder in [context_file.resolve().parent, *context_file.resolve().parents]:
-        glossary_map = folder / "GLOSSARY-MAP.md"
-        if glossary_map.exists():
-            for label, target in re.findall(r"\[([^\]]+)\]\(([^)]+)\)", glossary_map.read_text()):
-                if label.strip().lower() == context_name.lower():
-                    return (folder / target).resolve()
-            return None
-        if (folder / "GLOSSARY.md").exists():
-            return folder / "GLOSSARY.md"
+        # Exact names: on a case-insensitive file system, docs/domain/context-map.md would pass for CONTEXT-MAP.md.
+        names = set(os.listdir(folder))
+        for map_name, glossary_name in GLOSSARY_NAMES:
+            glossary_map = folder / map_name
+            if map_name in names:
+                for label, target in re.findall(r"\[([^\]]+)\]\(([^)]+)\)", glossary_map.read_text()):
+                    if label.strip().lower() == context_name.lower():
+                        return (folder / target).resolve(), map_name
+                return None, map_name
+            if glossary_name in names:
+                return folder / glossary_name, glossary_name
         if (folder / ".git").exists():
-            return None
-    return None
+            return None, None
+    return None, None
 
 
 def parse_glossary(path):
@@ -536,9 +545,12 @@ def check(path, glossary_override, approving=False):
     if status:
         check_approval(status.group(1), hashed, depth, strict_commands, scopes, top, assumed, err, warnings)
 
-    glossary = load_glossary(path, context, glossary_override)
+    glossary, found = load_glossary(path, context, glossary_override)
+    if found and found.startswith("GLOSSARY"):
+        warnings.append(f"{found} is the glossary's earlier name; rename it to {found.replace('GLOSSARY', 'CONTEXT')} "
+                        "so other skills read it (ddd-setup's UPGRADING.md)")
     if glossary is None or not glossary.exists():
-        err("no glossary found: expected GLOSSARY.md at the repository root, or an entry for this context in GLOSSARY-MAP.md")
+        err("no glossary found: expected CONTEXT.md at the repository root, or an entry for this context in CONTEXT-MAP.md")
     else:
         terms, avoid = parse_glossary(glossary)
         for name in sorted(glossary_needed):
