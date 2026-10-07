@@ -12,7 +12,7 @@ The copying is a script and the lint rules are yours to merge. Install no progra
 
 ## 1. Choose how much of the kit
 
-The kit has two halves: the model (what the software must do) and the pattern cards (how the code that does it is written). The model works for any language and any coding style, and comes with the strategic cards in `docs/ddd/strategic/`, which help decide how contexts relate. The pattern cards are one style, typed and functional in the manner of Scott Wlaschin, in `docs/ddd/cards/functional/`, with examples for Go and TypeScript. Ask which the repository wants, with your recommendation from what you see in it:
+The kit has two halves: the model (what the software must do) and the pattern cards (how the code that does it is written). The model works for any language and any coding style, and comes with the strategic cards in `docs/ddd/strategic/`, which help decide how contexts relate. The pattern cards are one style, typed and functional in the manner of Scott Wlaschin, in `docs/ddd/cards/functional/`, with examples for Go and TypeScript. Ask which the repository wants, with your recommendation from what you see in it. Setup asks in two rounds, each question with your proposal: this choice and the language (step 2) first, then the conventions (step 3) and any ESLint question (step 4) together. Look at the repository before each round, so that every question in it can be answered without the others.
 
 | Choice | When | What is installed |
 |---|---|---|
@@ -26,12 +26,12 @@ With model only, skip step 4, and in step 3 describe the repository's own style 
 
 ## 1b. Look
 
-- Confirm this is a git repository, and note whether the working tree is clean. If it is not, tell the user, so they can tell your changes from theirs afterwards.
+- Confirm this is a git repository, and note whether the working tree is clean. If it is not clean, tell the user, so they can tell your changes from theirs afterwards. If it is not a repository, offer `git init` and wait for the answer: `install.sh`, the model hash and `tools/ddd-status.sh` need git.
 - Find the domain code: the packages or directories that hold business rules and no I/O. The domain lint rules in step 4 apply only there. If it is not obvious, ask, with the directory you would pick as the proposal. If there is no domain code yet, settle the layout in step 3 first and take the domain path from it: the `domain/` directory of layout (a), or each context's `domain/` directory in layout (b). The domain path never includes the use-case or infrastructure directories beside it, or the domain rules would forbid the I/O they exist to do.
 
 ## 2. Copy the files
 
-Run `install.sh` from this skill's directory, in the repository root, with the flag for the choice made in step 1. It finds the languages (`go.mod`, `tsconfig.json`), and copies the cards, the directory of examples for each language found, the model templates, the tools, and the reference lint configs for those languages into `tools/lint/`. Pass `--lang go,ts` when the repository has no code yet.
+Run `install.sh` from this skill's directory, in the repository root, with the flag for the choice made in step 1. It finds the languages (`go.mod`, `tsconfig.json`), and copies the cards, the directory of examples for each language found, the model templates, the tools, and the reference lint configs for those languages into `tools/lint/`. When the repository has no code yet, pass the language the user's request names (`--lang go` or `--lang ts`); if it names none, ask in the first round. A language without examples is `--lang none`.
 
 It never overwrites. A file that exists with other content is kept and listed. For each one listed:
 

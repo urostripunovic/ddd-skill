@@ -143,7 +143,7 @@ A rule stated in general terms sounds complete until a specific case hits it. Wr
 - reactions, time, races and consistency have each been asked about, and each answer is written down, including "none"
 - every value with rules has bounds, and every term in use is in the glossary
 
-Then ask the user whether anything is missing from the timeline. Do not move on before they answer. If the person who would know is not available, leave the item under open questions and do not keep asking.
+Then ask whether anything is missing from the timeline. At standard depth, put the question at the end of the last checkpoint; the answer comes with the user's corrections. At strict depth, ask it on its own and do not move on before they answer. If the person who would know is not available, leave the item under open questions and do not keep asking.
 
 ## 2. Bounded contexts
 
