@@ -9,7 +9,8 @@ export type Result<T, E> =
 
 export type NonEmpty<T> = readonly [T, ...T[]];
 
-export type Item = { readonly sku: string };
+export type Sku = string & { readonly __brand: "Sku" };
+export type Item = { readonly sku: Sku };
 
 const MAX_ITEMS = 200;
 

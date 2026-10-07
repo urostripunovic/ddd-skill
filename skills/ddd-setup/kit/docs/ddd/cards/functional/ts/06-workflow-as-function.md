@@ -10,7 +10,9 @@ export type Result<T, E> =
   | { readonly ok: false; readonly error: E };
 
 export type OrderId = string & { readonly __brand: "OrderId" };
-export type DraftOrder = { readonly kind: "draft"; readonly id: OrderId; readonly itemCount: number };
+export type Sku = string & { readonly __brand: "Sku" };
+export type Item = { readonly sku: Sku };
+export type DraftOrder = { readonly kind: "draft"; readonly id: OrderId; readonly items: readonly Item[] };
 export type PlacedOrder = { readonly kind: "placed"; readonly id: OrderId; readonly placedAt: Date };
 export type Order = DraftOrder | PlacedOrder;
 export type OrderEvent = { readonly type: "order-placed"; readonly orderId: OrderId };
@@ -18,7 +20,7 @@ export type OrderEvent = { readonly type: "order-placed"; readonly orderId: Orde
 type Placed = { readonly order: PlacedOrder; readonly events: readonly OrderEvent[] };
 
 function place(order: DraftOrder, now: Date): Result<Placed, "empty-order"> {
-  if (order.itemCount === 0) return { ok: false, error: "empty-order" };
+  if (order.items.length === 0) return { ok: false, error: "empty-order" };
   return {
     ok: true,
     value: {

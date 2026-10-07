@@ -18,7 +18,7 @@ From the DDD Crew: "The teams on the downstream are free to be conformists or to
 
 This section is the kit's convention, not part of DDD.
 
-One row per client in the Relationships table of `docs/domain/context-map.md`, with `open host service` in the Pattern, followed by the client's own pattern when it has one: `open host service, conformist` or `open host service, anti-corruption layer`.
+One row per client in the Relationships table of `docs/domain/context-map.md`, with `open host service` in the Pattern, followed by the client's own pattern when it has one: `open host service, conformist` or `open host service, anticorruption layer`.
 
 ## Corrections
 

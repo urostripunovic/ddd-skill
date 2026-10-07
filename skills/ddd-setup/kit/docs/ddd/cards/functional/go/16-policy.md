@@ -22,7 +22,7 @@ func commandIDFor(policy string, e EventID) CommandID {
 	return CommandID{v: policy + ":" + e.v}
 }
 
-// Ordering's events as this context sees them, after its anti-corruption layer.
+// Ordering's events as this context sees them, after its anticorruption layer.
 //
 //sumtype:decl
 type OrderEvent interface{ isOrderEvent() }

@@ -16,7 +16,7 @@ From Evans' Reference, "Big Ball of Mud" (a term introduced after the 2004 book)
 >
 > (see http://www.laputan.org/mud/mud.html. Brian Foote and Joseph Yoder)
 
-From the DDD Crew: "Big Ball Of Mud is a demarcation of a bad model or system quality. You want to make sure, that this mess does not propagate into other bounded contexts." Evans, under [anticorruption layer](06-anti-corruption-layer.md): "The models of legacy systems are usually weak (if not big balls of mud)".
+From the DDD Crew: "Big Ball Of Mud is a demarcation of a bad model or system quality. You want to make sure, that this mess does not propagate into other bounded contexts." Evans, under [anticorruption layer](06-anticorruption-layer.md): "The models of legacy systems are usually weak (if not big balls of mud)".
 
 ## In this kit
 

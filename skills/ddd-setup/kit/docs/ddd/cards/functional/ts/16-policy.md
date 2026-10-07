@@ -7,7 +7,7 @@ export type EventId = string & { readonly __brand: "EventId" };
 export type OrderId = string & { readonly __brand: "OrderId" };
 export type CommandId = string & { readonly __brand: "CommandId" };
 
-// Ordering's events as this context sees them, after its anti-corruption layer.
+// Ordering's events as this context sees them, after its anticorruption layer.
 export type OrderEvent =
   | { readonly type: "order-placed"; readonly eventId: EventId; readonly orderId: OrderId }
   | { readonly type: "order-cancelled"; readonly eventId: EventId; readonly orderId: OrderId };

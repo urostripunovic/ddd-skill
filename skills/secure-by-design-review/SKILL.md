@@ -57,7 +57,7 @@ Read the change first and decide which conditional sections it touches. Apply th
 - A primitive is a conceptual whole. An amount without its currency, or a measurement without its unit, is half a primitive. The missing half must not come from surrounding context or a default. [SbD 12]
 - Money is never a float. [SbD 12]
 - A function with several parameters of the same underlying type is a finding: the arguments can be swapped without any error. [SbD 12]
-- Go: is the zero value handled, either meaningful or detectably invalid?
+- Go: is each primitive's zero value either meaningful or detectably invalid, such as by an `IsZero` method? A zero value that is neither is a finding. A decision function that does not re-check a detectable zero value is not. A state type's zero value (`PlacedOrder{}` written in another package) is a limit of the language: note it once, not as a finding.
 - TypeScript: is the brand applied only inside the parser?
 
 ### Valid from creation

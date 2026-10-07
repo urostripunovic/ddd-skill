@@ -11,6 +11,10 @@ type OrderID struct{ v string }
 
 func (id OrderID) String() string { return id.v }
 
+type CancellationReason struct{ v string }
+
+func (r CancellationReason) String() string { return r.v }
+
 //sumtype:decl
 type Order interface{ isOrder() }
 
@@ -25,13 +29,13 @@ type PlacedOrder struct {
 
 type CancelledOrder struct {
 	id     OrderID
-	reason string
+	reason CancellationReason
 }
 
-func (o PlacedOrder) ID() OrderID         { return o.id }
-func (o PlacedOrder) PlacedAt() time.Time { return o.placedAt }
-func (o CancelledOrder) ID() OrderID      { return o.id }
-func (o CancelledOrder) Reason() string   { return o.reason }
+func (o PlacedOrder) ID() OrderID                   { return o.id }
+func (o PlacedOrder) PlacedAt() time.Time           { return o.placedAt }
+func (o CancelledOrder) ID() OrderID                { return o.id }
+func (o CancelledOrder) Reason() CancellationReason { return o.reason }
 
 func (DraftOrder) isOrder()     {}
 func (PlacedOrder) isOrder()    {}
@@ -49,7 +53,7 @@ type CancellableOrder interface {
 func (DraftOrder) isCancellable()  {}
 func (PlacedOrder) isCancellable() {}
 
-func Cancel(o CancellableOrder, reason string) CancelledOrder {
+func Cancel(o CancellableOrder, reason CancellationReason) CancelledOrder {
 	switch o := o.(type) {
 	case DraftOrder:
 		return CancelledOrder{id: o.id, reason: reason}

@@ -14,8 +14,8 @@ From Evans' Reference, "Anticorruption Layer":
 
 This section is the kit's convention, not part of DDD.
 
-- One row in the Relationships table of `docs/domain/context-map.md`, with `anti-corruption layer` as the Pattern. Translation names where the layer lives and what comes out of it, such as "in Ordering; arrives in the domain as a PriceQuote".
-- With the functional cards installed, the code for the layer follows [09 Anti-corruption layer](../cards/functional/09-anti-corruption-layer.md) and [07 Parse at the boundary](../cards/functional/07-parse-at-the-boundary.md). Those are the kit's code style, not part of this pattern.
+- One row in the Relationships table of `docs/domain/context-map.md`, with `anticorruption layer` as the Pattern. Translation names where the layer lives and what comes out of it, such as "in Ordering; arrives in the domain as a PriceQuote".
+- With the functional cards installed, the code for the layer follows [09 Anticorruption layer](../cards/functional/09-anticorruption-layer.md) and [07 Parse at the boundary](../cards/functional/07-parse-at-the-boundary.md). Those are the kit's code style, not part of this pattern.
 
 ## Corrections
 
