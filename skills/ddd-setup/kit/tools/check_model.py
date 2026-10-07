@@ -4,7 +4,8 @@ Checks selected structural properties: that every section of the template is
 present (with "None." where there is nothing), state-field type references, command
 signature/table agreement, incoming/outgoing command mentions, matrix cells,
 example mentions for commands and decision failures, unique example numbers,
-selected glossary names and rejected synonyms, depth override names, approval
+selected glossary names, rejected synonyms and the terms each context-map row says cross
+this context's boundary, depth override names, approval
 hash boundaries, and that no 'Issued by' cell, invariant or 'Believed when' cell of
 a fact from outside is marked (assumed) or left as a placeholder such as TBD. For each name on a "Strict commands:" line it
 prints the strict scope: the command's own rows, the rows that name it, and every
@@ -138,9 +139,10 @@ def load_glossary(context_file, context_name, override):
 
 
 def parse_glossary(path, context_name):
-    """An _Avoid_ under another context's '# <Context>' heading is that context's, when the file has one for this context:
-    Billing may avoid a word that Payments uses. Without a heading for this context, every _Avoid_ applies."""
-    terms, avoid, scoped = set(), [], []
+    """An _Avoid_ or a term under another context's '# <Context>' heading is that context's, when the file has one for
+    this context: Billing may avoid a word that Payments uses. Without a heading for this context, all of them apply.
+    Returns every term, the _Avoid_ entries that apply, and this context's own terms."""
+    terms, avoid, scoped, placed = set(), [], [], []
     current, section, sections = None, None, set()
     for line in path.read_text().splitlines():
         heading = re.match(r"#\s+(.+?)\s*$", line)
@@ -151,15 +153,47 @@ def parse_glossary(path, context_name):
         if term:
             current = term.group(1).strip()
             terms.add(re.sub(r"[^a-z0-9]", "", current.lower()))
+            placed.append((re.sub(r"[^a-z0-9]", "", current.lower()), section))
         rejected = re.match(r"_Avoid_\s*:\s*(.+)", line.strip())
         if rejected and current:
             for phrase in rejected.group(1).split(","):
                 if phrase.strip():
                     scoped.append((phrase.strip(), current, section))
-    for phrase, preferred, where in scoped:
-        if context_name.lower() not in sections or where in (None, context_name.lower()):
-            avoid.append((phrase, preferred))
-    return terms, avoid
+    applies = lambda where: context_name.lower() not in sections or where in (None, context_name.lower())
+    avoid = [(phrase, preferred) for phrase, preferred, where in scoped if applies(where)]
+    return terms, avoid, {term for term, where in placed if applies(where)}
+
+
+def crossing_terms(path, context):
+    """The terms this context's glossary must hold for its rows in docs/domain/context-map.md, as (term, why) pairs.
+
+    Upstream: every term under 'What crosses the boundary'. Downstream: the same terms when Translation is 'none'
+    (conformist), otherwise the CamelCase names Translation gives, such as 'arrives in the domain as a ChargeOutcome'.
+    A side that is an outside system has no glossary and is not checked; nothing syncs the two glossaries' other terms.
+    Separate ways crosses nothing, and a published language's row names the language, not terms: neither is checked."""
+    context_map = path.resolve().parent.parent / "context-map.md"
+    if not context_map.exists():
+        return []
+    top = split(re.sub(r"<!--.*?-->", "", context_map.read_text(), flags=re.S), "## ")
+    needed = []
+    for row in table(find(top, "Relationships")):
+        upstream, downstream = row.get("Upstream", "").strip(), row.get("Downstream", "").strip()
+        if re.search(r"separate ways|published language", row.get("Pattern", ""), re.I):
+            continue
+        crossing = [re.split(r"[{(]", term)[0].strip() for term in row.get("What crosses the boundary", "").split(",")]
+        crossing = [term for term in crossing if term and term.rstrip(".").lower() not in ("nothing", "none")]
+        translation = row.get("Translation", "").strip()
+        if upstream.lower() == context.lower():
+            needed += [(term, f"crosses the boundary to {downstream}") for term in crossing]
+        elif downstream.lower() == context.lower():
+            if translation.rstrip(".").lower() == "none":
+                needed += [(term, f"arrives from {upstream} untranslated") for term in crossing]
+            else:
+                sides = {upstream.replace(" ", "").lower(), downstream.replace(" ", "").lower()}
+                needed += [(name, f"is how {upstream} arrives, the Translation says")
+                           for name in re.findall(r"\b[A-Z][a-z0-9]+(?:[A-Z][a-z0-9]*)+\b", translation)
+                           if name.lower() not in sides]
+    return needed
 
 
 def strict_scope(command, signature, subs, examples, primitives, defs, policies):
@@ -561,10 +595,19 @@ def check(path, glossary_override, approving=False):
     if glossary is None or not glossary.exists():
         err("no glossary found: expected CONTEXT.md at the repository root, or an entry for this context in CONTEXT-MAP.md")
     else:
-        terms, avoid = parse_glossary(glossary, context)
+        terms, avoid, own = parse_glossary(glossary, context)
         for name in sorted(glossary_needed):
             if re.sub(r"[^a-z0-9]", "", name.lower()) not in terms:
                 err(f"{name} is not in {glossary.name}")
+        for term, why in crossing_terms(path, context):
+            if re.sub(r"[^a-z0-9]", "", term.lower()) in own:
+                continue
+            message = (f"{term} {why} (docs/domain/context-map.md), but it is not in {context}'s {glossary.name}. "
+                       "Define it there, or, if the map cell is prose, rewrite it as glossary terms, comma-separated")
+            if earlier_approval:
+                warnings.append(message + "; add it at the next change to this model")
+            else:
+                err(message)
         for phrase, preferred in avoid:
             needle = words(phrase.replace(" ", "_").title().replace("_", ""))
             for name in sorted(all_names):

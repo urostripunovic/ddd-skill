@@ -80,7 +80,7 @@ _Avoid_: Submitted order
 - When several words exist for one concept, pick one and list the others under `_Avoid_`. The checks search for those words, so a rejected synonym that is not written down will come back.
 - With one context, or several that share their words, there is one `CONTEXT.md` at the root, with a `# <Context>` heading per context once there are two; an `_Avoid_` under one context's heading applies to that context only, so Billing can avoid a word that Payments uses. Split it into a `CONTEXT.md` per context and a `CONTEXT-MAP.md` at the root only when a word means different things in two contexts, or the user asks: `- [Ordering](./src/ordering/CONTEXT.md): one line on what it is`. How the contexts relate is written only in `docs/domain/context-map.md`: the map's `## Relationships` section is the one line `See docs/domain/context-map.md.` If it holds relationships written by another skill, move each into `docs/domain/context-map.md`, ask about any the two files describe differently, and leave that line in their place.
 - Create the file when the first term is settled, not before.
-- A term is written the moment it is settled, with no separate approval step. Approval hashes cover context files, not the glossary or context map. When a shared definition or relationship changes, identify the affected contexts and show the impact to the user. If it changes an approved rule's meaning, record that change in the context, set it to draft and get approval again. The checker catches some missing names and rejected synonyms; it cannot detect a change of meaning.
+- A term is written the moment it is settled, with no separate approval step. Approval hashes cover context files, not the glossary or context map. When a shared definition or relationship changes, identify the affected contexts and show the impact to the user. If it changes an approved rule's meaning, record that change in the context, set it to draft and get approval again. The checker catches some missing names, rejected synonyms, and terms that cross a boundary in the context map but are missing from a side's glossary; it cannot detect a change of meaning.
 
 ## Write as you go
 
@@ -166,7 +166,7 @@ Then two questions for the context map. The cards in `docs/ddd/strategic/` quote
 - **What kind is each context?** Ask the canvas's question, "How important is this context to the success of your organisation?", with its three answers: core, supporting or generic.
 - **What pattern is each relationship?** For every row in Relationships, describe the patterns that could fit and let the user say which describes how the teams actually work. Evans: "Map the existing terrain. Take up transformations later." Who owns each side, and whether one team plans for the other's needs, are facts about teams: ask, and do not infer them from the code.
 
-A kind, pattern or owner the user has already stated is answered: write it into the map and ask only for what is missing.
+A kind, pattern or owner the user has already stated is answered: write it into the map and ask only for what is missing. In each Relationships row, What crosses the boundary lists glossary terms, comma-separated, not prose: `tools/check-model.sh` looks for each in the glossary of the side it belongs to.
 
 The cards give no rule for which pattern to choose. Do not add one. If the strategic cards are not installed, ask the same two questions without them.
 

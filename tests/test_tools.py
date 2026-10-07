@@ -577,6 +577,45 @@ class ToolTests(unittest.TestCase):
         result = self.run_tool("check-model.sh", self.model)
         self.assertIn("DraftOrder uses 'draft'", result.stdout)
 
+    def test_terms_that_cross_a_boundary_are_in_this_contexts_glossary(self):
+        glossary = self.repo / "CONTEXT.md"
+        ordering = glossary.read_text()
+        (self.repo / "docs/domain/context-map.md").write_text(
+            "# Context map\n\n## Relationships\n\n"
+            "| Upstream | Downstream | Pattern | What crosses the boundary | Translation |\n|---|---|---|---|---|\n"
+            "| Ordering | Billing | conformist | OrderPlaced { id } | none |\n"
+            "| Catalog | Ordering | conformist | Product | none |\n"
+            "| Payment provider | Ordering | anticorruption layer | Charge status | in Ordering; arrives in the domain as a ChargeOutcome |\n"
+            "| Billing | Payments | customer/supplier | Settlement request | none |\n"
+            "| Ordering | Reporting | separate ways | nothing | |\n"
+            "| Ordering | Partners | open host service, published language | OrderFeed v2 | |\n")
+        result = self.run_tool("check-model.sh", self.model)
+        self.assertNotEqual(result.returncode, 0)
+        # Upstream: the term as it crosses. Conformist downstream: the same term. Anticorruption layer: the translated term.
+        self.assertIn("OrderPlaced crosses the boundary to Billing", result.stdout)
+        self.assertIn("Product arrives from Catalog untranslated", result.stdout)
+        self.assertIn("ChargeOutcome is how Payment provider arrives, the Translation says", result.stdout)
+        # Not Ordering's side: the outside system's term, the context names, and a row Ordering is not in.
+        # Separate ways crosses nothing, and a published language row names the language, not terms.
+        for other in ("Charge status", ": Ordering ", "Settlement request", "nothing", "OrderFeed"):
+            self.assertNotIn(other, result.stdout)
+        # A term under another context's heading is that context's.
+        billing = "\n# Billing\n\n## Language\n\n**Order placed**:\nAn order Billing will invoice.\n"
+        glossary.write_text(ordering + billing)
+        self.assertIn("OrderPlaced crosses", self.run_tool("check-model.sh", self.model).stdout)
+        glossary.write_text(ordering + "\n**Order placed**:\nAn order was placed.\n\n**Product**:\nWhat is sold.\n\n"
+                            "**Charge outcome**:\nWhether the charge went through.\n" + billing)
+        result = self.run_tool("check-model.sh", self.model)
+        self.assertEqual(result.returncode, 0, result.stdout)
+        # A model approved before this check keeps its approval, with a warning.
+        glossary.write_text(ordering)
+        hashed = self.hash_model()
+        self.model.write_text(self.model.read_text().replace("Status: draft", f"Status: approved by Ann on 2026-10-01, model-hash {hashed}"))
+        result = self.run_tool("check-model.sh", self.model)
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.assertIn("warning: OrderPlaced crosses the boundary to Billing", result.stdout)
+        self.assertIn("at the next change", result.stdout)
+
     def test_status_reports_edit_after_approval(self):
         self.model.write_text(MODEL.replace("Status: draft", f"Status: approved by test, model-hash {self.hash_model()}")
                               .replace("already placed", "placing is final"))
