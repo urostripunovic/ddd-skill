@@ -642,6 +642,14 @@ class ToolTests(unittest.TestCase):
             text = (ROOT / path).read_text()
             self.assertIn("takes the place of its `/code-review` step", text, path)
 
+    def test_readme_and_reference_name_the_same_optional_skills(self):
+        readme = (ROOT / "README.md").read_text().split("## Works with Matt Pocock's skills", 1)[1].split("\n## ", 1)[0]
+        table = set(re.findall(r"^\| `([\w-]+)` \|", readme, re.M))
+        line = next(l for l in (ROOT / "REFERENCE.md").read_text().splitlines() if l.startswith("With [Matt Pocock's skills]"))
+        listed = set(re.findall(r"`([\w-]+)` for ", line))
+        self.assertTrue(table)
+        self.assertEqual(table, listed, "README's table and REFERENCE's optional integrations name different skills")
+
     def test_lifecycle_word_counts_match_the_files(self):
         # Counted as wc -w counts: runs of non-whitespace. Every rule file is listed.
         lifecycle = ROOT / "skills/ddd-modelling/lifecycle"

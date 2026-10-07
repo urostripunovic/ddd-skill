@@ -78,6 +78,20 @@ At standard depth this is one reviewer: the code against the model, plus the sec
 
 The skills are opt-in per repository: in a project without `docs/domain/`, they stay out of the way. Setup and the reviews never start on their own.
 
+## Works with Matt Pocock's skills
+
+[Matt Pocock's skills](https://github.com/mattpocock/skills) are optional. The kit runs without them, and each of its skills carries its own rules for the same work. When they are installed, the kit uses them:
+
+| His skill | What the kit uses it for |
+|---|---|
+| `grilling` | the format of the modelling interview's question rounds |
+| `domain-modeling` | challenging terms while modelling, and writing `CONTEXT.md` and ADRs |
+| `tdd` | the loop of one failing test, then the code that passes it |
+| `to-tickets` | tickets for the work around the domain: screens, endpoints, reports |
+| `code-review` | reviewing the rest of a branch; domain code goes to `ddd-review-all` |
+
+Both kits share the glossary, `CONTEXT.md`. See [optional integrations](REFERENCE.md#optional-integrations).
+
 ## Learn more
 
 - [Reference](REFERENCE.md): setup options and prerequisites, depth, starting from existing code, approval, tickets, gaps found during implementation, the context file, and the cards
