@@ -11,7 +11,7 @@ The reason for the hard stop: a wrong business rule is cheap to fix in a model a
 
 Read [lifecycle/depth.md](lifecycle/depth.md) and [lifecycle/notes-tail.md](lifecycle/notes-tail.md) first; read [lifecycle/approval.md](lifecycle/approval.md) and [lifecycle/checker.md](lifecycle/checker.md) before step 6. They define depth, the core and the rest, strict scope, approval, the notes tail and the checker's limits, and this file does not repeat them. Whether or not you open them, these hold:
 
-- Only the user approves a model, with the word "approve". Never write an approved status yourself; `tools/stamp-model.sh approve` writes it, with the approver's name as the user gives it: ask for it, and never take it from git config, an account or an email.
+- Only the user approves a model, with the word "approve". Never write an approved status yourself; `tools/stamp-model.sh approve` writes it, with the approver's name as the user gives it, or the one name on the `Approvers:` line the user wrote; never take it from git config, an account or an email.
 - A strict model, or one with strict commands, is reviewed in a fresh session (`ddd-model-review`) before approval.
 - Never mark the core (states, commands and who may issue them, what makes callers and outside facts trusted, invariants, aggregate boundaries, glossary) `(assumed)`, and never fill it with a placeholder.
 

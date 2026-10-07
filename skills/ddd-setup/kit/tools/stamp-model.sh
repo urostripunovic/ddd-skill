@@ -7,6 +7,8 @@
 # at its end, "<!-- model-hash <hash>, reviewed at <hash> -->". A line in the older
 # form, with the hashes in the text, is read the same way.
 #   approve  "approved by <name> on <today>" with the model-hash, only after the
+#            user said they approve. When CLAUDE.md or AGENTS.md has an
+#            "Approvers: A, B" line, <name> must be on it. Before that, it
 #            user said they approve. It runs tools/check-model.sh on the result and
 #            leaves the file unchanged if the check fails.
 #   review   appends "reviewed <today> at <hash>" once a model review has no
@@ -38,6 +40,20 @@ if hashed.returncode:
     sys.exit(hashed.stderr.strip() or f"{path}: model hash failed")
 model_hash = hashed.stdout.strip()
 today = datetime.date.today().isoformat()
+
+if action == "approve":
+    # An "Approvers:" line in the agent instructions names who may approve; a name not on it is refused.
+    top = subprocess.run(["git", "-C", str(path.resolve().parent), "rev-parse", "--show-toplevel"], capture_output=True, text=True)
+    root = pathlib.Path(top.stdout.strip()) if top.returncode == 0 else path.resolve().parent
+    listed = None
+    for name in ("CLAUDE.md", "AGENTS.md"):
+        found = re.search(r"^Approvers:[ \t]*(.+)$", (root / name).read_text(), re.M) if (root / name).exists() else None
+        if found:
+            listed = [n.strip() for n in found.group(1).split(",") if n.strip()]
+            break
+    if listed is not None and args[2].strip().lower() not in [n.lower() for n in listed]:
+        sys.exit(f"{path}: not approved: {args[2].strip()!r} is not on the Approvers line ({', '.join(listed)}). "
+                 "Only the user changes that line.")
 
 sys.path.insert(0, str(here))
 from check_model import read_status

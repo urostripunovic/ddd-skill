@@ -183,8 +183,10 @@ If the review found blockers, return to the review session to check the fixes; a
 When you have read the model and are satisfied:
 
 ```text
-I approve docs/domain/contexts/ordering.md. Approver: <your name>.
+I approve docs/domain/contexts/ordering.md.
 ```
+
+Setup records who may approve (`Approvers:` in `CLAUDE.md`). With more than one name there, add `Approver: <your name>`.
 
 The agent stamps it with `tools/stamp-model.sh`: `Status: approved by <name> on <date>`, with the model-hash in a comment at the end of the line. The script refuses while the model fails its check. At standard depth, approval also accepts the listed assumptions you did not correct.
 
