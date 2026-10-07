@@ -1,6 +1,6 @@
 ---
 name: ddd-modelling
-description: "Model business rules with DDD before code, or derive a model from existing code: bounded contexts, states, commands, events, invariants, with worked examples. Typed implementation patterns are optional. Use when the user asks for a domain model or for DDD, or when domain behaviour is designed or changed in a repository that has docs/domain/."
+description: "Model business rules with DDD before code, or derive a model from existing code: bounded contexts, states, commands, events, invariants, with worked examples. Typed implementation patterns are optional. Use when the user asks to model a flow or its business rules, asks for DDD, or designs or changes domain behaviour in a repository that has docs/domain/. Not for terminology alone (one term, the glossary, an ADR): that is Matt Pocock's domain-modeling."
 ---
 
 # DDD modelling
@@ -131,7 +131,7 @@ A rule stated in general terms sounds complete until a specific case hits it. Wr
 
 **Fill in the matrix.** Once the states and commands are known, go through every pair. Where the command is not allowed in that state, ask why not, with a proposal: "Can a placed order still receive an item? Proposed: no, because picking has started." An answer like "yes, until it is packed" has just found a missing state.
 
-**Challenge the wording at once.** Do not note a language problem for later.
+**Challenge the wording at once.** Do not note a language problem for later. If a skill named `domain-modeling` is available, invoke it at the start of the interview: it challenges terms and writes `CONTEXT.md` and ADRs as they settle, and the glossary rules under **Output** still hold. If it is not:
 
 - One word used with two meanings: stop and ask which is meant. This often marks a context boundary.
 - Two words for one thing: propose one. The other goes under `_Avoid_`.
