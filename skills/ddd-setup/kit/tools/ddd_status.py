@@ -90,9 +90,13 @@ def setup_lines():
     else:
         lines.append("conventions: not recorded (no '## Domain code' in CLAUDE.md or AGENTS.md)")
 
-    found = next((n for n in ("CONTEXT-MAP.md", "CONTEXT.md", "GLOSSARY-MAP.md", "GLOSSARY.md") if n in os.listdir(".")), None)
-    if found and found.startswith("GLOSSARY"):
-        lines.append(f"glossary: earlier name, {found}; it belongs in {found.replace('GLOSSARY', 'CONTEXT')}")
+    names = os.listdir(".")
+    found = next((n for n in ("GLOSSARY-MAP.md", "GLOSSARY.md", "CONTEXT-MAP.md", "CONTEXT.md") if n in names), None)
+    if found and found.startswith("CONTEXT"):
+        lines.append(f"glossary: {found} is its name before Matt Pocock's 1.3 and is not read; "
+                     f"rename it to {found.replace('CONTEXT', 'GLOSSARY')}")
+    elif found and "CONTEXT.md" in names:
+        lines.append(f"glossary: {found}; CONTEXT.md, its earlier name, is still there and is not read")
     else:
         lines.append(f"glossary: {found or 'none yet'}")
 

@@ -25,7 +25,7 @@ git config user.email "eval@example.com"
 git config user.name "eval"
 
 cp -r "${kit}/." .
-cp "${here}/fixture/model/CONTEXT.md" .
+cp "${here}/fixture/model/GLOSSARY.md" .
 cp "${here}/fixture/model/context-map.md" docs/domain/
 cp "${here}/fixture/model/ordering.md" docs/domain/contexts/ordering.md
 if [ "${kind}" != clean-ts ]; then

@@ -25,7 +25,7 @@ base="$(git rev-parse HEAD)"
 # "MODEL GAPS" is what the eval measures: the model claims to leave the implementer no
 # business decision, so every gap is either a hole in the fixture model or a decision
 # the skill should not have needed.
-prompt="Use the ddd-implementation skill. Implement the Order aggregate of the Ordering context in Go: the domain in internal/ordering, and one function per use case in internal/app. The model in docs/domain/ is approved. Nobody can answer questions during this run. If the model leaves something undecided, do not decide it yourself: leave that part out, and list it at the end of your last message under the heading MODEL GAPS, or write 'MODEL GAPS: none'. Do not edit docs/domain/, CONTEXT.md or .golangci.yml. Commit your work when it is done."
+prompt="Use the ddd-implementation skill. Implement the Order aggregate of the Ordering context in Go: the domain in internal/ordering, and one function per use case in internal/app. The model in docs/domain/ is approved. Nobody can answer questions during this run. If the model leaves something undecided, do not decide it yourself: leave that part out, and list it at the end of your last message under the heading MODEL GAPS, or write 'MODEL GAPS: none'. Do not edit docs/domain/, GLOSSARY.md or .golangci.yml. Commit your work when it is done."
 
 claude -p "${prompt}" --output-format json --permission-mode acceptEdits \
   --allowedTools "Bash(go:*)" "Bash(gofmt:*)" "Bash(golangci-lint:*)" "Bash(tools/check-model.sh:*)" "Bash(git add:*)" "Bash(git commit:*)" "Bash(git status:*)" "Bash(git diff:*)" \

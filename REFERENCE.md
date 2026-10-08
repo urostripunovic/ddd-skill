@@ -47,7 +47,7 @@ docs/ddd/cards/      Pattern cards per code style; functional/ holds 20, with Go
 tools/               Model checker, approval stamping, workflow status, card checks and lint configs
 ```
 
-Modelling creates `CONTEXT.md`, the glossary, when the first term is agreed. Several contexts share it, with a heading each, until a word means different things in two of them; then each context gets its own `CONTEXT.md` and a root `CONTEXT-MAP.md` links them.
+Modelling creates `GLOSSARY.md`, the glossary, when the first term is agreed. Several contexts share it, with a heading each, until a word means different things in two of them; then each context gets its own `GLOSSARY.md` and a root `GLOSSARY-MAP.md` links them.
 
 ### Prerequisites
 
@@ -120,7 +120,7 @@ Use ddd-modelling to update docs/domain/contexts/ordering.md
 so customers can cancel a placed order until picking starts.
 ```
 
-The agent writes as the conversation goes: the glossary in `CONTEXT.md`, the contexts and how they relate in `docs/domain/context-map.md`, and a model per context in `docs/domain/contexts/<context>.md`. It runs `tools/check-model.sh` on the structure. You decide whether the business rules are right.
+The agent writes as the conversation goes: the glossary in `GLOSSARY.md`, the contexts and how they relate in `docs/domain/context-map.md`, and a model per context in `docs/domain/contexts/<context>.md`. It runs `tools/check-model.sh` on the structure. You decide whether the business rules are right.
 
 ### Choose a depth
 
@@ -220,7 +220,7 @@ The task is: [link or path to the original task].
 
 Only committed changes are reviewed. Without a base branch, the reviewer uses the point where your branch left the default branch. `ddd-review-all` reviews in separate subagents and temporary Git worktrees. The full review runs three: `ddd-review` (code against the model), `secure-by-design-review` (security) and `task-review` (code against the task; skipped if you have no task). It runs when a context is strict, has no `Depth:` line, or the change names a strict command, or when you ask: `/ddd-review-all full`. Otherwise, at standard depth, one reviewer runs `ddd-review` and the Secure by Design sections on authorisation, sensitive data and input at the boundary; it does not ask for a task. Without subagents, run the review skills one by one in fresh sessions.
 
-With Matt Pocock's skills, review domain code with `ddd-review-all` and the rest of a branch (screens, endpoints, reports) with his `code-review`, which checks the repository's documented standards and common code smells. When his `implement` built domain code, `ddd-review-all` takes the place of its `/code-review` step.
+With Matt Pocock's skills, review domain code with `ddd-review-all` and the rest of a branch (screens, endpoints, reports) with his `code-review`, which checks the repository's documented standards and common code smells. When his `implement` or `implement-spec` built domain code, `ddd-review-all` takes the place of their `/code-review` step.
 
 The combined report ends with the next step:
 
@@ -262,12 +262,12 @@ The `Status:` line is always written by `tools/stamp-model.sh`. The approval has
 
 ## Optional integrations
 
-With [Matt Pocock's skills](https://github.com/mattpocock/skills) installed, the kit uses `grilling` for interviews, `domain-modeling` for challenging terms while modelling, `tdd` for the failing-test-to-passing-code loop, `to-tickets` for the work around the domain, and `code-review` for the rest of a branch. None is required: without them, the kit's skills carry their own rules for the same work. The glossary is his `CONTEXT.md`, in his format, so his `domain-modeling`, `tdd` and other skills read and extend the same terms. Domain decisions go in the context file's `## Decisions`, under the approval hash; technical ones are his ADRs in `docs/adr/`.
+With [Matt Pocock's skills](https://github.com/mattpocock/skills) installed, the kit uses `grilling` for interviews, `domain-modeling` for challenging terms while modelling, `tdd` for the failing-test-to-passing-code loop, `to-tickets` for the work around the domain, and `code-review` for the rest of a branch. None is required: without them, the kit's skills carry their own rules for the same work. The glossary is his `GLOSSARY.md`, in his format, so his `domain-modeling`, `tdd` and other skills read and extend the same terms. Domain decisions go in the context file's `## Decisions`, under the approval hash; technical ones are his ADRs in `docs/adr/`.
 
 ## Compatibility
 
 - A model with no `Depth:` line is treated as strict.
-- A glossary under its earlier name, `GLOSSARY.md` or `GLOSSARY-MAP.md`, is still read, with a warning. `/ddd-setup` renames it to `CONTEXT.md` with your agreement.
+- A glossary under its earlier name, `CONTEXT.md` or `CONTEXT-MAP.md` (Matt Pocock's skills before 1.3), is not read: `tools/check-model.sh` fails and gives the `git mv` that fixes it, and `/ddd-setup` does the rename with your agreement. A `CONTEXT.md` left beside a `GLOSSARY.md` gets a warning.
 - An approval recorded without a hash is accepted with a warning and cannot be verified.
 - Cards installed before the style directories sit directly under `docs/ddd/cards/`. `/ddd-setup` reports them and, with your agreement, moves them into `docs/ddd/cards/functional/`, keeping their Corrections.
 
