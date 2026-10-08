@@ -55,19 +55,25 @@ func change(ctx context.Context, deps Deps, actor ordering.Actor, id ordering.Or
 }
 
 func asDraft(o ordering.Order) (ordering.DraftOrder, error) {
-	draft, ok := ordering.AsDraft(o)
-	if !ok {
+	switch o := o.(type) {
+	case ordering.DraftOrder:
+		return o, nil
+	case ordering.PlacedOrder, ordering.CancelledOrder:
 		return ordering.DraftOrder{}, ErrOrderNotDraft
 	}
-	return draft, nil
+	return ordering.DraftOrder{}, ErrOrderNotDraft
 }
 
 func asCancellable(o ordering.Order) (ordering.CancellableOrder, error) {
-	cancellable, ok := ordering.AsCancellable(o)
-	if !ok {
+	switch o := o.(type) {
+	case ordering.DraftOrder:
+		return o, nil
+	case ordering.PlacedOrder:
+		return o, nil
+	case ordering.CancelledOrder:
 		return nil, ErrOrderAlreadyCancelled
 	}
-	return cancellable, nil
+	return nil, ErrOrderAlreadyCancelled
 }
 
 func StartOrder(ctx context.Context, deps Deps, actor ordering.Actor) (ordering.OrderID, error) {

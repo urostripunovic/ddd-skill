@@ -107,28 +107,3 @@ func NewPriceQuote(sku SKU, unitPrice Price, quotedAt time.Time) PriceQuote {
 }
 
 func (q PriceQuote) SKU() SKU { return q.sku }
-
-// The narrowing switches live here and not in the workflow package, because
-// gochecksumtype under golangci-lint only checks switches in the package that
-// declares the sum type. A new state must fail the lint at these two places.
-func AsDraft(o Order) (DraftOrder, bool) {
-	switch o := o.(type) {
-	case DraftOrder:
-		return o, true
-	case PlacedOrder, CancelledOrder:
-		return DraftOrder{}, false
-	}
-	return DraftOrder{}, false
-}
-
-func AsCancellable(o Order) (CancellableOrder, bool) {
-	switch o := o.(type) {
-	case DraftOrder:
-		return o, true
-	case PlacedOrder:
-		return o, true
-	case CancelledOrder:
-		return nil, false
-	}
-	return nil, false
-}

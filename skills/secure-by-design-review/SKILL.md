@@ -50,7 +50,7 @@ Read the change first and decide which conditional sections it touches. Apply th
 - A primitive's rules belong to one context. The same word in another context is another type with its own rules. [SbD 5]
 - A primitive is a conceptual whole. An amount without its currency, or a measurement without its unit, is half a primitive. The missing half must not come from surrounding context or a default. [SbD 12]
 - Money is never a float. [SbD 12]
-- A function with several parameters of the same underlying type is a finding: the arguments can be swapped without any error. [SbD 12]
+- A function with several parameters of the same raw type (`string`, `int`, `number`) is a finding: the arguments can be swapped without any error. Two parameters of the same domain type are a finding only when swapping them is easy and changes the outcome without an error, such as `Transfer(from, to AccountID)`; there, a type per role or a value object (`DateRange`) fixes it. [SbD 12]
 - Go: is each primitive's zero value either meaningful or detectably invalid, such as by an `IsZero` method? A zero value that is neither is a finding. A decision function that does not re-check a detectable zero value is not. A state type's zero value (`PlacedOrder{}` written in another package) is a limit of the language: note it once, not as a finding.
 - TypeScript: is the brand applied only inside the parser?
 
@@ -69,7 +69,7 @@ Read the change first and decide which conditional sections it touches. Apply th
 - Parsers that expand their input (XML entities, archives, deeply nested JSON) have explicit limits configured. [SbD 1]
 - Bad input is rejected, never repaired. No trimming, stripping or "fixing" before validation. [SbD 9]
 - Rejected input is never echoed back verbatim in a response, error or log line. [SbD 9]
-- Unknown fields and unknown enum or status values are rejected, not defaulted.
+- Unknown enum or status values are rejected, not defaulted. Unknown fields are rejected in requests from outside the system; in a message from another context, ignoring a field the consumer does not read is correct.
 - Domain types are not the public API. Requests, responses, messages and database rows have their own types, mapped at the boundary. [SbD 5, 13]
 
 ### Sensitive data
