@@ -2,7 +2,7 @@
 
 Skills for working out business rules with a coding agent before writing the code. The agent interviews you, writes a domain model in Markdown, and once you approve it, turns the model's worked examples into tests.
 
-The model is domain-driven design (DDD) and works with any language and code style, object-oriented included: bounded contexts, the glossary, states, commands, events, invariants and examples apply however the code is written. For the code itself the kit suggests one style, typed and functional in the manner of Scott Wlaschin's *Domain Modeling Made Functional*: named types for domain values, a type for each state, and pure functions for business decisions, with examples and lint rules for Go and TypeScript. It is a suggestion: `/ddd-setup` asks which you want.
+The model is domain-driven design (DDD) and works with any language and code style, object-oriented included: bounded contexts, the glossary, states, commands, events, invariants and examples apply however the code is written. For the code itself the kit suggests one style, typed and functional in the manner of Scott Wlaschin's *Domain Modeling Made Functional*: named types for domain values, a type for each state, and pure functions for business decisions, with examples and lint rules for Go and TypeScript. It is a suggestion: `/ddd-setup` asks which you want. For object-oriented code, or any style of your own, choose **model only**, in Go and TypeScript too: no pattern cards or lint rules are installed. You can also say it up front: `/ddd-setup model only, we write object-oriented TypeScript`.
 
 With your own style, object-oriented for example, the workflow is the same and only the code-style rules drop away:
 

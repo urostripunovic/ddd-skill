@@ -16,11 +16,11 @@ The kit has two halves: the model (what the software must do) and the pattern ca
 
 | Choice | When | What is installed |
 |---|---|---|
-| **Full** | Go or TypeScript, and no established style for domain code | the model, the cards, the examples and lint rules for the language: `install.sh` |
+| **Full** | Go or TypeScript, no established style for domain code, and no other style asked for | the model, the cards, the examples and lint rules for the language: `install.sh` |
 | **Cards without examples** | another language (Python, Java, Rust), and the team wants the kit's style as far as that language allows | the model and the cards' rules: `install.sh --lang none`. The code is written from the rules in the language's own idioms, best effort; use the project's own checks, with no supplied language-specific lint rules |
-| **Model only** | the repository already has a way of writing domain code and wants to keep it (classic DDD with entity classes, say), or wants the model and nothing else | the model template, its checker and the strategic cards: `install.sh --model-only`. No pattern cards, no lint rules |
+| **Model only** | the repository already has a way of writing domain code and wants to keep it (classic DDD with entity classes, say), the user wants another style such as object-oriented, in any language, Go and TypeScript included, or wants the model and nothing else | the model template, its checker and the strategic cards: `install.sh --model-only`. No pattern cards, no lint rules |
 
-Recommend model only when the repository already has domain code in a consistent style of its own. Write the choice down in step 3.
+Recommend model only when the repository already has domain code in a consistent style of its own, or the user has asked for another style. A style the user stated in the request is answered: do not offer the cards again. Write the choice down in step 3.
 
 With model only, skip step 4, and in step 3 describe the repository's own style in a line or two instead of choosing a layout. With cards without examples, also skip step 4 and record the project's own check commands. Installing cards is the style choice; later skills reuse it without asking again. An explicitly recorded model-only choice takes precedence over cards left from an earlier setup.
 
