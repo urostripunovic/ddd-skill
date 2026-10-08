@@ -99,7 +99,7 @@ The skills are opt-in per repository: in a project without `docs/domain/`, they 
 | `code-review` | reviewing the rest of a branch; domain code goes to `ddd-review-all` |
 | `implement`, `implement-spec` | driving the work; for domain code, `ddd-review-all` takes the place of their `code-review` step |
 
-Both kits share the glossary, `GLOSSARY.md`. Before his 1.3 it was `CONTEXT.md`; the kit still reads that name, with a warning, and `/ddd-setup` renames it. See [optional integrations](REFERENCE.md#optional-integrations).
+Both kits share the glossary, `GLOSSARY.md`. Before his 1.3 it was `CONTEXT.md`; the kit does not read that name, and `tools/check-model.sh` says how to rename it. See [optional integrations](REFERENCE.md#optional-integrations).
 
 ## Learn more
 

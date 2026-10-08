@@ -566,18 +566,22 @@ class ToolTests(unittest.TestCase):
         self.assertIn("open questions: 2", out)
         self.assertIn("migration: 1 of 2 steps done; next: step 2: Introduce OrderId.", out)
 
-    def test_glossary_under_its_earlier_name_still_reads_with_a_warning(self):
-        # Before Matt Pocock's 1.3 the glossary was CONTEXT.md; an approved model there keeps passing, and the status names the rename.
+    def test_glossary_under_its_earlier_name_fails_with_the_rename(self):
+        # Before Matt Pocock's 1.3 the glossary was CONTEXT.md. It is not read: the check names the rename instead of
+        # saying there is no glossary, and passes again once the file has its new name.
         (self.repo / "GLOSSARY.md").rename(self.repo / "CONTEXT.md")
         # The kit's own context map must not pass for CONTEXT-MAP.md on a case-insensitive file system.
         (self.repo / "docs/domain/context-map.md").write_text("# Context map\n")
-        self.model.write_text(MODEL.replace("Status: draft", f"Status: approved by test, model-hash {self.hash_model()}"))
         result = self.run_tool("check-model.sh", self.model)
-        self.assertEqual(result.returncode, 0, result.stdout)
-        self.assertIn("warning: CONTEXT.md is the glossary's earlier name; rename it to GLOSSARY.md", result.stdout)
-        self.assertIn("glossary: earlier name, CONTEXT.md; it belongs in GLOSSARY.md", self.status())
+        self.assertNotEqual(result.returncode, 0, result.stdout)
+        self.assertIn("found CONTEXT.md, the glossary's name before Matt Pocock's 1.3, which is not read; "
+                      "rename it with `git mv CONTEXT.md GLOSSARY.md`", result.stdout)
+        self.assertNotIn("no glossary found", result.stdout)
+        self.assertIn("glossary: CONTEXT.md is its name before Matt Pocock's 1.3 and is not read; rename it to GLOSSARY.md",
+                      self.status())
         (self.repo / "CONTEXT.md").rename(self.repo / "GLOSSARY.md")
         result = self.run_tool("check-model.sh", self.model)
+        self.assertEqual(result.returncode, 0, result.stdout)
         self.assertNotIn("warning", result.stdout)
         self.assertIn("glossary: GLOSSARY.md\n", self.status())
 
@@ -586,17 +590,17 @@ class ToolTests(unittest.TestCase):
         (self.repo / "CONTEXT.md").write_text("# Ordering\n\n## Language\n\n**Basket**:\nA draft order.\n")
         result = self.run_tool("check-model.sh", self.model)
         self.assertEqual(result.returncode, 0, result.stdout)
-        self.assertIn("is the glossary's earlier name and is no longer read; merge its terms into GLOSSARY.md", result.stdout)
-        self.assertIn("glossary: GLOSSARY.md; CONTEXT.md, its earlier name, is still there and is no longer read", self.status())
+        self.assertIn("is the glossary's earlier name and is not read; merge its terms into GLOSSARY.md", result.stdout)
+        self.assertIn("glossary: GLOSSARY.md; CONTEXT.md, its earlier name, is still there and is not read", self.status())
 
-    def test_glossary_map_under_its_earlier_name_still_reads(self):
+    def test_glossary_map_under_its_earlier_name_fails_with_the_rename(self):
         glossary = self.repo / "src/ordering/CONTEXT.md"
         glossary.parent.mkdir(parents=True)
         (self.repo / "GLOSSARY.md").rename(glossary)
         (self.repo / "CONTEXT-MAP.md").write_text("# Context Map\n\n- [Ordering](./src/ordering/CONTEXT.md): takes orders\n")
         result = self.run_tool("check-model.sh", self.model)
-        self.assertEqual(result.returncode, 0, result.stdout)
-        self.assertIn("warning: CONTEXT-MAP.md is the glossary's earlier name; rename it to GLOSSARY-MAP.md", result.stdout)
+        self.assertNotEqual(result.returncode, 0, result.stdout)
+        self.assertIn("rename it with `git mv CONTEXT-MAP.md GLOSSARY-MAP.md`, and the glossaries it links to", result.stdout)
 
     def test_glossary_per_context_through_a_context_map(self):
         glossary = self.repo / "src/ordering/GLOSSARY.md"
