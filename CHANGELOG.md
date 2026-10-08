@@ -7,6 +7,7 @@ The first published version.
 - Ten skills: `ddd-next`, `ddd-setup`, `ddd-modelling`, `ddd-model-review`, `ddd-to-tickets`, `ddd-implementation`, `ddd-review`, `secure-by-design-review`, `task-review` and `ddd-review-all`.
 - Twenty functional pattern cards with Go and TypeScript examples, ten strategic cards quoted from Evans and the DDD Crew, a context template, and tools: `check-model.sh`, `stamp-model.sh`, `ddd-status.sh`, `check-cards.sh` and lint configs for golangci-lint and ESLint.
 - Works with Matt Pocock's skills 1.3: the glossary is `GLOSSARY.md`.
+- Installs as a Claude Code plugin (`/plugin marketplace add urostripunovic/ddd-skill`), or by copying `skills/`.
 
 ### Upgrading from an unpublished version
 

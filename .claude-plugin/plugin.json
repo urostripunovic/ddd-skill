@@ -1,0 +1,24 @@
+{
+  "name": "ddd-skill",
+  "version": "0.1.0",
+  "description": "Work out business rules with your agent before code: an interview that writes a typed DDD model you approve, worked examples that become tests, and reviews of the code against the model.",
+  "author": {
+    "name": "Uros",
+    "url": "https://github.com/urostripunovic"
+  },
+  "repository": "https://github.com/urostripunovic/ddd-skill",
+  "license": "MIT",
+  "keywords": ["ddd", "domain-driven-design", "domain-modeling", "secure-by-design", "code-review", "skills"],
+  "skills": [
+    "./skills/ddd-next",
+    "./skills/ddd-setup",
+    "./skills/ddd-modelling",
+    "./skills/ddd-model-review",
+    "./skills/ddd-to-tickets",
+    "./skills/ddd-implementation",
+    "./skills/ddd-review",
+    "./skills/secure-by-design-review",
+    "./skills/task-review",
+    "./skills/ddd-review-all"
+  ]
+}

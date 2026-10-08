@@ -1,0 +1,17 @@
+{
+  "name": "ddd-skill",
+  "owner": {
+    "name": "Uros",
+    "url": "https://github.com/urostripunovic"
+  },
+  "description": "Typed DDD skills, as an installable Claude Code plugin.",
+  "plugins": [
+    {
+      "name": "ddd-skill",
+      "source": "./",
+      "description": "Model business rules with DDD before code, implement them from the model's examples, and review the code against the model.",
+      "category": "engineering",
+      "keywords": ["ddd", "domain-driven-design", "domain-modeling", "secure-by-design"]
+    }
+  ]
+}
