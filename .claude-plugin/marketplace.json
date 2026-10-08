@@ -4,7 +4,7 @@
     "name": "Uros",
     "url": "https://github.com/urostripunovic"
   },
-  "description": "Typed DDD skills, as an installable Claude Code plugin.",
+  "description": "DDD skills, as an installable Claude Code plugin.",
   "plugins": [
     {
       "name": "ddd-skill",

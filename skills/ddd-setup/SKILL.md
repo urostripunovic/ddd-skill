@@ -1,10 +1,10 @@
 ---
 name: ddd-setup
-description: "Install the typed DDD kit into the current repository: pattern cards, domain model templates, the card and model check scripts, and the lint rules merged into the repository's own configs. Use once per repository before the other ddd skills."
+description: "Install the DDD kit into the current repository: domain model templates, the optional pattern cards, the card and model check scripts, and the lint rules merged into the repository's own configs. Use once per repository before the other ddd skills."
 disable-model-invocation: true
 ---
 
-# Set up the typed DDD kit in this repository
+# Set up the DDD kit in this repository
 
 The kit's files are in the `kit/` directory next to this file, and `install.sh` beside it copies them. The skills stay where they are installed; the cards and the model must live in the repository, because the team edits them and they are versioned with the code.
 
@@ -12,7 +12,7 @@ The copying is a script and the lint rules are yours to merge. Install no progra
 
 ## 1. Choose how much of the kit
 
-The kit has two halves: the model (what the software must do) and the pattern cards (how the code that does it is written). The model works for any language and any coding style, and comes with the strategic cards in `docs/ddd/strategic/`, which help decide how contexts relate. The pattern cards are one style, typed and functional in the manner of Scott Wlaschin, in `docs/ddd/cards/functional/`, with examples for Go and TypeScript. Ask which the repository wants, with your recommendation from what you see in it. Setup asks in two rounds, each question with your proposal: this choice and the language (step 2) first, then the conventions (step 3), who may approve models, and any ESLint question (step 4) together. Look at the repository before each round, so that every question in it can be answered without the others.
+The kit has two halves: the model (what the software must do) and the pattern cards (how the code that does it is written). The model works for any language and any coding style, and comes with the strategic cards in `docs/ddd/strategic/`, which help decide how contexts relate. The pattern cards are one style, the kit's suggestion and not a requirement: typed and functional in the manner of Scott Wlaschin, in `docs/ddd/cards/functional/`, with examples for Go and TypeScript. Ask which the repository wants, with your recommendation from what you see in it. Setup asks in two rounds, each question with your proposal: this choice and the language (step 2) first, then the conventions (step 3), who may approve models, and any ESLint question (step 4) together. Look at the repository before each round, so that every question in it can be answered without the others.
 
 | Choice | When | What is installed |
 |---|---|---|

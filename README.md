@@ -1,8 +1,8 @@
-# Typed DDD skills
+# DDD skills
 
 Skills for working out business rules with a coding agent before writing the code. The agent interviews you, writes a domain model in Markdown, and once you approve it, turns the model's worked examples into tests.
 
-The code follows domain-driven design (DDD) in the functional style of Scott Wlaschin's *Domain Modeling Made Functional*: named types for domain values, a type for each state, and pure functions for business decisions, with examples and lint rules for Go and TypeScript. You can also keep your own code style and use only the modelling workflow.
+The model is domain-driven design (DDD) and works with any language and code style, object-oriented included: bounded contexts, the glossary, states, commands, events, invariants and examples apply however the code is written. For the code itself the kit suggests one style, typed and functional in the manner of Scott Wlaschin's *Domain Modeling Made Functional*: named types for domain values, a type for each state, and pure functions for business decisions, with examples and lint rules for Go and TypeScript. It is a suggestion: `/ddd-setup` asks, and with your own style the kit uses only the model, and the reviews check behaviour, not style.
 
 Everything not on this page is in the [reference](REFERENCE.md).
 

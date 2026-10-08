@@ -1,7 +1,7 @@
 {
   "name": "ddd-skill",
   "version": "0.1.0",
-  "description": "Work out business rules with your agent before code: an interview that writes a typed DDD model you approve, worked examples that become tests, and reviews of the code against the model.",
+  "description": "Work out business rules with your agent before code: an interview that writes a DDD model you approve, worked examples that become tests, and reviews of the code against the model.",
   "author": {
     "name": "Uros",
     "url": "https://github.com/urostripunovic"
