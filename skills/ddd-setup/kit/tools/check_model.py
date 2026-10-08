@@ -126,29 +126,30 @@ def contains(haystack, needle):
     return any(haystack[i:i + len(needle)] == needle for i in range(len(haystack) - len(needle) + 1))
 
 
-# GLOSSARY.md is the name Matt Pocock's skills read since his 1.3. CONTEXT.md is the name before it, still read so a
-# repository can rename at its own pace; drop it once no supported version writes it.
-GLOSSARY_NAMES = [("GLOSSARY-MAP.md", "GLOSSARY.md"), ("CONTEXT-MAP.md", "CONTEXT.md")]
+# GLOSSARY.md is the name Matt Pocock's skills read since his 1.3. CONTEXT.md is the name before it: never read, only
+# recognised, so a repository that still has it is told to rename it instead of being told it has no glossary.
 EARLIER_NAMES = {"CONTEXT-MAP.md": "GLOSSARY-MAP.md", "CONTEXT.md": "GLOSSARY.md"}
 
 
 def load_glossary(context_file, context_name, override):
     """Follows the layout of the shared glossary: a root GLOSSARY.md, or a GLOSSARY-MAP.md that links to one per context.
-    Returns the glossary's path and the name of the file that led to it."""
+    Returns the glossary's path and the name of the file that led to it. With no glossary, the name is that of a file
+    under the glossary's earlier name, if one was found, so the caller can ask for the rename."""
     if override:
         return pathlib.Path(override), None
     for folder in [context_file.resolve().parent, *context_file.resolve().parents]:
         # Exact names: on a case-insensitive file system, docs/domain/context-map.md would pass for CONTEXT-MAP.md.
         names = set(os.listdir(folder))
-        for map_name, glossary_name in GLOSSARY_NAMES:
-            glossary_map = folder / map_name
-            if map_name in names:
-                for label, target in re.findall(r"\[([^\]]+)\]\(([^)]+)\)", glossary_map.read_text()):
-                    if label.strip().lower() == context_name.lower():
-                        return (folder / target).resolve(), map_name
-                return None, map_name
-            if glossary_name in names:
-                return folder / glossary_name, glossary_name
+        if "GLOSSARY-MAP.md" in names:
+            for label, target in re.findall(r"\[([^\]]+)\]\(([^)]+)\)", (folder / "GLOSSARY-MAP.md").read_text()):
+                if label.strip().lower() == context_name.lower():
+                    return (folder / target).resolve(), "GLOSSARY-MAP.md"
+            return None, "GLOSSARY-MAP.md"
+        if "GLOSSARY.md" in names:
+            return folder / "GLOSSARY.md", "GLOSSARY.md"
+        earlier = next((n for n in EARLIER_NAMES if n in names), None)
+        if earlier:
+            return None, earlier
         if (folder / ".git").exists():
             return None, None
     return None, None
@@ -630,13 +631,14 @@ def check(path, glossary_override, approving=False, scope_hashes=None):
         scope_hashes.update({command: scope_hash(cells) for command, _, cells, _ in scopes})
 
     glossary, found = load_glossary(path, context, glossary_override)
-    if found in EARLIER_NAMES:
-        warnings.append(f"{found} is the glossary's earlier name; rename it to {EARLIER_NAMES[found]} "
-                        "so other skills read it (ddd-setup's UPGRADING.md)")
-    elif glossary is not None and glossary.name == "GLOSSARY.md" and (glossary.parent / "CONTEXT.md").exists():
-        warnings.append(f"{glossary.parent / 'CONTEXT.md'} is the glossary's earlier name and is no longer read; "
+    if glossary is not None and glossary.name == "GLOSSARY.md" and (glossary.parent / "CONTEXT.md").exists():
+        warnings.append(f"{glossary.parent / 'CONTEXT.md'} is the glossary's earlier name and is not read; "
                         "merge its terms into GLOSSARY.md and remove it (ddd-setup's UPGRADING.md)")
-    if glossary is None or not glossary.exists():
+    if glossary is None and found in EARLIER_NAMES:
+        err(f"found {found}, the glossary's name before Matt Pocock's 1.3, which is not read; rename it with "
+            f"`git mv {found} {EARLIER_NAMES[found]}`" + (", and the glossaries it links to" if "MAP" in found else "")
+            + " (ddd-setup's UPGRADING.md)")
+    elif glossary is None or not glossary.exists():
         err("no glossary found: expected GLOSSARY.md at the repository root, or an entry for this context in GLOSSARY-MAP.md")
     else:
         terms, avoid, own = parse_glossary(glossary, context)

@@ -267,7 +267,7 @@ With [Matt Pocock's skills](https://github.com/mattpocock/skills) installed, the
 ## Compatibility
 
 - A model with no `Depth:` line is treated as strict.
-- A glossary under its earlier name, `CONTEXT.md` or `CONTEXT-MAP.md` (Matt Pocock's skills before 1.3), is still read, with a warning. `/ddd-setup` renames it to `GLOSSARY.md` with your agreement. Once a `GLOSSARY.md` exists, a `CONTEXT.md` beside it is no longer read, and the check says so.
+- A glossary under its earlier name, `CONTEXT.md` or `CONTEXT-MAP.md` (Matt Pocock's skills before 1.3), is not read: `tools/check-model.sh` fails and gives the `git mv` that fixes it, and `/ddd-setup` does the rename with your agreement. A `CONTEXT.md` left beside a `GLOSSARY.md` gets a warning.
 - An approval recorded without a hash is accepted with a warning and cannot be verified.
 - Cards installed before the style directories sit directly under `docs/ddd/cards/`. `/ddd-setup` reports them and, with your agreement, moves them into `docs/ddd/cards/functional/`, keeping their Corrections.
 

@@ -93,9 +93,10 @@ def setup_lines():
     names = os.listdir(".")
     found = next((n for n in ("GLOSSARY-MAP.md", "GLOSSARY.md", "CONTEXT-MAP.md", "CONTEXT.md") if n in names), None)
     if found and found.startswith("CONTEXT"):
-        lines.append(f"glossary: earlier name, {found}; it belongs in {found.replace('CONTEXT', 'GLOSSARY')}")
+        lines.append(f"glossary: {found} is its name before Matt Pocock's 1.3 and is not read; "
+                     f"rename it to {found.replace('CONTEXT', 'GLOSSARY')}")
     elif found and "CONTEXT.md" in names:
-        lines.append(f"glossary: {found}; CONTEXT.md, its earlier name, is still there and is no longer read")
+        lines.append(f"glossary: {found}; CONTEXT.md, its earlier name, is still there and is not read")
     else:
         lines.append(f"glossary: {found or 'none yet'}")
 
