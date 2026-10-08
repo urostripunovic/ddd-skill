@@ -1,8 +1,20 @@
-# Typed DDD skills
+# DDD skills
 
 Skills for working out business rules with a coding agent before writing the code. The agent interviews you, writes a domain model in Markdown, and once you approve it, turns the model's worked examples into tests.
 
-The code follows domain-driven design (DDD) in the functional style of Scott Wlaschin's *Domain Modeling Made Functional*: named types for domain values, a type for each state, and pure functions for business decisions, with examples and lint rules for Go and TypeScript. You can also keep your own code style and use only the modelling workflow.
+The model is domain-driven design (DDD) and works with any language and code style, object-oriented included: bounded contexts, the glossary, states, commands, events, invariants and examples apply however the code is written. For the code itself the kit suggests one style, typed and functional in the manner of Scott Wlaschin's *Domain Modeling Made Functional*: named types for domain values, a type for each state, and pure functions for business decisions, with examples and lint rules for Go and TypeScript. It is a suggestion: `/ddd-setup` asks which you want. For object-oriented code, or any style of your own, choose **model only**, in Go and TypeScript too: no pattern cards or lint rules are installed. You can also say it up front: `/ddd-setup model only, we write object-oriented TypeScript`.
+
+With your own style, object-oriented for example, the workflow is the same and only the code-style rules drop away:
+
+| | Typed functional style | Your own style |
+|---|---|---|
+| The interview, the model and its approval | yes | yes |
+| Every example in the model becomes a test, written before the code | yes | yes |
+| Reviews trace every rule, failure and example to code and tests | yes | yes |
+| Security checks: authorisation, sensitive data, input at the boundary | yes | yes, on your own validation and authorisation |
+| A type per state, pure decision functions, immutable data, errors as values | yes | no: your classes and exceptions are fine, and never a finding |
+| Pattern cards and lint rules | yes | no |
+| A property test per aggregate | yes | only if the project already does property-based testing |
 
 Everything not on this page is in the [reference](REFERENCE.md).
 
@@ -16,7 +28,22 @@ Three open design questions. Reply with the number and what you would do.
 
 ## Quickstart
 
-**1. Install the skills.** Clone this repository, and from its root copy the skills into your project, or into `~/.claude/skills/` for all your projects. Claude Code and OpenCode both read these locations.
+**1. Install the skills.** In Claude Code, install the plugin from a session:
+
+```text
+/plugin marketplace add urostripunovic/ddd-skill
+/plugin install ddd-skill@ddd-skill
+```
+
+The commands keep their short names (`/ddd-setup`, `/ddd-review-all`); `/ddd-skill:ddd-setup` also works, and is needed only if another skill already uses the name.
+
+Or install them with the [skills](https://skills.sh) CLI, which also works for OpenCode and other agents:
+
+```sh
+npx skills add urostripunovic/ddd-skill
+```
+
+Or copy them by hand: clone this repository, and from its root copy the skills into your project, or into `~/.claude/skills/` for all your projects.
 
 ```sh
 mkdir -p /path/to/your-project/.claude/skills

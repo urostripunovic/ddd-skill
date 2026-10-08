@@ -1,6 +1,6 @@
 ---
 name: ddd-implementation
-description: "Implement an approved domain model and its examples as tests. Use the installed typed DDD cards when present, otherwise the project's existing style. Use when writing or changing domain or business-logic code in a repository that has docs/domain/."
+description: "Implement an approved domain model and its examples as tests. Use the kit's pattern cards when the repository chose them, otherwise the project's existing style, object-oriented included. Use when writing or changing domain or business-logic code in a repository that has docs/domain/."
 ---
 
 # DDD implementation

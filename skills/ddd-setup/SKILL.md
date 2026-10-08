@@ -1,10 +1,10 @@
 ---
 name: ddd-setup
-description: "Install the typed DDD kit into the current repository: pattern cards, domain model templates, the card and model check scripts, and the lint rules merged into the repository's own configs. Use once per repository before the other ddd skills."
+description: "Install the DDD kit into the current repository: domain model templates, the optional pattern cards, the card and model check scripts, and the lint rules merged into the repository's own configs. Use once per repository before the other ddd skills."
 disable-model-invocation: true
 ---
 
-# Set up the typed DDD kit in this repository
+# Set up the DDD kit in this repository
 
 The kit's files are in the `kit/` directory next to this file, and `install.sh` beside it copies them. The skills stay where they are installed; the cards and the model must live in the repository, because the team edits them and they are versioned with the code.
 
@@ -12,15 +12,15 @@ The copying is a script and the lint rules are yours to merge. Install no progra
 
 ## 1. Choose how much of the kit
 
-The kit has two halves: the model (what the software must do) and the pattern cards (how the code that does it is written). The model works for any language and any coding style, and comes with the strategic cards in `docs/ddd/strategic/`, which help decide how contexts relate. The pattern cards are one style, typed and functional in the manner of Scott Wlaschin, in `docs/ddd/cards/functional/`, with examples for Go and TypeScript. Ask which the repository wants, with your recommendation from what you see in it. Setup asks in two rounds, each question with your proposal: this choice and the language (step 2) first, then the conventions (step 3), who may approve models, and any ESLint question (step 4) together. Look at the repository before each round, so that every question in it can be answered without the others.
+The kit has two halves: the model (what the software must do) and the pattern cards (how the code that does it is written). The model works for any language and any coding style, and comes with the strategic cards in `docs/ddd/strategic/`, which help decide how contexts relate. The pattern cards are one style, the kit's suggestion and not a requirement: typed and functional in the manner of Scott Wlaschin, in `docs/ddd/cards/functional/`, with examples for Go and TypeScript. Ask which the repository wants, with your recommendation from what you see in it. Setup asks in two rounds, each question with your proposal: this choice and the language (step 2) first, then the conventions (step 3), who may approve models, and any ESLint question (step 4) together. Look at the repository before each round, so that every question in it can be answered without the others.
 
 | Choice | When | What is installed |
 |---|---|---|
-| **Full** | Go or TypeScript, and no established style for domain code | the model, the cards, the examples and lint rules for the language: `install.sh` |
+| **Full** | Go or TypeScript, no established style for domain code, and no other style asked for | the model, the cards, the examples and lint rules for the language: `install.sh` |
 | **Cards without examples** | another language (Python, Java, Rust), and the team wants the kit's style as far as that language allows | the model and the cards' rules: `install.sh --lang none`. The code is written from the rules in the language's own idioms, best effort; use the project's own checks, with no supplied language-specific lint rules |
-| **Model only** | the repository already has a way of writing domain code and wants to keep it (classic DDD with entity classes, say), or wants the model and nothing else | the model template, its checker and the strategic cards: `install.sh --model-only`. No pattern cards, no lint rules |
+| **Model only** | the repository already has a way of writing domain code and wants to keep it (classic DDD with entity classes, say), the user wants another style such as object-oriented, in any language, Go and TypeScript included, or wants the model and nothing else | the model template, its checker and the strategic cards: `install.sh --model-only`. No pattern cards, no lint rules |
 
-Recommend model only when the repository already has domain code in a consistent style of its own. Write the choice down in step 3.
+Recommend model only when the repository already has domain code in a consistent style of its own, or the user has asked for another style. A style the user stated in the request is answered: do not offer the cards again. Write the choice down in step 3.
 
 With model only, skip step 4, and in step 3 describe the repository's own style in a line or two instead of choosing a layout. With cards without examples, also skip step 4 and record the project's own check commands. Installing cards is the style choice; later skills reuse it without asking again. An explicitly recorded model-only choice takes precedence over cards left from an earlier setup.
 
