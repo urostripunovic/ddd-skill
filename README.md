@@ -2,7 +2,19 @@
 
 Skills for working out business rules with a coding agent before writing the code. The agent interviews you, writes a domain model in Markdown, and once you approve it, turns the model's worked examples into tests.
 
-The model is domain-driven design (DDD) and works with any language and code style, object-oriented included: bounded contexts, the glossary, states, commands, events, invariants and examples apply however the code is written. For the code itself the kit suggests one style, typed and functional in the manner of Scott Wlaschin's *Domain Modeling Made Functional*: named types for domain values, a type for each state, and pure functions for business decisions, with examples and lint rules for Go and TypeScript. It is a suggestion: `/ddd-setup` asks, and with your own style the kit uses only the model, and the reviews check behaviour, not style.
+The model is domain-driven design (DDD) and works with any language and code style, object-oriented included: bounded contexts, the glossary, states, commands, events, invariants and examples apply however the code is written. For the code itself the kit suggests one style, typed and functional in the manner of Scott Wlaschin's *Domain Modeling Made Functional*: named types for domain values, a type for each state, and pure functions for business decisions, with examples and lint rules for Go and TypeScript. It is a suggestion: `/ddd-setup` asks which you want.
+
+With your own style, object-oriented for example, the workflow is the same and only the code-style rules drop away:
+
+| | Typed functional style | Your own style |
+|---|---|---|
+| The interview, the model and its approval | yes | yes |
+| Every example in the model becomes a test, written before the code | yes | yes |
+| Reviews trace every rule, failure and example to code and tests | yes | yes |
+| Security checks: authorisation, sensitive data, input at the boundary | yes | yes, on your own validation and authorisation |
+| A type per state, pure decision functions, immutable data, errors as values | yes | no: your classes and exceptions are fine, and never a finding |
+| Pattern cards and lint rules | yes | no |
+| A property test per aggregate | yes | only if the project already does property-based testing |
 
 Everything not on this page is in the [reference](REFERENCE.md).
 
