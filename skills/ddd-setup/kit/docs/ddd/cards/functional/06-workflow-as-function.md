@@ -11,7 +11,6 @@
 - The shape is always: load, narrow, decide, persist, publish. All I/O is at the edges; the decision in the middle is pure.
 - A repository returns the whole sum type. The workflow narrows it to the state the command needs, and returns a named "wrong state" failure otherwise. The decision function never sees a wrong state.
 - Saving state and publishing events must be atomic. Use a transactional outbox or save both in one transaction; this function does not solve that by itself.
-- Go: when the workflow is in another package than the aggregate, the narrowing switch stays in the aggregate's package and the workflow calls it. The exhaustiveness lint does not reach a switch in another package ([states as types](03-states-as-types.md)).
 
 ## Enforced by
 

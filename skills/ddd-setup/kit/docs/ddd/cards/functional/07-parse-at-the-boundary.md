@@ -13,7 +13,8 @@
   3. **Lexical content**: only allowed characters and encoding?
   4. **Syntax**: does it have the right format?
   5. **Semantics**: does it make sense in the domain (does the order exist, is the date in the future)?
-- Reject unknown fields. Do not try to repair bad input.
+- Reject unknown fields in requests from outside the system. Do not try to repair bad input.
+- A message from another context, such as an event or a response, may gain fields its consumer does not read yet. Ignore unknown fields there, so the upstream can add one without breaking its consumers; a missing or invalid field the consumer reads is still rejected. An unknown event type or version is an error ([event versioning](20-event-versioning.md)).
 - Database rows are also outside. Loading from storage goes through the same constructors.
 
 ## Enforced by
