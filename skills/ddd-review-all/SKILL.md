@@ -10,7 +10,7 @@ Run `ddd-review`, `secure-by-design-review` and `task-review` on the same change
 
 The three answer different questions: does the code match the model, is it hard to misuse, and does it do what was asked. A change can pass any two and fail the third.
 
-Matt Pocock's `code-review` asks whether code follows the repository's documented standards and avoids common code smells, and whether it matches the spec, which `task-review` also checks. Domain code is reviewed here; the rest of a branch (screens, endpoints, reports) with his `code-review`. When his `implement` built domain code, this skill takes the place of its `/code-review` step.
+Matt Pocock's `code-review` asks whether code follows the repository's documented standards and avoids common code smells, and whether it matches the spec, which `task-review` also checks. Domain code is reviewed here; the rest of a branch (screens, endpoints, reports) with his `code-review`. When his `implement` or `implement-spec` built domain code, this skill takes the place of their `/code-review` step.
 
 The isolation is the point. A reviewer that shares context with the author inherits the author's assumptions. It is therefore fine to run this skill in the session that wrote the code, because the reviewing is done elsewhere.
 

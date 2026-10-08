@@ -126,12 +126,14 @@ def contains(haystack, needle):
     return any(haystack[i:i + len(needle)] == needle for i in range(len(haystack) - len(needle) + 1))
 
 
-# CONTEXT.md is the name Matt Pocock's skills read; GLOSSARY.md is the name earlier versions of the kit wrote.
-GLOSSARY_NAMES = [("CONTEXT-MAP.md", "CONTEXT.md"), ("GLOSSARY-MAP.md", "GLOSSARY.md")]
+# GLOSSARY.md is the name Matt Pocock's skills read since his 1.3. CONTEXT.md is the name before it, still read so a
+# repository can rename at its own pace; drop it once no supported version writes it.
+GLOSSARY_NAMES = [("GLOSSARY-MAP.md", "GLOSSARY.md"), ("CONTEXT-MAP.md", "CONTEXT.md")]
+EARLIER_NAMES = {"CONTEXT-MAP.md": "GLOSSARY-MAP.md", "CONTEXT.md": "GLOSSARY.md"}
 
 
 def load_glossary(context_file, context_name, override):
-    """Follows the layout of the shared glossary: a root CONTEXT.md, or a CONTEXT-MAP.md that links to one per context.
+    """Follows the layout of the shared glossary: a root GLOSSARY.md, or a GLOSSARY-MAP.md that links to one per context.
     Returns the glossary's path and the name of the file that led to it."""
     if override:
         return pathlib.Path(override), None
@@ -628,11 +630,14 @@ def check(path, glossary_override, approving=False, scope_hashes=None):
         scope_hashes.update({command: scope_hash(cells) for command, _, cells, _ in scopes})
 
     glossary, found = load_glossary(path, context, glossary_override)
-    if found and found.startswith("GLOSSARY"):
-        warnings.append(f"{found} is the glossary's earlier name; rename it to {found.replace('GLOSSARY', 'CONTEXT')} "
+    if found in EARLIER_NAMES:
+        warnings.append(f"{found} is the glossary's earlier name; rename it to {EARLIER_NAMES[found]} "
                         "so other skills read it (ddd-setup's UPGRADING.md)")
+    elif glossary is not None and glossary.name == "GLOSSARY.md" and (glossary.parent / "CONTEXT.md").exists():
+        warnings.append(f"{glossary.parent / 'CONTEXT.md'} is the glossary's earlier name and is no longer read; "
+                        "merge its terms into GLOSSARY.md and remove it (ddd-setup's UPGRADING.md)")
     if glossary is None or not glossary.exists():
-        err("no glossary found: expected CONTEXT.md at the repository root, or an entry for this context in CONTEXT-MAP.md")
+        err("no glossary found: expected GLOSSARY.md at the repository root, or an entry for this context in GLOSSARY-MAP.md")
     else:
         terms, avoid, own = parse_glossary(glossary, context)
         for name in sorted(glossary_needed):
