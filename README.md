@@ -25,7 +25,13 @@ Three open design questions. Reply with the number and what you would do.
 
 The commands keep their short names (`/ddd-setup`, `/ddd-review-all`); `/ddd-skill:ddd-setup` also works, and is needed only if another skill already uses the name.
 
-Or copy the skills, which also works in OpenCode: clone this repository, and from its root copy them into your project, or into `~/.claude/skills/` for all your projects.
+Or install them with the [skills](https://skills.sh) CLI, which also works for OpenCode and other agents:
+
+```sh
+npx skills add urostripunovic/ddd-skill
+```
+
+Or copy them by hand: clone this repository, and from its root copy the skills into your project, or into `~/.claude/skills/` for all your projects.
 
 ```sh
 mkdir -p /path/to/your-project/.claude/skills
