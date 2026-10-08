@@ -6,11 +6,11 @@ How the parts of a domain relate: which part is the core, and how two bounded co
 
 Every statement about DDD in these cards is quoted from one of three sources. The cards add no rules of their own. Each card ends with an **In this kit** section, which is the kit's convention for where the answer is written down, and nothing more.
 
-- Eric Evans, *Domain-Driven Design Reference: Definitions and Pattern Summaries* (Domain Language, 2015), <https://www.domainlanguage.com/ddd/reference/>
-- DDD Crew, *Context Mapping*, <https://github.com/ddd-crew/context-mapping>
-- DDD Crew, *Bounded Context Canvas*, <https://github.com/ddd-crew/bounded-context-canvas>
+- Eric Evans, *Domain-Driven Design Reference: Definitions and Pattern Summaries* (Domain Language, 2015), <https://www.domainlanguage.com/ddd/reference/>, licensed under [Creative Commons Attribution 4.0](https://creativecommons.org/licenses/by/4.0/)
+- DDD Crew, *Context Mapping*, <https://github.com/ddd-crew/context-mapping>, licensed under [Creative Commons Attribution-ShareAlike 4.0](https://creativecommons.org/licenses/by-sa/4.0/)
+- DDD Crew, *Bounded Context Canvas*, <https://github.com/ddd-crew/bounded-context-canvas>, licensed under [Creative Commons Attribution-ShareAlike 4.0](https://creativecommons.org/licenses/by-sa/4.0/)
 
-All three are licensed under [Creative Commons Attribution 4.0](https://creativecommons.org/licenses/by/4.0/). The quotations are excerpts; line breaks from the PDF were removed and nothing else was changed. Read the sources for the full text.
+The quotations are excerpts; line breaks from the PDF were removed and nothing else was changed. Read the sources for the full text. Each quotation stays under its source's licence, as given above, and is not covered by the kit's MIT licence; the rest of each card is. The licences cover the quoted text only: code and models written with the kit are not affected. Keep this file with the cards when you copy them.
 
 Never edit quoted text, not even to shorten or clarify it: a changed quotation no longer says what its source says. Only the **In this kit** and **Corrections** sections are edited.
 
