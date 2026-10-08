@@ -52,7 +52,7 @@ The sections below describe the strict interview. **At standard depth** adapt th
 
 ## Output
 
-- `CONTEXT.md` at the repository root: the glossary, the ubiquitous language
+- `GLOSSARY.md` at the repository root: the glossary, the ubiquitous language
 - `docs/domain/context-map.md`: bounded contexts and how they relate
 - `docs/domain/contexts/<context>.md`: one file per context, following `contexts/_template.md`
 
@@ -62,7 +62,7 @@ If any of these already has content, read it first and extend it. Do not start o
 
 ### The glossary is shared
 
-Other skills read and write the same `CONTEXT.md`, among them Matt Pocock's `domain-modeling` and `tdd`, so its name and format are fixed. It holds the glossary and nothing else:
+Other skills read and write the same `GLOSSARY.md`, among them Matt Pocock's `domain-modeling` and `tdd` (from his 1.3; before it the file was `CONTEXT.md`), so its name and format are fixed. It holds the glossary and nothing else:
 
 ```md
 # Ordering
@@ -78,7 +78,7 @@ _Avoid_: Submitted order
 
 - One or two sentences per term, written so a newcomer can tell it from its neighbours. Business words only: no record, entity, DTO, manager, handler or status.
 - When several words exist for one concept, pick one and list the others under `_Avoid_`. The checks search for those words, so a rejected synonym that is not written down will come back.
-- With one context, or several that share their words, there is one `CONTEXT.md` at the root, with a `# <Context>` heading per context once there are two; an `_Avoid_` under one context's heading applies to that context only, so Billing can avoid a word that Payments uses. Split it into a `CONTEXT.md` per context and a `CONTEXT-MAP.md` at the root only when a word means different things in two contexts, or the user asks: `- [Ordering](./src/ordering/CONTEXT.md): one line on what it is`. How the contexts relate is written only in `docs/domain/context-map.md`: the map's `## Relationships` section is the one line `See docs/domain/context-map.md.` If it holds relationships written by another skill, move each into `docs/domain/context-map.md`, ask about any the two files describe differently, and leave that line in their place.
+- With one context, or several that share their words, there is one `GLOSSARY.md` at the root, with a `# <Context>` heading per context once there are two; an `_Avoid_` under one context's heading applies to that context only, so Billing can avoid a word that Payments uses. Split it into a `GLOSSARY.md` per context and a `GLOSSARY-MAP.md` at the root only when a word means different things in two contexts, or the user asks: `- [Ordering](./src/ordering/GLOSSARY.md): one line on what it is`. How the contexts relate is written only in `docs/domain/context-map.md`: the map's `## Relationships` section is the one line `See docs/domain/context-map.md.` If it holds relationships written by another skill, move each into `docs/domain/context-map.md`, ask about any the two files describe differently, and leave that line in their place.
 - Create the file when the first term is settled, not before.
 - A term is written the moment it is settled, with no separate approval step. Approval hashes cover context files, not the glossary or context map. When a shared definition or relationship changes, identify the affected contexts and show the impact to the user. If it changes an approved rule's meaning, record that change in the context, set it to draft and get approval again. The checker catches some missing names, rejected synonyms, and terms that cross a boundary in the context map but are missing from a side's glossary; it cannot detect a change of meaning.
 
@@ -97,7 +97,7 @@ If you are resuming, read the glossary and `docs/domain/` first and continue fro
 
 You do not know this domain. The user or their domain expert does. The model is found in this step; the later steps only write it down, so do not hurry through it.
 
-**How to ask.** If a skill named `grilling` is available, invoke it and use the rest of this section as what to grill about; it supplies the format of a round. This file decides when to stop: at standard depth, **How deep** above (about three rounds, the rest proposed and marked `(assumed)`) takes precedence over grilling's rule that the session ends when every branch is visited. If it is not, ask this way:
+**How to ask.** If a skill named `grilling` is available, call the Skill tool with "grilling" and use the rest of this section as what to grill about; it supplies the format of a round. This file decides when to stop: at standard depth, **How deep** above (about three rounds, the rest proposed and marked `(assumed)`) takes precedence over grilling's rule that the session ends when every branch is visited. If it is not, ask this way:
 
 - Work in rounds. A round holds every question you can ask now without guessing an answer you have not heard yet. Number the questions, and wait for the answers before the next round.
 - Give a proposed answer with every question. Correcting a proposal is quicker for the user than composing an answer.
@@ -131,7 +131,7 @@ A rule stated in general terms sounds complete until a specific case hits it. Wr
 
 **Fill in the matrix.** Once the states and commands are known, go through every pair. Where the command is not allowed in that state, ask why not, with a proposal: "Can a placed order still receive an item? Proposed: no, because picking has started." An answer like "yes, until it is packed" has just found a missing state.
 
-**Challenge the wording at once.** Do not note a language problem for later. If a skill named `domain-modeling` is available, invoke it at the start of the interview: it challenges terms and writes `CONTEXT.md` and ADRs as they settle, and the glossary rules under **Output** still hold. If it is not:
+**Challenge the wording at once.** Do not note a language problem for later. If a skill named `domain-modeling` is available, call the Skill tool with "domain-modeling" at the start of the interview: it challenges terms and writes `GLOSSARY.md` and ADRs as they settle, and the glossary rules under **Output** still hold. If it is not:
 
 - One word used with two meanings: stop and ask which is meant. This often marks a context boundary.
 - Two words for one thing: propose one. The other goes under `_Avoid_`.

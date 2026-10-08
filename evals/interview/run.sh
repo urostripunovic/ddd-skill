@@ -70,7 +70,7 @@ for round in $(seq 1 "${max_rounds}"); do
 done
 
 echo "rounds: ${round}"
-echo "model: ${repo}/CONTEXT.md and ${repo}/docs/domain/"
+echo "model: ${repo}/GLOSSARY.md and ${repo}/docs/domain/"
 echo "transcript: ${transcript}"
 (cd "${repo}" && tools/check-model.sh) || true
 echo "Score the model against ${here}/answer-key.md and record the result in evals/results/."

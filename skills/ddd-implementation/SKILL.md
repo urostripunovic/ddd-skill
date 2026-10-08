@@ -20,7 +20,7 @@ If `docs/domain/` does not exist, this repository has not adopted the kit. Do th
 
 ## Before writing code
 
-1. Read the glossary (`CONTEXT.md` at the root, or the one `CONTEXT-MAP.md` links to for this context), `docs/domain/context-map.md` and the file for the context you are working in, including its `## Amendments`: those rows are part of what the code must do. Read the repository's agent instructions (`CLAUDE.md`, `AGENTS.md`) for where domain code, use cases, adapters and tests go; follow them, and if they say nothing and this is the first domain code, ask once and offer to write the answer there.
+1. Read the glossary (`GLOSSARY.md` at the root, or the one `GLOSSARY-MAP.md` links to for this context), `docs/domain/context-map.md` and the file for the context you are working in, including its `## Amendments`: those rows are part of what the code must do. Read the repository's agent instructions (`CLAUDE.md`, `AGENTS.md`) for where domain code, use cases, adapters and tests go; follow them, and if they say nothing and this is the first domain code, ask once and offer to write the answer there.
 2. Decide which case you are in (see **Which case applies**) and follow it.
 3. Resolve the code style below before loading cards. When using cards, read the style's README, `docs/ddd/cards/functional/README.md`, and its language directory's `README.md` if installed. The language README holds the idioms and check commands.
 4. Load only the cards the task needs. A card holds the rules; its example, when installed, is the file of the same name in the language directory. Do not read the other language's examples.
@@ -118,7 +118,7 @@ For aggregate completion, add one property test: generate random sequences of it
 - Use the repository's property-testing library if it has one (`pgregory.net/rapid`, `fast-check`). Ask before adding a dependency; without one, a seeded random loop that prints the failing seed is enough.
 - Make sure it can fail: remove one rule from a decision function, watch the test fail, and put the rule back. A sequence generator that never reaches a limit proves nothing about that limit.
 
-Tests come first, and the model's Examples table is where they come from. If a skill named `tdd` is available, use it for the loop of one failing test, then the code that passes it; this skill supplies which test is next. The seams are already agreed: the approved model's commands, tested at the decision function and the workflow. Do not ask for them again.
+Tests come first, and the model's Examples table is where they come from. If a skill named `tdd` is available, call the Skill tool with "tdd" and use it for the loop of one failing test, then the code that passes it; this skill supplies which test is next. The seams are already agreed: the approved model's commands, tested at the decision function and the workflow. Do not ask for them again.
 
 Tests of decision functions need no mocks, stubs or fakes, because a decision does no I/O. If one needs them, I/O has leaked into the domain. How workflow tests stand in for their dependencies is the repository's choice: follow its conventions and the tests already there.
 
@@ -137,7 +137,7 @@ Never make a check pass by weakening it:
 - follow the "Never, to make a check pass" list in the language's `README.md` when installed, including its documented exceptions; no escape from the type checker or unexplained suppression
 - no rule turned off in a config, and no domain path narrowed
 
-In your final summary, list every suppression comment you added and why. Then remind the user to run `ddd-review-all`, which runs the reviews in isolated sub-agents; do not review your own work here. If Matt Pocock's `implement` is driving the work, `ddd-review-all` takes the place of its `/code-review` step for domain code.
+In your final summary, list every suppression comment you added and why. Then remind the user to run `ddd-review-all`, which runs the reviews in isolated sub-agents; do not review your own work here. If Matt Pocock's `implement` or `implement-spec` is driving the work, `ddd-review-all` takes the place of their `/code-review` step for domain code.
 
 ## When the model does not fit
 

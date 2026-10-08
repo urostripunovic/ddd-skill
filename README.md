@@ -10,7 +10,7 @@ Everything not on this page is in the [reference](REFERENCE.md).
 
 Three open design questions. Reply with the number and what you would do.
 
-1. **One glossary or one per context?** Today all contexts share one root `CONTEXT.md`, split only when a word means two things. The proposal: one `CONTEXT.md` per context as soon as two contexts have different owners. Nothing syncs the glossaries, because two contexts may rightly disagree. What must agree is what crosses a boundary: each term in a context map row's "What crosses the boundary" must be in the upstream glossary, and in the downstream glossary as is (conformist) or as named in "Translation" (anticorruption layer). `tools/check-model.sh` now verifies that, without AI.
+1. **One glossary or one per context?** Today all contexts share one root `GLOSSARY.md`, split only when a word means two things. The proposal: one `GLOSSARY.md` per context as soon as two contexts have different owners. Nothing syncs the glossaries, because two contexts may rightly disagree. What must agree is what crosses a boundary: each term in a context map row's "What crosses the boundary" must be in the upstream glossary, and in the downstream glossary as is (conformist) or as named in "Translation" (anticorruption layer). `tools/check-model.sh` now verifies that, without AI.
 2. **Does approval discourage a deeper model?** A change to the core (states, commands, who may issue them, invariants, boundaries) needs approving again. Evans' "refactoring toward deeper insight" means the model should change as you learn. Have you patched the code instead of changing the model because approving again felt like a chore?
 3. **Rules the outside world can break.** The interview now asks, for each rule across things: "can something outside the system make it wrong anyway?" A customer can pay twice, so "never settled beyond the invoice amount" is a state to handle (overpaid), not an invariant. Did that question change a model of yours?
 
@@ -88,17 +88,18 @@ The skills are opt-in per repository: in a project without `docs/domain/`, they 
 
 ## Works with Matt Pocock's skills
 
-[Matt Pocock's skills](https://github.com/mattpocock/skills) are optional. The kit runs without them, and each of its skills carries its own rules for the same work. When they are installed, the kit uses them:
+[Matt Pocock's skills](https://github.com/mattpocock/skills) are optional; the kit follows his 1.3. The kit runs without them, and each of its skills carries its own rules for the same work. When they are installed, the kit uses them:
 
 | His skill | What the kit uses it for |
 |---|---|
 | `grilling` | the format of the modelling interview's question rounds |
-| `domain-modeling` | challenging terms while modelling, and writing `CONTEXT.md` and ADRs |
+| `domain-modeling` | challenging terms while modelling, and writing `GLOSSARY.md` and ADRs |
 | `tdd` | the loop of one failing test, then the code that passes it |
 | `to-tickets` | tickets for the work around the domain: screens, endpoints, reports |
 | `code-review` | reviewing the rest of a branch; domain code goes to `ddd-review-all` |
+| `implement`, `implement-spec` | driving the work; for domain code, `ddd-review-all` takes the place of their `code-review` step |
 
-Both kits share the glossary, `CONTEXT.md`. See [optional integrations](REFERENCE.md#optional-integrations).
+Both kits share the glossary, `GLOSSARY.md`. Before his 1.3 it was `CONTEXT.md`; the kit still reads that name, with a warning, and `/ddd-setup` renames it. See [optional integrations](REFERENCE.md#optional-integrations).
 
 ## Learn more
 
