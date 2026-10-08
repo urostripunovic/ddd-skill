@@ -256,7 +256,7 @@ The `Status:` line is always written by `tools/stamp-model.sh`. The approval has
 
 ## Strategic and pattern cards
 
-**Strategic cards** (`docs/ddd/strategic/`) cover how much each context matters and how contexts relate: partnership, shared kernel, customer/supplier, conformist, anticorruption layer, open-host service, published language, separate ways and big ball of mud. They quote Eric Evans' *Domain-Driven Design Reference* and the DDD Crew's *Context Mapping* and *Bounded Context Canvas* (all CC BY 4.0) and add no rules of their own. They are installed with every setup option.
+**Strategic cards** (`docs/ddd/strategic/`) cover how much each context matters and how contexts relate: partnership, shared kernel, customer/supplier, conformist, anticorruption layer, open-host service, published language, separate ways and big ball of mud. They quote Eric Evans' *Domain-Driven Design Reference* (CC BY 4.0) and the DDD Crew's *Context Mapping* and *Bounded Context Canvas* (CC BY-SA 4.0), and add no rules of their own. The quotations stay under those licences and are not covered by the kit's MIT licence; see the cards' README. They are installed with every setup option.
 
 **Pattern cards** (`docs/ddd/cards/`) cover how domain code is written, one directory per style. `functional/` holds 20 cards in the style of Scott Wlaschin's *Domain Modeling Made Functional*, each with a rule, what enforces it, an anti-pattern, and an example per language. Each card has a **Corrections** section: when an agent gets a pattern wrong, a dated line goes there, and later sessions read it. See [the cards' README](skills/ddd-setup/kit/docs/ddd/cards/README.md) for adding a pattern, a language or a style.
 

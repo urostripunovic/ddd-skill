@@ -88,7 +88,7 @@ The skills are opt-in per repository: in a project without `docs/domain/`, they 
 
 ## Works with Matt Pocock's skills
 
-[Matt Pocock's skills](https://github.com/mattpocock/skills) are optional; the kit follows his 1.3. The kit runs without them, and each of its skills carries its own rules for the same work. When they are installed, the kit uses them:
+I use this kit together with [Matt Pocock's skills](https://github.com/mattpocock/skills), and the two complement each other. The kit stands on its own: each of its skills carries its own rules for the work below. When his skills are installed, the kit hands that work to them and gets their strengths. The kit follows his 1.3. It is not affiliated with or endorsed by him.
 
 | His skill | What the kit uses it for |
 |---|---|
@@ -107,3 +107,13 @@ Both kits share the glossary, `GLOSSARY.md`. Before his 1.3 it was `CONTEXT.md`;
 - [Strategic cards](skills/ddd-setup/kit/docs/ddd/strategic/README.md): how contexts relate, quoted from Eric Evans' *DDD Reference* and the DDD Crew
 - [Pattern cards](skills/ddd-setup/kit/docs/ddd/cards/functional/README.md): how domain code is written in the functional style
 - [Evals](evals/README.md): how the skills are tested
+
+## Before you rely on it
+
+- **The evals are self-scored.** They were run, and scored by hand, by the same model family that wrote the skills and the fixtures, one run each. They show that the reviewers catch planted problems; they do not show how much the skills add over a plain prompt. See [the results](evals/results/).
+- **Reviews cost tokens.** In the evals, one reviewer used about 115,000 tokens on a small change; a full `ddd-review-all` runs three. The standard review runs one.
+- **This is version 0.x.** Rules and file formats may still change between versions; [CHANGELOG.md](CHANGELOG.md) says what changed and what to do.
+
+## Licence
+
+[MIT](LICENSE), except the quotations in the [strategic cards](skills/ddd-setup/kit/docs/ddd/strategic/README.md), which stay under their sources' licences: CC BY 4.0 for Evans' *DDD Reference*, CC BY-SA 4.0 for the DDD Crew's material. The licences cover that quoted text only, not code or models written with the kit.
