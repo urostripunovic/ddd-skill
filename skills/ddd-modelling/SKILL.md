@@ -26,7 +26,7 @@ Carry on with the request without this skill, and say in one line what it could 
 ## Which mode
 
 - **Building a model**: asked to model something new, or to change a model. Follow this file.
-- **Adopting existing code**: optional, and only when the user asks for it. It derives a draft model from the code that is already there. When domain code exists with no model and the user has not said which they want, ask once: derive a draft from the code, or model from the interview alone. If they choose the code, read [ADOPTING.md](ADOPTING.md) and follow it; it uses the interview and the notation from this file. Otherwise follow this file, and treat the existing code as one more source of facts. That includes a spike on another branch: if the user tried the technology first, ask where, read it for what it showed is possible and how the outside systems behave, and do not treat its structure as something to keep.
+- **Adopting existing code**: optional, and only when the user asks for it. It derives a draft model from the code that is already there. When domain code exists with no model and the user has not said which they want, ask once: derive a draft from the code, or model from the interview alone. If they choose the code, read [ADOPTING.md](ADOPTING.md) and follow it; it uses [INTERVIEW.md](INTERVIEW.md) and [NOTATION.md](NOTATION.md). Otherwise follow this file, and treat the existing code as one more source of facts. That includes a spike on another branch: if the user tried the technology first, ask where, read it for what it showed is possible and how the outside systems behave, and do not treat its structure as something to keep.
 - **Reviewing a model**: that is the `ddd-model-review` skill, in a fresh session.
 
 ## How deep
@@ -49,25 +49,7 @@ If any of these already has content, read it first and extend it. Do not start o
 
 ### The glossary is shared
 
-Other skills read and write the same `GLOSSARY.md`, among them Matt Pocock's `domain-modeling` and `tdd` (from his 1.3; before it the file was `CONTEXT.md`), so its name and format are fixed. It holds the glossary and nothing else:
-
-```md
-# Ordering
-
-Takes, places and cancels customer orders.
-
-## Language
-
-**Placed order**:
-An order the customer has committed to. It has at least one item and a time of placing.
-_Avoid_: Submitted order
-```
-
-- One or two sentences per term, written so a newcomer can tell it from its neighbours. Business words only: no record, entity, DTO, manager, handler or status.
-- When several words exist for one concept, pick one and list the others under `_Avoid_`. The checks search for those words, so a rejected synonym that is not written down will come back.
-- With one context, or several that share their words, there is one `GLOSSARY.md` at the root, with a `# <Context>` heading per context once there are two; an `_Avoid_` under one context's heading applies to that context only, so Billing can avoid a word that Payments uses. Split it into a `GLOSSARY.md` per context and a `GLOSSARY-MAP.md` at the root only when a word means different things in two contexts, or the user asks: `- [Ordering](./src/ordering/GLOSSARY.md): one line on what it is`. How the contexts relate is written only in `docs/domain/context-map.md`: the map's `## Relationships` section is the one line `See docs/domain/context-map.md.` If it holds relationships written by another skill, move each into `docs/domain/context-map.md`, ask about any the two files describe differently, and leave that line in their place.
-- Create the file when the first term is settled, not before.
-- A term is written the moment it is settled, with no separate approval step. Approval is recorded on context files, not on the glossary or context map. When a shared definition or relationship changes, identify the affected contexts and show the impact to the user. If it changes an approved rule's meaning, record that change in the context, set it to draft and get approval again. The checker catches some missing names, rejected synonyms, and terms that cross a boundary in the context map but are missing from a side's glossary; it cannot detect a change of meaning.
+Other skills read and write the same `GLOSSARY.md`, among them Matt Pocock's `domain-modeling` and `tdd`, so its name and format are fixed. Read [GLOSSARY-FORMAT.md](GLOSSARY-FORMAT.md) before the first write to it. A term is written the moment it is settled, with no separate approval step.
 
 ## Write as you go
 
@@ -82,56 +64,12 @@ If you are resuming, read the glossary and `docs/domain/` first and continue fro
 
 ## 1. Interview
 
-You do not know this domain. The user or their domain expert does. The model is found in this step; the later steps only write it down, so do not hurry through it.
+Read [INTERVIEW.md](INTERVIEW.md) now and follow it. The model is found in this step; the later steps only write it down. At standard depth, whether or not you open it, these hold:
 
-- **Ask about the core. Propose the rest.** For a bound, a payload, a race or an edge case, write your best guess into the model marked `(assumed)` and do not ask. Ask about something in the rest only when a wrong guess would lose money or data, expose something, or be hard to undo. Never mark the core `(assumed)`, and never fill it with a placeholder such as "TBD": `tools/check-model.sh` rejects an assumed or placeholder "Issued by" cell, invariant or "Believed when" cell. A core question still unanswered goes under open questions, and the model does not pass the check until the user answers it.
-- **Stop after each round.** End every round with a checkpoint of a few lines: the flow as it stands now, numbered, and under it what is still unclear. The user reads the flow and says where it is wrong. The next round is about the unclear points and nothing else; do not open new subjects while one is unclear.
-- **About three rounds.** If the core is not settled by then, say what is still unclear and ask whether to go on or to continue with it under open questions. Do not keep asking to reach completeness.
-
-**How to ask.** If a skill named `grilling` is available, call the Skill tool with "grilling" and use the rest of this section as what to grill about; it supplies the format of a round. This file decides when to stop: about three rounds, with the rest proposed and marked `(assumed)`, takes precedence over grilling's rule that the session ends when every branch is visited. If it is not, ask this way:
-
-- Work in rounds. A round holds every question you can ask now without guessing an answer you have not heard yet. Number the questions, and wait for the answers before the next round.
-- Give a proposed answer with every question. Correcting a proposal is quicker for the user than composing an answer.
-- Facts are yours to find; decisions are the user's. Read what the repository can already answer (the glossary, `docs/domain/`, `docs/adr/`, code, schemas, API specifications, a ticket the user points to) before asking. What the code does today is a fact. Whether the business intends it is a decision. A decision the user has already stated, in the request or earlier, is answered: write it without `(assumed)` and do not ask it again.
-
-Whichever way you ask: a proposal is not a fact. If the user does not confirm it, it goes under open questions as an assumption. Never invent a domain fact to fill a gap. Use the user's words, not DDD jargon.
-
-**Follow the timeline first.** People describe their business as things that happen, so open with the events: "what happens first, and then?" Collect the whole sequence before going deep on any part of it.
-
-**Then one event at a time.** For each: what triggers it, who may trigger it and on whose data, what must be true before, what can go wrong, which data it needs that lives somewhere else, and who needs to know that it happened.
-
-**Ask what the timeline hides.** A timeline shows one thing after another, done by people, to one thing. Five kinds of question find the rest:
-
-- **Reactions.** "Whenever this has happened, what has to happen next, and who or what does it?" Each answer is a policy.
-- **Time.** For every state that is not final: "what happens if nothing happens, and after how long?" Deadlines, expiry and reminders are commands that a scheduler issues. Write the answer under the States block, one line per state that is not final, including "no expiry".
-- **Races.** For every pair of commands that can reach the same thing at the same moment (two browser tabs, a customer and a member of staff, a retry, a person and the scheduler): "which wins, and what is the other told?"
-- **Edges.** For every way in and out: "who or what is on the other side, and how do we know?" A model that only says "the customer" has skipped how a request becomes a customer. For each caller: what proves who they are, and what is refused. For each thing received from another system (a sign-in token, a price, a webhook): what must be checked before it is believed, and what happens when it is wrong, late or missing. These are part of the core, because every "who may issue" rule rests on them. The answers go in the context map's relationships and in the context file's **Facts from outside**, and each refusal is a named use-case failure.
-- **Consistency.** For every rule that involves more than one thing: "if this were wrong for a few seconds, what would it cost, and who would notice?" The answer decides what belongs in one aggregate. Then: "can something outside the system make it wrong anyway?" A customer can pay twice, a carrier can lose a parcel; no boundary refuses a fact that has already happened. If so, the rule is not an invariant: name the state it leads to (an overpaid invoice) and the policy that resolves it.
-
-**Turn every rule into examples.** When the user states a rule, fill it in with real values and ask what happens: one ordinary case, one on each side of every limit, and one for each way it can fail.
-
-```
-Rule: orders over 10 000 kr need a manager's approval.
-Q3. What happens for each of these?
-    a. 9 999 kr              Proposed: placed directly.
-    b. exactly 10 000 kr     Proposed: placed directly; "over" means more than.
-    c. 8 000 kr plus VAT, which makes 10 000   Proposed: the limit is on the amount including VAT.
-```
-
-A rule stated in general terms sounds complete until a specific case hits it. Write the confirmed rows to the context file's Examples table as you go: they are the test cases later. Row numbers are permanent, because tests and tickets refer to them: give a new row the next unused number, never renumber, and leave a gap where a row was removed. Ask about the rows of a rule in the core; for the other rows at a limit, write your proposal marked `(assumed)`. Other edges worth an example: it happens twice, it happens late or in the wrong order, it happens partially, the amount is zero or huge, the wrong person does it.
-
-**Fill in the matrix yourself.** Once the states and commands are known, write `yes` where the signature allows the command, and for each other cell the likely reason, marked `(assumed)`. Ask only about a cell where the honest answer might be "yes, until…", or where a wrong guess would cost money or data: "Can a placed order still receive an item? Proposed: no, because picking has started." An answer like "yes, until it is packed" has just found a missing state. The other reasons go into the list of assumptions.
-
-**Challenge the wording at once.** Do not note a language problem for later. If a skill named `domain-modeling` is available, call the Skill tool with "domain-modeling" at the start of the interview: it challenges terms and writes `GLOSSARY.md` and ADRs as they settle, and the glossary rules under **Output** still hold. If it is not:
-
-- One word used with two meanings: stop and ask which is meant. This often marks a context boundary.
-- Two words for one thing: propose one. The other goes under `_Avoid_`.
-- A term that conflicts with the glossary: quote the entry and ask which is right.
-- A name the user would not say out loud to a colleague is the wrong name. Ask what they call it.
-
-**Bounds.** How many, how long, how large, which characters. Every primitive needs bounds, and "no limit" is not an answer. Propose them all at once ("I will use these unless you object") and mark them `(assumed)`; a bound the user states is theirs and is not marked.
-
-**The interview is done when** the timeline is whole, every state and command is named with who may issue it, every caller and outside fact says what makes it trusted, and every invariant is stated with one example. Ask whether anything is missing from the timeline at the end of the last checkpoint; the answer comes with the user's corrections. If the person who would know is not available, leave the item under open questions and do not keep asking.
+- Ask about the core. Propose the rest, marked `(assumed)`.
+- End every round with a checkpoint: the flow as it stands, numbered, and under it what is still unclear. The next round is about the unclear points and nothing else.
+- About three rounds. Then say what is still unclear and ask whether to go on or to continue with it under open questions.
+- Never invent a domain fact to fill a gap. An unconfirmed proposal goes under open questions as an assumption.
 
 ## 2. Bounded contexts
 
@@ -154,37 +92,9 @@ The cards give no rule for which pattern to choose. Do not add one. If the strat
 
 ## 3. Model each context
 
-Use the template's notation, so the model reads the same in every language and `tools/check-model.sh` can read it. The notation describes legal business states and says nothing about how the code is written: it does not ask for one code type per state.
+Read [NOTATION.md](NOTATION.md) before the first write to a context file: `tools/check-model.sh` reads the notation, so it must be the template's. The notation describes legal business states and says nothing about how the code is written.
 
-```
-type Order = DraftOrder | PlacedOrder | CancelledOrder
-terminal CancelledOrder
-
-DraftOrder  = { id: OrderId, items: Item[] }
-PlacedOrder = { id: OrderId, items: Item[] (at least 1), placedAt: Timestamp }
-
-StartOrder  : () -> DraftOrder
-PlaceOrder  : DraftOrder -> PlacedOrder + [OrderPlaced] | EmptyOrder
-CancelOrder : DraftOrder | PlacedOrder -> CancelledOrder + [OrderCancelled]
-```
-
-- **Notation**, which `tools/check-model.sh` reads: `Timestamp` and `Boolean` are built in; every other type is a primitive or is defined in the States block. `terminal` lists the states nothing leads out of. A command that creates the aggregate starts from `()`. Under the States block, one line per state that is not terminal says what ends it if nothing happens, or "no expiry". The Commands table's **Input** lists the values a command takes that are not in its starting state, as `name: Type`, or `none`; a command that time issues names the scheduler and the delay under **Issued by**. The matrix has one row per state and one column per command, without the creating commands. A section with nothing in it says `None.`
-- **The flow**: the model told as a story, at the top of the context file: five to fifteen numbered sentences in the order things happen, each naming its command. Write it first, from the timeline, and keep it true as the model changes. It is what a person reads; the tables are what they look things up in.
-- **Domain primitives**: every value with rules gets a named type with stated bounds, and the reason for each bound; a bound nobody confirmed says `(assumed)` in the Why column. No bare strings or numbers in the model.
-- **States**: one type per state, holding only the data that exists in that state. No status field with optional fields.
-- **Commands**: a function from the specific state or states it is legal in, to a new state plus events, or a named failure. A command that is illegal in a state is simply not defined for that state's type, so "wrong state" is never listed as a failure of the command.
-- **Matrix**: every state against every command. `yes`, or `no:` and the reason the business gave.
-- **Events**: past tense, in the ubiquitous language, with the data consumers need.
-- **Invariants**: each one names where it is enforced (the type, a constructor, a decision function, or "not in types" with how it is checked instead) and every command that could break it.
-- **Failures**: each business failure gets a name and the data needed to explain it.
-- **Use-case failures**: "not found", "not allowed" and "not in a state this command accepts" are raised by the workflow, not by a decision. Name them in their own table.
-- **Examples**: the confirmed rows from the interview. Values, not descriptions. Every command and every failure has at least one, and every bound one on each side.
-- **Races**: which command wins and what the other is told.
-- **Facts from outside**: any data a command needs that the aggregate does not hold gets a named type, its source, what is checked before it is believed, what happens when that check fails or the source does not answer, and whether it may be slightly out of date. The caller's identity is such a fact: "Requester", from the sign-in token, believed once its signature, issuer, audience and expiry are checked.
-- **Aggregates**: keep them small. Data belongs in the same aggregate only if a rule requires it to change together. Other aggregates are referenced by ID.
-- **Rules across aggregates**: immediate or eventual. An immediate rule means the things involved are one aggregate, or a database constraint holds it. An eventual rule names the policy that restores it and what the user sees in the meantime.
-- **Policies**: each reaction from the interview: the event, the command it causes, and what happens when that command fails.
-- **Decisions**: the model says what was decided; this section says why. Record a decision only when all three hold: it is hard to reverse, a later reader would be surprised by it, and a real alternative was rejected. Only decisions about the domain go here: a rule, a boundary, a split between contexts. They are part of the approved model, so changing one means approving again. A technical decision (storage, a framework, event sourcing, deployment) is an ADR in `docs/adr/`, as Matt Pocock's `domain-modeling` writes them, and not a Decisions row.
+Write the flow first: the model told as a story at the top of the context file, five to fifteen numbered sentences in the order things happen, each naming its command. It is what a person reads; the tables are what they look things up in.
 
 ## 4. Model it twice
 
@@ -218,7 +128,7 @@ The files are already written.
 
 When the user brings back a review's findings, apply them. Once the review has no blockers left, add `, reviewed <date>` to the Status line, so a later session does not ask for the review again.
 
-Never ask again for something the user has answered. An answer is written to the model the moment it is given, in the section it affects, and later rounds, reviews and sessions read it there. Only a choice that meets the three conditions under **Decisions** also gets a Decisions row.
+Never ask again for something the user has answered. An answer is written to the model the moment it is given, in the section it affects, and later rounds, reviews and sessions read it there. Only a choice that meets the three conditions under **Decisions** in NOTATION.md also gets a Decisions row.
 
 Approval follows lifecycle/approval.md: ask, and on the user's yes write `Status: approved <date>`. If the approved model adopts a scope listed under `## Prototypes`, remove that row in the same step, or narrow it to the part still unmodelled.
 

@@ -1,6 +1,6 @@
 # Changing a model
 
-Use this when the context file has rows under `## Pending` or `## Amendments`, or the user asks to change a model that already exists. The notation and the way of asking are in [SKILL.md](SKILL.md); approval is in [lifecycle/approval.md](lifecycle/approval.md).
+Use this when the context file has rows under `## Pending` or `## Amendments`, or the user asks to change a model that already exists. The notation is in [NOTATION.md](NOTATION.md) and the way of asking in [INTERVIEW.md](INTERVIEW.md); approval is in [lifecycle/approval.md](lifecycle/approval.md).
 
 ## Settling pending gaps and folding in amendments
 
