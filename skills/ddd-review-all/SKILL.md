@@ -87,7 +87,7 @@ Present, in this order:
 
 1. The base and head hashes.
 2. **Overall verdict**: the worst of the verdicts. Then each reviewer's own verdict, and one line per reviewer with its number of blockers and its most serious finding.
-3. **Findings**, most severe first, each tagged `[DDD]`, `[SbD]` or `[Task]`, in the reviewer's own words. When two reviewers report the same `file:line` for the same reason, show it once and tag it with both.
+3. **Findings**, most severe first, each tagged `[DDD]`, `[SbD]` or `[Task]`, in the reviewer's own words. A DDD finding the reviewer tagged `[cards]` keeps that tag: it is about the code style, not the model. When two reviewers report the same `file:line` for the same reason, show it once and tag it with both.
 4. **What was traced**: the DDD reviewer's counts and its rows that are not ok; the task reviewer's requirements that are not **done**, and how many were.
 5. **What was attempted**: from the break-it and abuse-attempt tables, how many attempts were made and stopped, and every row that was **not prevented** or stopped later than the model expected.
 6. **Not checked**: the union of what each reviewer said it did not check, including skipped conditional sections and a skipped task review.

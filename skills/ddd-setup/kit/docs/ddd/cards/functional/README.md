@@ -32,4 +32,4 @@ Every example compiles and passes the applicable reference lint rules in `tools/
 | [19 Read model](19-read-model.md) | a screen, list, report or search needs data and nothing is decided |
 | [20 Event versioning](20-event-versioning.md) | a stored event has to change shape |
 
-Maintaining the cards, the **Wanted** list and adding a language are in [the cards' README](../README.md).
+What a code review checks in code written with these cards is in [REVIEW.md](REVIEW.md). Maintaining the cards, the **Wanted** list and adding a language are in [the cards' README](../README.md).

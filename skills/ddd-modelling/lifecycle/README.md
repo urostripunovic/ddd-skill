@@ -5,7 +5,6 @@ The rules every ddd skill shares, one topic per file, so that each skill reads o
 | File | Words |
 |---|---|
 | [Is the kit in use?](adoption.md) | 108 |
-| [Code style](code-style.md) | 83 |
 | [Depth](depth.md) | 234 |
 | [Status and approval](approval.md) | 446 |
 | [The notes tail](notes-tail.md) | 181 |

@@ -1,13 +1,13 @@
 ---
 name: ddd-modelling
-description: "Model business rules with DDD before code, or derive a model from existing code: bounded contexts, states, commands, events, invariants, with worked examples. Typed implementation patterns are optional. Use when the user asks to model a flow or its business rules, asks for DDD, or designs or changes domain behaviour in a repository that has docs/domain/. Not for terminology alone (one term, the glossary, an ADR): that is Matt Pocock's domain-modeling."
+description: "Model business rules with DDD before code, or derive a model from existing code: bounded contexts, states, commands, events, invariants, with worked examples. Use when the user asks to model a flow or its business rules, asks for DDD, or designs or changes domain behaviour in a repository that has docs/domain/. Not for terminology alone (one term, the glossary, an ADR): that is Matt Pocock's domain-modeling."
 ---
 
 # DDD modelling
 
 Produce a domain model the user approves. Write no implementation code in this skill.
 
-The reason for the hard stop: a wrong business rule is cheap to fix in a model and expensive to fix in code. Agents tend to fill gaps while implementing; this skill makes those decisions visible first. The project's choice of code style is separate.
+The reason for the hard stop: a wrong business rule is cheap to fix in a model and expensive to fix in code. Agents tend to fill gaps while implementing; this skill makes those decisions visible first. How the code is then written is not this skill's concern.
 
 Read [lifecycle/depth.md](lifecycle/depth.md) and [lifecycle/notes-tail.md](lifecycle/notes-tail.md) first; read [lifecycle/approval.md](lifecycle/approval.md) and [lifecycle/checker.md](lifecycle/checker.md) before step 6. They define depth, the core and the rest, strict scope, approval, the notes tail and the checker's limits, and this file does not repeat them. Whether or not you open them, these hold:
 
@@ -172,9 +172,7 @@ The cards give no rule for which pattern to choose. Do not add one. If the strat
 
 ## 3. Model each context
 
-Use the template's notation, so the model reads the same for Go and TypeScript and `tools/check-model.sh` can read it:
-
-The state notation describes legal business states, regardless of the implementation language or style. In model-only projects it does not require one code type per state; record enforcement using the project's actual validation mechanisms rather than prescribing a typed refactor.
+Use the template's notation, so the model reads the same in every language and `tools/check-model.sh` can read it. The notation describes legal business states and says nothing about how the code is written: it does not ask for one code type per state.
 
 ```
 type Order = DraftOrder | PlacedOrder | CancelledOrder

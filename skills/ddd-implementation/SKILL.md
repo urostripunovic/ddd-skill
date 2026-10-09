@@ -7,7 +7,7 @@ description: "Implement an approved domain model and its examples as tests. Use 
 
 Turn the approved model in `docs/domain/` into code and tests.
 
-Read [code-style.md](../ddd-modelling/lifecycle/code-style.md), [depth.md](../ddd-modelling/lifecycle/depth.md), [notes-tail.md](../ddd-modelling/lifecycle/notes-tail.md) and [gaps.md](../ddd-modelling/lifecycle/gaps.md) in `../ddd-modelling/lifecycle/` first. They define the code style, effective depth, the notes tail and what to do with a gap, and this file does not repeat them. Read [approval.md](../ddd-modelling/lifecycle/approval.md) or [adoption.md](../ddd-modelling/lifecycle/adoption.md) only when the case below sends you there. Whether or not you open them, these hold:
+Read [depth.md](../ddd-modelling/lifecycle/depth.md), [notes-tail.md](../ddd-modelling/lifecycle/notes-tail.md) and [gaps.md](../ddd-modelling/lifecycle/gaps.md) in `../ddd-modelling/lifecycle/` first. They define effective depth, the notes tail and what to do with a gap, and this file does not repeat them. Read [approval.md](../ddd-modelling/lifecycle/approval.md) or [adoption.md](../ddd-modelling/lifecycle/adoption.md) only when the case below sends you there. Whether or not you open them, these hold:
 
 - Never implement from a draft model, and never write an approved status without the user's yes: only the user approves.
 - When the model is missing a state, command, invariant, who may issue a command or what makes a caller or outside fact trusted, or two rules contradict: stop, write the question under `## Pending`, and wait. Never invent the rule in code.
@@ -45,7 +45,7 @@ If `docs/domain/` does not exist, this repository has not adopted the kit. Do th
 
 Read each card's **Corrections** section. Those are mistakes already made in this codebase.
 
-**Code style.** Resolve it as code-style.md says. In the repository's own style, follow **Rules in every style** and **Without the cards** below, and skip the card table, **With the cards, also** and the language section. If cards are installed but your language's examples are not, follow the cards in that language's idioms, best effort, and use the project's own compile, lint and test commands. Missing kit examples or lint rules are expected in that mode.
+**Code style.** This skill is the only one that chooses between the kit's pattern cards and the repository's own style; the model, the tickets and the reviews are the same either way. The choice recorded under `## Domain code` in the agent instructions (`CLAUDE.md` or `AGENTS.md`) decides, and an explicit "the repository's own" wins over cards left from an earlier setup. Without a record, installed pattern cards (`docs/ddd/cards/`) mean the kit's functional style, and no cards mean the repository's own. Never ask the user to choose again. In the repository's own style, follow **Rules in every style** and **Without the cards** below, and skip the card table, **With the cards, also** and the language section. If cards are installed but your language's examples are not, follow the cards in that language's idioms, best effort, and use the project's own compile, lint and test commands. Missing kit examples or lint rules are expected in that mode.
 
 If the task needs a pattern that no card covers, say so before writing it, and add a row to the **Wanted** table in `docs/ddd/cards/README.md`. Implement it from **Rules in every style** and **With the cards, also** below. Do not write the card yourself at this point: a card is made from code that has been reviewed and merged, as that README describes.
 

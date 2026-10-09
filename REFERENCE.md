@@ -155,7 +155,7 @@ depth. Start with orders and their items; help identify the
 aggregate boundary.
 ```
 
-The agent records what the code does, with a file and line for each item, checks it with you, and writes a numbered `## Migration` plan. You decide where the current behaviour is wrong. It works one aggregate at a time. With cards, migration moves the code to the functional style; model-only projects keep their representations and change only what the model requires. Renaming code to the glossary's names is a step of its own.
+The agent records what the code does, with a file and line for each item, checks it with you, and writes a numbered `## Migration` plan. You decide where the current behaviour is wrong. It works one aggregate at a time. With cards, the plan also moves the code to the functional style; otherwise the code keeps its representations and changes only what the model requires. Renaming code to the glossary's names is a step of its own.
 
 Then ask for one step at a time, for example `Use ddd-implementation for migration step 2 of docs/domain/contexts/ordering.md.` Each finished step is marked done, so a later session continues from the next one.
 

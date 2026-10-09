@@ -6,7 +6,7 @@ How domain code is written: one directory per style. A card has the rule, what e
 |---|---|
 | [functional/](functional/README.md) | Wlaschin-style typed DDD: a type per state, pure decision functions, errors as values. Examples in Go and TypeScript |
 
-Read the style's README, then only the cards the task needs, and the examples only for the language being written. The cards for how contexts relate to each other are not about code and do not depend on the style: they are in [`docs/ddd/strategic/`](../strategic/README.md).
+Read the style's README, then only the cards the task needs, and the examples only for the language being written. A style's `REVIEW.md` is its checklist for code reviews: `ddd-implementation` is the only skill that writes code from the cards, and the reviews are style-neutral apart from that file. The cards for how contexts relate to each other are not about code and do not depend on the style: they are in [`docs/ddd/strategic/`](../strategic/README.md).
 
 ## Maintaining the cards
 
