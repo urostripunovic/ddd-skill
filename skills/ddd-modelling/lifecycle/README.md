@@ -5,11 +5,10 @@ The rules every ddd skill shares, one topic per file, so that each skill reads o
 | File | Words |
 |---|---|
 | [Is the kit in use?](adoption.md) | 108 |
-| [Code style](code-style.md) | 83 |
 | [Depth](depth.md) | 234 |
-| [Status and approval](approval.md) | 497 |
-| [The notes tail](notes-tail.md) | 182 |
+| [Status and approval](approval.md) | 446 |
+| [The notes tail](notes-tail.md) | 181 |
 | [When code learns what the model did not say](gaps.md) | 216 |
-| [What `tools/check-model.sh` checks](checker.md) | 129 |
+| [What `tools/check-model.sh` checks](checker.md) | 151 |
 | [The range a code review covers, and its report](review-range.md) | 229 |
 | [Trying to break the code](break-it.md) | 226 |

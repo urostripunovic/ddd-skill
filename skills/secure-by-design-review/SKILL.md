@@ -30,15 +30,14 @@ Follow [review-range.md](../ddd-modelling/lifecycle/review-range.md).
 
 1. The pinned diff.
 2. From `docs/domain/contexts/<context>.md`, if it exists: primitive rules, bounds, sensitivity, permitted issuers, outside-fact trust rules and amendments affecting those entries. Use an amendment's updated rule when comparing code; report conflicts rather than silently picking the older text.
-3. Cards only if you need the reference form of a pattern, with the example from the directory of the language under review: 01 domain primitive, 02 value object, 07 parse at the boundary, 10 errors as values, 14 authorisation, 17 read-once secret.
 
 Without a model you can still run this review. Say in the report that bounds and sensitivity were judged from the code alone.
 
 ## Decide what applies
 
-Read the change first and decide which conditional sections it touches. Apply the core checklist, adapted to the setup choice below, and a conditional section only when the change touches that area. Name the skipped sections in the report.
+Read the change first and decide which conditional sections it touches. Apply the core checklist, and a conditional section only when the change touches that area. Name the skipped sections in the report.
 
-**Code style.** Resolve it as [code-style.md](../ddd-modelling/lifecycle/code-style.md) says, and do not ask again. In model-only projects, check the security outcomes: validation before use, bounds, verified identity, authorisation, safe errors and sensitive-data handling. Do not require wrapper types, constructor-only creation, ORM-free domain types, or read-once wrappers solely to match the cards. Test bypass of the project's actual validation and authorisation boundaries. Other languages use their own tooling and idioms. A missing typed pattern alone is not a security finding.
+**Judge the outcome, not the form.** The checklist is worded for code that gives each domain value its own type. Where the project validates another way (a class that checks in its constructor, a validation layer), check the same outcomes there: validation before use, bounds, verified identity, authorisation, safe errors and sensitive-data handling, and test bypass of the validation and authorisation the project actually has. A missing wrapper type, constructor-only creation, ORM-free domain type or read-once wrapper is then not a finding on its own. The exception is a repository that has `docs/ddd/cards/functional/REVIEW.md`: it chose typed domain values, and every item applies as written.
 
 ## Core checklist
 

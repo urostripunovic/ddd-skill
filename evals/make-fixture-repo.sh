@@ -43,9 +43,8 @@ if [ -f package.json ]; then
 fi
 printf '.cards-check/\nnode_modules/\npackage-lock.json\n' > .gitignore
 
-hash="$(tools/model-hash.sh docs/domain/contexts/ordering.md)"
-# The fixture model is strict, so its approval rests on a review of the same version.
-edit "s/^Status: draft$/Status: approved by eval on 2026-10-03, model-hash ${hash}, reviewed 2026-10-03 at ${hash}/" docs/domain/contexts/ordering.md
+# The fixture model is strict, so its approval rests on a review.
+edit "s/^Status: draft$/Status: approved 2026-10-03, reviewed 2026-10-03/" docs/domain/contexts/ordering.md
 git add -A
 git commit -q -m "Kit and approved Ordering model"
 base="$(git rev-parse HEAD)"
@@ -54,7 +53,7 @@ if [ "${kind}" = model ]; then echo "base=${base}"; exit 0; fi
 if [ "${kind}" = seeded ]; then
   cp -r "${here}/fixture/go/internal" .
   cp -r "${here}/fixture/ts/src" .
-  # Seeded: the model is edited after approval without re-approval.
+  # Seeded: the model is edited in the reviewed range and the Status line is left as it was.
   edit 's/| Quantity | integer | 1..1000 | no |/| Quantity | integer | 1..5000 | no |/' docs/domain/contexts/ordering.md
 elif [ "${kind}" = clean-ts ]; then
   cp -r "${here}/fixture-clean/ts/src" "${here}/fixture-clean/ts/test" .

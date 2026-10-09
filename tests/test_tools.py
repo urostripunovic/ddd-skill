@@ -116,68 +116,27 @@ class ToolTests(unittest.TestCase):
             command.insert(0, "python3")
         return subprocess.run(command, cwd=self.repo, capture_output=True, text=True)
 
-    def hash_model(self):
-        result = self.run_tool("model-hash.sh", self.model)
-        self.assertEqual(result.returncode, 0, result.stderr)
-        return result.stdout.strip()
-
-    def test_existing_hash_is_preserved(self):
-        # The valid original format keeps its approval hash after a tool upgrade.
-        expected = subprocess.run(
-            ["git", "hash-object", "--stdin"],
-            input=MODEL.replace("Status: draft\n", ""),
-            text=True, capture_output=True, check=True,
-        ).stdout.strip()[:12]
-        self.assertEqual(self.hash_model(), expected)
-
-    def test_status_and_trailing_notes_do_not_change_hash(self):
-        before = self.hash_model()
-        self.model.write_text(MODEL.replace("Status: draft", "Status: approved by test")
-                              + "\n## Migration\n1. Move storage.\n\n## Amendments\nA finding.\n")
-        self.assertEqual(self.hash_model(), before)
-        self.model.write_text(self.model.read_text().replace("A finding.", "A different finding."))
-        self.assertEqual(self.hash_model(), before)
-
-    def test_approved_body_edit_is_detected(self):
-        for word in ("approved", "Approved", "APPROVED"):
-            with self.subTest(word=word):
-                self.model.write_text(MODEL)
-                approved = MODEL.replace("Status: draft", f"Status: {word} by test, model-hash {self.hash_model()}")
-                self.model.write_text(approved.replace("already placed", "placing is final"))
-                result = self.run_tool("check-model.sh", self.model)
-                self.assertNotEqual(result.returncode, 0)
-                self.assertIn("edited after approval", result.stdout)
-
     def test_model_sections_cannot_follow_notes(self):
-        for heading in ("Migration", "Amendments"):
+        for heading in ("Migration", "Amendments", "Pending"):
             with self.subTest(heading=heading):
                 self.model.write_text(MODEL.replace("## Aggregate:", f"## {heading}\nNotes.\n\n## Aggregate:"))
-                result = self.run_tool("model-hash.sh", self.model)
-                self.assertNotEqual(result.returncode, 0)
-                self.assertEqual(result.stdout, "")
-                self.assertIn("model section after", result.stderr)
                 check = self.run_tool("check-model.sh", self.model)
                 self.assertNotEqual(check.returncode, 0)
-                self.assertIn("model hash failed", check.stdout)
+                self.assertIn("'## Aggregate: Order' comes after the notes tail", check.stdout)
 
-    def test_similar_heading_is_not_an_exclusion(self):
-        self.model.write_text(MODEL + "\n## Migration rules\nKeep historical prices.\n")
-        before = self.hash_model()
-        self.model.write_text(self.model.read_text().replace("historical prices", "historical quantities"))
-        self.assertNotEqual(self.hash_model(), before)
+    def test_similar_heading_does_not_start_the_tail(self):
+        self.model.write_text(MODEL.replace("## Aggregate:", "## Migration rules\nKeep historical prices.\n\n## Aggregate:"))
+        self.assertNotIn("notes tail", self.run_tool("check-model.sh", self.model).stdout)
 
     def test_comment_and_code_headings_do_not_start_notes(self):
         for example in ("<!--\n## Migration\n-->", "```md\n## Amendments\n```", "~~~md\n## Migration\n~~~"):
             with self.subTest(example=example):
                 self.model.write_text(MODEL.replace("## Aggregate:", example + "\n\n## Aggregate:"))
-                before = self.hash_model()
-                self.model.write_text(self.model.read_text().replace("already placed", "placing is final"))
-                self.assertNotEqual(self.hash_model(), before)
+                self.assertNotIn("notes tail", self.run_tool("check-model.sh", self.model).stdout)
 
     def test_code_in_notes_may_contain_model_headings(self):
-        before = self.hash_model()
         self.model.write_text(MODEL + "\n## Amendments\n```md\n## Aggregate: Order\n```\n")
-        self.assertEqual(self.hash_model(), before)
+        self.assertNotIn("notes tail", self.run_tool("check-model.sh", self.model).stdout)
 
     def test_valid_strict_override(self):
         self.model.write_text(MODEL.replace("Depth: standard", "Depth: standard\nStrict commands: PlaceOrder"))
@@ -239,19 +198,18 @@ class ToolTests(unittest.TestCase):
                 self.assertNotEqual(result.returncode, 0, result.stdout)
                 self.assertIn("is not confirmed", result.stdout)
 
-    def test_guessed_trust_rule_blocks_approval_but_not_an_earlier_one(self):
+    def test_guessed_trust_rule_fails_a_draft_but_not_an_earlier_approval(self):
         facts = ("### Facts from outside\n| Fact | Used by | Source | Believed when | If not, or no answer | May it be stale? |\n"
                  "|---|---|---|---|---|---|\n| Requester | PlaceOrder | the sign-in token | the signature is checked (assumed) | NotAuthenticated | no |")
         self.model.write_text(MODEL.replace("### Facts from outside\nNone.", facts))
         glossary = self.repo / "GLOSSARY.md"
         glossary.write_text(glossary.read_text() + "\n**Requester**:\nWho sent the request.\n")
-        refused = self.stamp("approve", "Ann")
+        # The draft is what is checked before the user is asked to approve, so no new approval rests on a guess.
+        refused = self.run_tool("check-model.sh", self.model)
         self.assertNotEqual(refused.returncode, 0)
         self.assertIn("'Believed when' is not confirmed", refused.stdout)
-        self.assertIn("Status: draft\n", self.model.read_text())
         # A model approved before trust rules joined the core keeps working, with a warning.
-        hashed = self.run_tool("model-hash.sh", self.model).stdout.strip()
-        self.model.write_text(self.model.read_text().replace("Status: draft", f"Status: approved by Ann on 2026-10-01, model-hash {hashed}"))
+        self.model.write_text(self.model.read_text().replace("Status: draft", "Status: approved 2026-10-01"))
         result = self.run_tool("check-model.sh", self.model)
         self.assertEqual(result.returncode, 0, result.stdout)
         self.assertIn("warning:", result.stdout)
@@ -260,9 +218,8 @@ class ToolTests(unittest.TestCase):
         old = MODEL.replace("### Facts from outside\nNone.", "### Facts from outside\n| Fact | Used by | Source | May it be stale? |\n"
                             "|---|---|---|---|\n| Requester | PlaceOrder | the sign-in token | no |")
         self.model.write_text(old)
-        self.assertNotEqual(self.stamp("approve", "Ann").returncode, 0)
-        hashed = self.run_tool("model-hash.sh", self.model).stdout.strip()
-        self.model.write_text(old.replace("Status: draft", f"Status: approved by Ann on 2026-10-01, model-hash {hashed}"))
+        self.assertNotEqual(self.run_tool("check-model.sh", self.model).returncode, 0)
+        self.model.write_text(old.replace("Status: draft", "Status: approved 2026-10-01"))
         result = self.run_tool("check-model.sh", self.model)
         self.assertEqual(result.returncode, 0, result.stdout)
         self.assertIn("'Believed when' is missing", result.stdout)
@@ -358,9 +315,6 @@ class ToolTests(unittest.TestCase):
                 self.assertNotEqual(result.returncode, 0)
                 self.assertIn("invalid Check as role", result.stderr)
 
-    def stamp(self, *args):
-        return self.run_tool("stamp-model.sh", args[0], self.model, *args[1:])
-
     def test_strict_scope_includes_inputs_events_and_existing_values(self):
         model = (MODEL.replace("Depth: standard", "Depth: standard\nStrict commands: PlaceOrder")
                  .replace("## Domain primitives\n\nNone.",
@@ -384,52 +338,31 @@ class ToolTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("takes Voucher, which is neither a primitive nor a defined type", result.stdout)
 
-    def test_approvers_line_limits_who_may_approve(self):
-        (self.repo / "CLAUDE.md").write_text("## Domain code\n\nApprovers: Ann, Bo\n")
-        self.model.write_text(MODEL)
-        refused = self.stamp("approve", "Mallory")
-        self.assertNotEqual(refused.returncode, 0)
-        self.assertIn("not on the Approvers line", refused.stderr + refused.stdout)
-        self.assertIn("Status: draft\n", self.model.read_text())
-        approved = self.stamp("approve", "ann")
-        self.assertEqual(approved.returncode, 0, approved.stdout + approved.stderr)
-        self.assertIn("Status: approved by ann on", self.model.read_text())
+    def test_status_line_from_the_stamping_tool_still_reads(self):
+        # Models approved with the earlier stamp-model.sh carry a name and hashes. They stay approved, the hashes are
+        # ignored, and nothing compares them with the text any more.
+        for line in ("Status: approved by Ann on 2026-10-01, reviewed 2026-10-02 <!-- model-hash abc123abc123, reviewed at abc123abc123 -->",
+                     "Status: approved by Ann on 2026-10-01, model-hash abc123abc123, reviewed 2026-10-02 at abc123abc123"):
+            with self.subTest(line=line):
+                self.model.write_text(MODEL.replace("Status: draft", line).replace("Depth: standard", "Depth: strict"))
+                result = self.run_tool("check-model.sh", self.model)
+                self.assertEqual(result.returncode, 0, result.stdout)
+                out = self.status()
+                self.assertIn("status: approved by Ann on 2026-10-01, reviewed 2026-10-02\n", out)
+                self.assertIn("review: 2026-10-02", out)
 
-    def test_status_line_in_the_older_form_still_reads(self):
-        # Models stamped before the hashes moved into a comment keep their approval, and a new stamp shortens the line.
-        hashed = self.run_tool("model-hash.sh", self.model).stdout.strip()
-        self.model.write_text(MODEL.replace("Status: draft", f"Status: approved by Ann on 2026-10-01, model-hash {hashed}"))
-        self.assertEqual(self.run_tool("check-model.sh", self.model).returncode, 0)
-        self.assertEqual(self.stamp("review").returncode, 0)
-        self.assertRegex(self.model.read_text(), rf"Status: approved by Ann on 2026-10-01, reviewed \S+ <!-- model-hash {hashed}, reviewed at {hashed} -->\n")
-        self.assertEqual(self.run_tool("check-model.sh", self.model).returncode, 0)
-        self.model.write_text(self.model.read_text().replace("already placed", "placing is final"))
-        self.assertIn("edited after approval", self.run_tool("check-model.sh", self.model).stdout)
-
-    def test_approved_without_hash_is_an_error(self):
-        self.model.write_text(MODEL.replace("Status: draft", "Status: approved by test on 2026-10-06"))
-        result = self.run_tool("check-model.sh", self.model)
-        self.assertNotEqual(result.returncode, 0)
-        self.assertIn("approved without a model-hash", result.stdout)
-
-    def test_strict_approval_needs_a_current_review(self):
-        self.model.write_text(MODEL.replace("Depth: standard", "Depth: strict"))
-        refused = self.stamp("approve", "Ann")
+    def test_strict_approval_needs_a_review(self):
+        strict = MODEL.replace("Depth: standard", "Depth: strict")
+        self.model.write_text(strict.replace("Status: draft", "Status: approved 2026-10-09"))
+        refused = self.run_tool("check-model.sh", self.model)
         self.assertNotEqual(refused.returncode, 0)
         self.assertIn("without a review", refused.stdout)
-        self.assertIn("Status: draft\n", self.model.read_text())
-        self.assertEqual(self.stamp("review").returncode, 0)
-        approved = self.stamp("approve", "Ann")
-        self.assertEqual(approved.returncode, 0, approved.stdout + approved.stderr)
-        self.assertRegex(self.model.read_text(), r"Status: approved by Ann on \S+, reviewed \S+ <!-- model-hash [0-9a-f]+, reviewed at [0-9a-f]+ -->\n")
-        self.model.write_text(self.model.read_text().replace("already placed", "placing is final"))
-        self.assertEqual(self.stamp("draft").returncode, 0)
-        self.assertRegex(self.model.read_text(), r"Status: draft, reviewed \S+ <!-- reviewed at [0-9a-f]+ -->\n")
-        draft = self.run_tool("check-model.sh", self.model)
-        self.assertIn("the model has changed since", draft.stdout)
-        refused = self.stamp("approve", "Ann")
-        self.assertNotEqual(refused.returncode, 0)
-        self.assertIn("the review is of model-hash", refused.stdout)
+        self.model.write_text(strict.replace("Status: draft", "Status: approved 2026-10-09, reviewed 2026-10-08"))
+        approved = self.run_tool("check-model.sh", self.model)
+        self.assertEqual(approved.returncode, 0, approved.stdout)
+        # A review is recorded on a draft too, before the user is asked.
+        self.model.write_text(strict.replace("Status: draft", "Status: draft, reviewed 2026-10-08"))
+        self.assertIn("review: 2026-10-08", self.status())
 
     def test_strict_approval_refuses_what_is_not_confirmed(self):
         cases = {
@@ -440,16 +373,19 @@ class ToolTests(unittest.TestCase):
         }
         for name, model in cases.items():
             with self.subTest(name=name):
-                self.model.write_text(model.replace("Depth: standard", "Depth: strict"))
-                self.stamp("review")
-                result = self.stamp("approve", "Ann")
+                self.model.write_text(model.replace("Depth: standard", "Depth: strict")
+                                      .replace("Status: draft", "Status: approved 2026-10-09, reviewed 2026-10-08"))
+                result = self.run_tool("check-model.sh", self.model)
                 self.assertNotEqual(result.returncode, 0, result.stdout)
                 self.assertIn("strict depth", result.stdout)
 
     def test_strict_scope_in_a_standard_context_must_be_confirmed(self):
         base = MODEL.replace("Depth: standard", "Depth: standard\nStrict commands: PlaceOrder")
-        self.model.write_text(base)
-        self.assertNotEqual(self.stamp("approve", "Ann").returncode, 0)
+        self.model.write_text(base.replace("Status: draft", "Status: approved 2026-10-09"))
+        unreviewed = self.run_tool("check-model.sh", self.model)
+        self.assertNotEqual(unreviewed.returncode, 0)
+        self.assertIn("their strict scope was not reviewed", unreviewed.stdout)
+        base = base.replace("Status: draft", "Status: approved 2026-10-09, reviewed 2026-10-08")
         cases = {
             "assumed": base.replace("no: already placed", "no: already placed (assumed)"),
             "amendment": base + "\n## Amendments\n\n| Date | Section | The model said | What was learned, and what the code does |\n"
@@ -458,54 +394,16 @@ class ToolTests(unittest.TestCase):
         for name, model in cases.items():
             with self.subTest(name=name):
                 self.model.write_text(model)
-                self.stamp("review")
-                result = self.stamp("approve", "Ann")
+                result = self.run_tool("check-model.sh", self.model)
                 self.assertNotEqual(result.returncode, 0, result.stdout)
                 self.assertIn("strict scope of PlaceOrder", result.stdout)
         self.model.write_text(base)
-        self.stamp("review")
-        result = self.stamp("approve", "Ann")
-        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-
-    def test_change_inside_a_reviewed_strict_scope_needs_a_new_review(self):
-        base = MODEL.replace("Depth: standard", "Depth: standard\nStrict commands: PlaceOrder")
-        self.model.write_text(base)
-        self.assertEqual(self.stamp("review").returncode, 0)
-        self.assertRegex(self.model.read_text(), r"<!-- reviewed at [0-9a-f]+, scope PlaceOrder [0-9a-f]+ -->")
-        # A change outside every strict scope keeps the review good enough to approve.
-        self.model.write_text(self.model.read_text().replace("| no order | StartOrder |", "| nothing yet | StartOrder |"))
-        approved = self.stamp("approve", "Ann")
-        self.assertEqual(approved.returncode, 0, approved.stdout + approved.stderr)
-        self.assertIn("scope PlaceOrder", self.model.read_text())
-        # A change inside PlaceOrder's scope is refused until it is reviewed again.
-        self.model.write_text(self.model.read_text().replace("| DraftOrder | PlaceOrder | PlacedOrder |", "| DraftOrder | PlaceOrder | DraftOrder |"))
-        self.assertEqual(self.stamp("draft").returncode, 0)
-        refused = self.stamp("approve", "Ann")
-        self.assertNotEqual(refused.returncode, 0)
-        self.assertIn("the strict scope of PlaceOrder changed after the review", refused.stdout)
-        self.assertEqual(self.stamp("review").returncode, 0)
-        self.assertEqual(self.stamp("approve", "Ann").returncode, 0)
-        # A model approved over a changed scope before scopes were hashed keeps its approval, with a warning.
-        text = self.model.read_text().replace("| DraftOrder | PlaceOrder | DraftOrder |", "| DraftOrder | PlaceOrder | PlacedOrder |")
-        self.model.write_text(text)
-        hashed = self.hash_model()
-        self.model.write_text(re.sub(r"model-hash [0-9a-f]+", f"model-hash {hashed}", text))
         result = self.run_tool("check-model.sh", self.model)
         self.assertEqual(result.returncode, 0, result.stdout)
-        self.assertIn("warning: the strict scope of PlaceOrder changed after the review", result.stdout)
 
-    def test_approval_prints_the_checks_warnings(self):
-        self.model.write_text(MODEL.replace("no: already placed", "no: already placed (assumed)"))
-        approved = self.stamp("approve", "Ann")
-        self.assertEqual(approved.returncode, 0, approved.stdout + approved.stderr)
-        self.assertIn("warning: 1 assumption(s)", approved.stdout)
-
-    def test_pending_is_outside_the_hash(self):
-        before = self.hash_model()
+    def test_pending_rows_warn_on_an_approved_model(self):
         pending = "\n## Pending\n\n| Date | Command | The gap, and the question for the user | Found while |\n|---|---|---|---|\n| 2026-10-06 | PlaceOrder | rounding? | example 2 |\n"
-        self.model.write_text(MODEL + pending)
-        self.assertEqual(self.hash_model(), before)
-        self.model.write_text(MODEL.replace("Status: draft", f"Status: approved by test, model-hash {before}") + pending)
+        self.model.write_text(MODEL.replace("Status: draft", "Status: approved 2026-10-01") + pending)
         result = self.run_tool("check-model.sh", self.model)
         self.assertEqual(result.returncode, 0, result.stdout)
         self.assertIn("1 gap(s) under Pending", result.stdout)
@@ -663,8 +561,7 @@ class ToolTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stdout)
         # A model approved before this check keeps its approval, with a warning.
         glossary.write_text(ordering)
-        hashed = self.hash_model()
-        self.model.write_text(self.model.read_text().replace("Status: draft", f"Status: approved by Ann on 2026-10-01, model-hash {hashed}"))
+        self.model.write_text(self.model.read_text().replace("Status: draft", "Status: approved 2026-10-01"))
         result = self.run_tool("check-model.sh", self.model)
         self.assertEqual(result.returncode, 0, result.stdout)
         self.assertIn("warning: OrderPlaced crosses the boundary to Billing", result.stdout)
@@ -696,15 +593,10 @@ class ToolTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stdout)
         # A model approved before this check keeps its approval, with a warning.
         context_map.write_text(header + "| Payments | Ordering | anticorruption layer | Charge status | |\n")
-        self.model.write_text(MODEL.replace("Status: draft", f"Status: approved by Ann on 2026-10-01, model-hash {self.hash_model()}"))
+        self.model.write_text(MODEL.replace("Status: draft", "Status: approved 2026-10-01"))
         result = self.run_tool("check-model.sh", self.model)
         self.assertEqual(result.returncode, 0, result.stdout)
         self.assertIn("warning: the context map's row Payments -> Ordering: Translation names no term", result.stdout)
-
-    def test_status_reports_edit_after_approval(self):
-        self.model.write_text(MODEL.replace("Status: draft", f"Status: approved by test, model-hash {self.hash_model()}")
-                              .replace("already placed", "placing is final"))
-        self.assertIn("edited after approval, so it needs approving again", self.status())
 
     def test_status_ties_tests_to_contexts_when_there_are_several(self):
         (self.repo / "docs/domain/contexts/billing.md").write_text(MODEL.replace("Context: Ordering", "Context: Billing"))
@@ -772,12 +664,12 @@ class ToolTests(unittest.TestCase):
         self.assertEqual(sorted(found - allowed), [], "the glossary is GLOSSARY.md")
 
     def test_domain_decisions_and_adrs_have_one_split(self):
-        # Domain decisions are Decisions rows under the approval hash; technical ones are ADRs. Both places say so.
+        # Domain decisions are Decisions rows, and changing one means approving again; technical ones are ADRs. Both places say so.
         modelling = next(l for l in (ROOT / "skills/ddd-modelling/SKILL.md").read_text().splitlines() if l.startswith("- **Decisions**"))
         reference = next(l for l in (ROOT / "REFERENCE.md").read_text().splitlines() if "Domain decisions go in" in l)
         for line in (modelling, reference):
             self.assertIn("`docs/adr/`", line)
-            self.assertRegex(line, r"approv(al hash|ing again)")
+            self.assertIn("approving again", line)
 
     def test_review_routing_with_code_review_is_the_same_everywhere(self):
         # Domain code goes to ddd-review-all, and it takes the place of the /code-review step of Matt Pocock's implement and implement-spec.

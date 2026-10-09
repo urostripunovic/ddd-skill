@@ -73,7 +73,7 @@ The agent asks questions in rounds, each with a proposed answer, and writes the 
 I approve docs/domain/contexts/ordering.md.
 ```
 
-Setup records who may approve (`Approvers:` in `CLAUDE.md`). With more than one name there, add `Approver: <your name>`.
+Any clear yes about the model works. The agent writes `Status: approved <date>` in the file and carries on with what you asked for; who approved, and what changed since, is in git.
 
 For money, credentials, personal data or anything hard to undo, model at `strict` depth and review it in a fresh session first: `/ddd-model-review docs/domain/contexts/ordering.md`.
 

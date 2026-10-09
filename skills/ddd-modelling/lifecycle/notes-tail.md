@@ -1,6 +1,6 @@
 # The notes tail
 
-A context file ends with three sections, in this order, after every model section. The hash leaves them out, so writing them does not undo an approval. A model section after them is an error.
+A context file ends with three sections, in this order, after every model section. They are written after approval, and writing them does not undo it. A model section after them is an error.
 
 | Section | Holds | Written by | Cleared by |
 |---|---|---|---|

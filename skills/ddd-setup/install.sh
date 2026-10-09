@@ -83,7 +83,7 @@ put_all() { while IFS= read -r file; do put "${file#"${kit}"/}"; done < <(find "
 
 put_all docs/domain
 put_all docs/ddd/strategic
-for file in check-model.sh check_model.py model-hash.sh stamp-model.sh ddd-status.sh ddd_status.py; do put "tools/${file}"; done
+for file in check-model.sh check_model.py ddd-status.sh ddd_status.py; do put "tools/${file}"; done
 if [ -z "${model_only}" ]; then
   put_all docs/ddd/cards -maxdepth 1
   put_all docs/ddd/cards/functional -maxdepth 1
@@ -108,6 +108,10 @@ echo "added ${added} files; ${same} were already there and identical"
 if [ -n "$(find docs/ddd/cards -maxdepth 1 \( -name '[0-9]*.md' -o -name go -o -name ts \) -print -quit 2>/dev/null)" ]; then
   echo "earlier card layout: docs/ddd/cards/ holds cards or language directories that now belong in docs/ddd/cards/functional/;"
   echo "  move them there with git mv, keeping their Corrections, and compare them with the kit's"
+fi
+# Approval used to be stamped with a hash. The newer checker does not call these, so they are reported, not removed.
+if [ -e tools/stamp-model.sh ] || [ -e tools/model-hash.sh ]; then
+  echo "earlier approval tools: tools/stamp-model.sh and tools/model-hash.sh are no longer used; see the skill's UPGRADING.md"
 fi
 if [ "${#kept[@]}" -gt 0 ]; then
   echo "kept, because the repository's version differs from the kit's (compare with ${kit}/<path>):"

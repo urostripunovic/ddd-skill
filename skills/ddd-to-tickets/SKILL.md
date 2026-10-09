@@ -11,19 +11,19 @@ Turn the approved model in `docs/domain/` into tickets an agent can pick up one 
 Two things come out of this that a general ticket breakdown does not give:
 
 - Every ticket says what it **runs with**. Most domain tickets run with nothing: no database, no broker, no container. Only tickets that write an adapter need a running dependency.
-- `task-review` gets a task whose requirements are row numbers in a hashed model, so "done" can be checked row by row.
+- `task-review` gets a task whose requirements are row numbers in the approved model, so "done" can be checked row by row.
 
 ## Before you start
 
 1. If `docs/domain/` does not exist, this repository has not adopted the kit. Say so and stop.
 2. Run `tools/check-model.sh` on each context file in scope. If it fails, or the status is `draft` or `derived from code, not confirmed`, stop and say which. Tickets are cut only from an approved model.
-3. Note the model-hash from the Status line. Every ticket carries it.
-4. Read [depth.md](../ddd-modelling/lifecycle/depth.md) and [code-style.md](../ddd-modelling/lifecycle/code-style.md). A missing `Depth:` means strict. Carry each ticket's effective depth into it, naming the strict scopes it touches.
-5. In the repository's own code style, tickets describe the model's behaviour in the project's existing style; do not add a typed refactor to the work, and see **Without the cards** below.
+3. Note the commit the context file last changed in: `git log -1 --format=%h -- <file>`. Every ticket carries it. If the approved model is not committed yet, ask the user to commit it first.
+4. Read [depth.md](../ddd-modelling/lifecycle/depth.md). A missing `Depth:` means strict. Carry each ticket's effective depth into it, naming the strict scopes it touches.
+5. Tickets describe the model's behaviour and take the project's structure as it is. How the code is written is `ddd-implementation`'s business: never add a move to another code style to the work.
 
 ## Scope
 
-Ask what to cut tickets for, if the user did not say: a whole context, one aggregate, or the commands a model change touched (`git diff` on the context file since the last approval).
+Ask what to cut tickets for, if the user did not say: a whole context, one aggregate, or the commands a model change touched (`git diff <commit>` on the context file, from the commit the existing tickets carry).
 
 If the user gives a spec or a parent issue, read it. Behaviour the spec asks for and the model does not have is not a ticket: stop and offer `ddd-modelling`. Work in the spec that is not domain behaviour (screens, endpoints, reports, deployment) is out of scope here; see **With to-tickets**.
 
@@ -42,7 +42,7 @@ Cut the tickets per aggregate, in the order of the model's `## The flow`.
 
 The first command of the aggregate, usually the one that starts from `()`, through every layer: primitives, state types, examples as tests, decision, workflow, boundary parsing, the real repository, and one entry point wired to it.
 
-It also delivers the **repository contract test**: one suite, run against both the in-memory repository and the real one, covering load, save, "not found", and a save that fails when the version has changed. Every later ticket relies on the in-memory repository behaving like the real one, and this suite is what makes that true.
+Where the project tests against a stand-in repository beside the real one, or this tracer introduces one, it also delivers the **repository contract test**: one suite, run against both, covering load, save, "not found", and a save that fails when the version has changed. Every later ticket relies on the stand-in behaving like the real one, and this suite is what makes that true.
 
 Runs with: the storage dependency.
 
@@ -50,9 +50,9 @@ One tracer per aggregate. It exists to find a wrong assumption about storage, tr
 
 ### 2. Command
 
-One ticket per remaining command. It covers steps 1 to 4 of `ddd-implementation`'s order of work, plus boundary parsing for the command's input: the model's needed values and states in the chosen style, the Examples rows as tests, the decision, and the workflow against the in-memory repository. Real adapters, storage changes and the aggregate property test belong to their separate tickets. State that in **Out of scope** so implementation and review use the same completion boundary.
+One ticket per remaining command. It covers steps 1 to 4 of `ddd-implementation`'s order of work, plus boundary parsing for the command's input: the model's needed values and states, the Examples rows as tests, the decision, and the workflow against the stand-in repository where the project has one. Real adapters, storage changes and the aggregate property test belong to their separate tickets. State that in **Out of scope** so implementation and review use the same completion boundary.
 
-Runs with: nothing.
+Runs with: nothing, where the project's domain tests need nothing running; otherwise what its tests normally use, a test database included. Say which.
 
 Blocked by: the tracer, and the ticket that first produces each state the command starts from. `CancelOrder : DraftOrder | PlacedOrder` is blocked by the ticket that introduces `PlacedOrder`. Commands that share no such edge can be worked in parallel.
 
@@ -60,7 +60,7 @@ Do not split a command across tickets, and do not merge two commands into one. A
 
 ### 3. Storage
 
-When a command ticket introduces a state or field the real repository does not store yet, cut a storage ticket for it: the real repository stores and loads the new shape, and the contract test covers it.
+In a project that keeps storage apart from the command's code: when a command ticket introduces a state or field the real repository does not store yet, cut a storage ticket for it: the real repository stores and loads the new shape, and the contract test covers it.
 
 Runs with: the storage dependency. Blocked by: the command ticket.
 
@@ -78,18 +78,9 @@ Runs with: nothing when event and command are in one process; the delivery mecha
 
 ### 6. Property test
 
-One per aggregate: random sequences of its commands, every invariant asserted after every step, and proof that the test fails when a rule is removed.
+One per aggregate, when the project does property-based or stateful testing or the user asks for one: random sequences of its commands, every invariant asserted after every step, and proof that the test fails when a rule is removed.
 
 Runs with: nothing. Blocked by: every command ticket of the aggregate.
-
-### Without the cards
-
-The ticket kinds above assume the kit's structure: an in-memory repository beside the real one, and decisions that run with nothing. A model-only project keeps its own structure, so:
-
-- The tracer has no repository contract test unless the project already has a repository abstraction with a stand-in.
-- A command ticket runs with whatever the project's tests normally use, a test database included. Say which on its **Runs with** line.
-- A storage ticket is cut only when the project separates storage from the command's code.
-- A property-test ticket is cut only if the project already does property-based or stateful testing.
 
 ## Acceptance criteria
 
@@ -142,7 +133,7 @@ Use the vocabulary of the glossary in titles and text. No code in a ticket, and 
 
 **Kind:** tracer | command | storage | adapter | policy | property test
 
-**Model:** `docs/domain/contexts/<context>.md`, model-hash `<hash>`
+**Model:** `docs/domain/contexts/<context>.md`, at commit `<commit>`
 
 **Depth:** standard | strict (name the strict commands whose strict scope this ticket touches)
 
@@ -168,15 +159,15 @@ Use the vocabulary of the glossary in titles and text. No code in a ticket, and 
 
 ## When a ticket is picked up
 
-The ticket says so itself, in one line under **Model**: if `tools/model-hash.sh` on the context file no longer gives the hash in the ticket, the model was approved again since the ticket was cut. The implementer looks at what changed (`git log -p` on the context file) and at the rows this ticket lists. If none of them changed, the work goes on and the ticket gets the new hash. If one did, the ticket is updated first, as described below. Add that line to every ticket.
+The ticket says so itself, in one line under **Model**: if `git log -1 --format=%h -- <file>` no longer gives the commit in the ticket, the model changed since the ticket was cut. The implementer looks at what changed (`git diff <commit> -- <file>`) and at the rows this ticket lists. If none of them changed, the work goes on and the ticket gets the new commit. If one did, the ticket is updated first, as described below. Add that line to every ticket.
 
 An implementer also reads the `## Amendments` and `## Pending` rows that name this ticket's command. A pending row blocks the ticket until `ddd-modelling` settles it.
 
 ## When the model changes
 
-A model grows: amendments are folded in, a command is added, a rule changes. Do not cut a new set of tickets. Run this skill again on the change (`git diff` of the context file between the two approvals) and:
+A model grows: amendments are folded in, a command is added, a rule changes. Do not cut a new set of tickets. Run this skill again on the change (`git diff <commit> -- <file>`, from the commit the tickets carry) and:
 
-- update the open tickets whose rows changed, and give them the new hash
+- update the open tickets whose rows changed, and give them the new commit
 - cut tickets only for commands, facts and policies that are new
 - for a ticket that is already done and whose rows changed, cut a small follow-up that lists only the changed rows
 - leave every other ticket alone
@@ -193,6 +184,6 @@ The templates match his, so `implement` and `task-review` read either kind. The 
 
 - Cut a ticket for behaviour the model does not have.
 - Copy a rule, an example or a bound into a ticket. Point at the row.
-- Give a command ticket a running dependency, when the project uses the cards. If it seems to need one, I/O has leaked into the decision or the workflow is being tested against the wrong repository.
+- Give a command ticket a running dependency the project's other domain tests do not need.
 - Build or run an image of the application in any ticket but the tracer.
 - Change the model. A gap found while cutting tickets is handled as [gaps.md](../ddd-modelling/lifecycle/gaps.md) says: one that must stop goes to `ddd-modelling`; one the implementer may settle is listed in the affected ticket.

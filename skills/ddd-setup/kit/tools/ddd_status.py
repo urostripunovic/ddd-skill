@@ -150,8 +150,7 @@ def context_lines(path, tested):
     lines = []
 
     state = check_model.read_status(raw) or "no Status line"
-    # Shown as the file reads; the hashes are compared below and by the check.
-    lines.append("status: " + re.sub(r",\s*model-hash\s+[0-9a-f]+|\s+at\s+[0-9a-f]+", "", state))
+    lines.append("status: " + state)
 
     depth = re.search(r"^Depth:\s*(.+)$", text, re.M)
     strict = re.search(r"^Strict commands:[ \t]*(.+)$", text, re.M)
@@ -160,11 +159,8 @@ def context_lines(path, tested):
 
     problems, warnings, _ = check_model.check(path, None)
     if problems:
-        edited = [p for p in problems if p.startswith("edited after approval")]
         core = [p for p in problems if "is not confirmed" in p]
         line = f"model check: {plural(len(problems), 'problem')}"
-        if edited:
-            line += "; edited after approval, so it needs approving again"
         if core:
             line += f"; {len(core)} of them unconfirmed core (Issued by, invariant or Believed when)"
         lines.append(line)
@@ -175,17 +171,8 @@ def context_lines(path, tested):
         lines.append("model check: passed")
     lines.extend(f"  warning: {w}" for w in warnings if "review" in w)
 
-    review = re.search(r"\breviewed\s+([^,\s]+)(?:\s+at\s+([0-9a-f]+))?", state)
-    if review:
-        current = subprocess.run(
-            [str(pathlib.Path(check_model.__file__).with_name("model-hash.sh")), str(path)],
-            capture_output=True, text=True).stdout.strip()
-        if review.group(2) and current and review.group(2) != current:
-            lines.append(f"review: {review.group(1)}, of an earlier version (model changed since)")
-        else:
-            lines.append(f"review: {review.group(1)}")
-    else:
-        lines.append("review: none")
+    review = re.search(r"\breviewed\s+([^,\s]+)", state)
+    lines.append(f"review: {review.group(1)}" if review else "review: none")
 
     questions = check_model.find(top, "Open questions")
     if questions and questions.strip() and not check_model.NONE.search(questions):

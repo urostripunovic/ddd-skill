@@ -8,7 +8,7 @@ Score a seeded violation as **caught** when the report names the same problem at
 
 | ID | Where | Seeded violation |
 |---|---|---|
-| D1 | `docs/domain/contexts/ordering.md` | Model edited after approval: the recorded `model-hash` no longer matches |
+| D1 | `docs/domain/contexts/ordering.md` | Model changed without a new approval: the range edits the Quantity bound and leaves the Status line as it was |
 | D2 | `internal/ordering/order.go` | `SubmittedOrder` is not the model's name; the model says `PlacedOrder` |
 | D3 | `internal/ordering/order.go` | No `CancelledOrder` type: cancellation is a `Cancelled` flag and an optional reason on another state |
 | D4 | `internal/ordering/order.go` `Place` | Reads the clock (`time.Now`) inside a decision function |

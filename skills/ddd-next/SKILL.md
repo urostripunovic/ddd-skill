@@ -24,20 +24,18 @@ Take the first row that applies to the chosen context. Use the context's file pa
 | 1 | `setup: not done` | `/ddd-setup` |
 | 2 | `conventions: not recorded`, `cards: earlier layout`, `glossary: earlier name` or `strategic cards: not installed` | `/ddd-setup`; it adds what is missing, moves earlier cards and renames an earlier glossary with the user's agreement, and keeps existing files |
 | 3 | `contexts: none modelled yet` | `Use ddd-modelling at standard depth to model <the flow the user is about to build>.` Ask which flow if you cannot tell |
-| 4 | `edited after approval` | `Use ddd-modelling to show what changed in <file> since approval, and approve it again.` |
-| 5 | unconfirmed core, or any other model check problem | `Use ddd-modelling to settle the check problems in <file>.` Name the first problem |
-| 6 | `pending gaps` above 0 | `Use ddd-modelling to settle the pending gaps in <file>.` Implementation is waiting for these |
-| 7 | status `draft` or `derived from code`, with open questions | `Use ddd-modelling to continue <file>: answer the open questions.` |
-| 8 | status `draft` or `derived from code`, depth strict or strict commands, and review `none` or of an earlier version | `/ddd-model-review <file>`, in a fresh session |
-| 9 | status `draft` or `derived from code`, otherwise | Read the model's flow and its assumptions, then type `I approve <file>.`, with `Approver: <your name>` when `## Domain code` lists no approvers or several |
-| 10 | approved, strict, review of an earlier version | `/ddd-model-review <file>`, in a fresh session, for the changed rows |
-| 11 | `migration:` with a next step | `Use ddd-implementation for migration step <n> of <file>.` |
-| 12 | example rows `without` a test | `Use ddd-implementation to implement <command> from <file>.` Take the first listed command in the order of the model's `## The flow`. Optional before the first command: `/ddd-to-tickets <file>` |
-| 13 | branch ahead of its base, every example row has a test | Commit any uncommitted changes, then `/ddd-review-all Review this branch against <base>.` with the task if there is one |
-| 14 | `amendments` above 0, nothing above applies | `Use ddd-modelling to fold the amendments in <file> into the model.` |
-| 15 | nothing above applies | The context is done. Name the next context that needs something, or say that the whole repository is up to date |
+| 4 | unconfirmed core, or any other model check problem | `Use ddd-modelling to settle the check problems in <file>.` Name the first problem |
+| 5 | `pending gaps` above 0 | `Use ddd-modelling to settle the pending gaps in <file>.` Implementation is waiting for these |
+| 6 | status `draft` or `derived from code`, with open questions | `Use ddd-modelling to continue <file>: answer the open questions.` |
+| 7 | status `draft` or `derived from code`, depth strict or strict commands, and review `none` | `/ddd-model-review <file>`, in a fresh session |
+| 8 | status `draft` or `derived from code`, otherwise | Read the model's flow and its assumptions, then type `I approve <file>.` |
+| 9 | `migration:` with a next step | `Use ddd-implementation for migration step <n> of <file>.` |
+| 10 | example rows `without` a test | `Use ddd-implementation to implement <command> from <file>.` Take the first listed command in the order of the model's `## The flow`. Optional before the first command: `/ddd-to-tickets <file>` |
+| 11 | branch ahead of its base, every example row has a test | Commit any uncommitted changes, then `/ddd-review-all Review this branch against <base>.` with the task if there is one |
+| 12 | `amendments` above 0, nothing above applies | `Use ddd-modelling to fold the amendments in <file> into the model.` |
+| 13 | nothing above applies | The context is done. Name the next context that needs something, or say that the whole repository is up to date |
 
-A row about the model (4 to 10) comes before a row about code: code built on a model that is not approved is built on guesses.
+A row about the model (4 to 8) comes before a row about code: code built on a model that is not approved is built on guesses.
 
 The test column is a match on test names (`example 3`, `TestExamples3And4`). A row "without" a test may have one under another name. If the user says it is done, say once that naming the case `example <n>` lets the status see it, and move on to the next row.
 

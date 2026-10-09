@@ -7,9 +7,9 @@ description: "Implement an approved domain model and its examples as tests. Use 
 
 Turn the approved model in `docs/domain/` into code and tests.
 
-Read [code-style.md](../ddd-modelling/lifecycle/code-style.md), [depth.md](../ddd-modelling/lifecycle/depth.md), [notes-tail.md](../ddd-modelling/lifecycle/notes-tail.md) and [gaps.md](../ddd-modelling/lifecycle/gaps.md) in `../ddd-modelling/lifecycle/` first. They define the code style, effective depth, the notes tail and what to do with a gap, and this file does not repeat them. Read [approval.md](../ddd-modelling/lifecycle/approval.md) or [adoption.md](../ddd-modelling/lifecycle/adoption.md) only when the case below sends you there. Whether or not you open them, these hold:
+Read [depth.md](../ddd-modelling/lifecycle/depth.md), [notes-tail.md](../ddd-modelling/lifecycle/notes-tail.md) and [gaps.md](../ddd-modelling/lifecycle/gaps.md) in `../ddd-modelling/lifecycle/` first. They define effective depth, the notes tail and what to do with a gap, and this file does not repeat them. Read [approval.md](../ddd-modelling/lifecycle/approval.md) or [adoption.md](../ddd-modelling/lifecycle/adoption.md) only when the case below sends you there. Whether or not you open them, these hold:
 
-- Never implement from a draft model, or one edited since approval, and never write an approved status yourself: only the user approves.
+- Never implement from a draft model, and never write an approved status without the user's yes: only the user approves.
 - When the model is missing a state, command, invariant, who may issue a command or what makes a caller or outside fact trusted, or two rules contradict: stop, write the question under `## Pending`, and wait. Never invent the rule in code.
 - At strict depth, or inside a strict scope, every gap stops the work the same way.
 - Never edit the model above its notes tail (`## Migration`, `## Amendments`, `## Pending`).
@@ -45,15 +45,15 @@ If `docs/domain/` does not exist, this repository has not adopted the kit. Do th
 
 Read each card's **Corrections** section. Those are mistakes already made in this codebase.
 
-**Code style.** Resolve it as code-style.md says. In the repository's own style, follow **Rules in every style** and **Without the cards** below, and skip the card table, **With the cards, also** and the language section. If cards are installed but your language's examples are not, follow the cards in that language's idioms, best effort, and use the project's own compile, lint and test commands. Missing kit examples or lint rules are expected in that mode.
+**Code style.** This skill is the only one that chooses between the kit's pattern cards and the repository's own style; the model, the tickets and the reviews are the same either way. The choice recorded under `## Domain code` in the agent instructions (`CLAUDE.md` or `AGENTS.md`) decides, and an explicit "the repository's own" wins over cards left from an earlier setup. Without a record, installed pattern cards (`docs/ddd/cards/`) mean the kit's functional style, and no cards mean the repository's own. Never ask the user to choose again. In the repository's own style, follow **Rules in every style** and **Without the cards** below, and skip the card table, **With the cards, also** and the language section. If cards are installed but your language's examples are not, follow the cards in that language's idioms, best effort, and use the project's own compile, lint and test commands. Missing kit examples or lint rules are expected in that mode.
 
 If the task needs a pattern that no card covers, say so before writing it, and add a row to the **Wanted** table in `docs/ddd/cards/README.md`. Implement it from **Rules in every style** and **With the cards, also** below. Do not write the card yourself at this point: a card is made from code that has been reviewed and merged, as that README describes.
 
 ## Which case applies
 
-**The code belongs to a context with an approved model.** Follow the model, with its `## Amendments`. Run `tools/check-model.sh <file>` first; a changed approved body or a structural error needs correction before implementation. An approved Status line that passes the check was written by `tools/stamp-model.sh` and stands, committed or not: do not ask the user to confirm it. If the glossary or context map conflicts with an approved rule, show the discrepancy and ask for a model update (approval.md).
+**The code belongs to a context with an approved model.** Follow the model, with its `## Amendments`. Run `tools/check-model.sh <file>` first; a structural error needs correction before implementation. An approved Status line that passes the check stands, committed or not: do not ask the user to confirm it. If the glossary or context map conflicts with an approved rule, show the discrepancy and ask for a model update (approval.md).
 
-**The model exists but is a draft, or derived from code and not confirmed.** If the scope is still listed under `## Prototypes`, an adoption is in progress: read [MIGRATION.md](MIGRATION.md) instead. Otherwise stop and say what is needed: the user's approval, and first the review approval.md requires at this depth, unless the Status line has a current one.
+**The model exists but is a draft, or derived from code and not confirmed.** If the scope is still listed under `## Prototypes`, an adoption is in progress: read [MIGRATION.md](MIGRATION.md) instead. Otherwise say that the model is not approved yet and ask whether they approve it; at strict depth, the review approval.md requires comes first, unless the Status line records one. On the user's yes, write the status as approval.md says and continue with the task.
 
 **A recorded prototype, or a step from the migration plan.** The scope is listed under `## Prototypes`, or the task is a step under the context file's `## Migration` and the model is approved: read [MIGRATION.md](MIGRATION.md).
 

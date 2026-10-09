@@ -16,7 +16,7 @@ Run this in a session that did not write the code. If you wrote the code under r
 
 This skill compares the change with the task. It does not check:
 
-- whether the code matches the domain model or the cards: `ddd-review`
+- whether the code matches the domain model: `ddd-review`
 - security: `secure-by-design-review`
 - style, naming or anything a formatter or linter handles
 
