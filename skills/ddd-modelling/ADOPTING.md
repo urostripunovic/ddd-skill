@@ -2,7 +2,7 @@
 
 Use this when a repository already has domain code and no model, and the user has chosen to start from the code. The goal is a confirmed model for one aggregate at a time, and a plan to move the code towards it. Do not try to model the whole repository in one pass.
 
-The notation, glossary format and way of asking are in [SKILL.md](SKILL.md); depth, approval and the notes tail are in the lifecycle files SKILL.md names.
+The notation is in [NOTATION.md](NOTATION.md), the glossary format in [GLOSSARY-FORMAT.md](GLOSSARY-FORMAT.md) and the way of asking in [INTERVIEW.md](INTERVIEW.md); depth, approval and the notes tail are in the lifecycle files SKILL.md names.
 
 ## 1. Pick one slice
 

@@ -656,7 +656,7 @@ class ToolTests(unittest.TestCase):
     def test_glossary_has_one_name(self):
         # The glossary is GLOSSARY.md, the name Matt Pocock's skills read. CONTEXT.md is named only where an earlier repository is upgraded.
         allowed = {"skills/ddd-setup/SKILL.md", "skills/ddd-setup/UPGRADING.md", "REFERENCE.md", "README.md",
-                   "skills/ddd-modelling/SKILL.md",
+                   "skills/ddd-modelling/GLOSSARY-FORMAT.md",
                    "skills/ddd-setup/kit/tools/check_model.py", "skills/ddd-setup/kit/tools/ddd_status.py"}
         tracked = subprocess.run(["git", "ls-files", "skills", "evals", "README.md", "REFERENCE.md"], cwd=ROOT,
                                  capture_output=True, text=True, check=True).stdout.split()
@@ -665,7 +665,7 @@ class ToolTests(unittest.TestCase):
 
     def test_domain_decisions_and_adrs_have_one_split(self):
         # Domain decisions are Decisions rows, and changing one means approving again; technical ones are ADRs. Both places say so.
-        modelling = next(l for l in (ROOT / "skills/ddd-modelling/SKILL.md").read_text().splitlines() if l.startswith("- **Decisions**"))
+        modelling = next(l for l in (ROOT / "skills/ddd-modelling/NOTATION.md").read_text().splitlines() if l.startswith("- **Decisions**"))
         reference = next(l for l in (ROOT / "REFERENCE.md").read_text().splitlines() if "Domain decisions go in" in l)
         for line in (modelling, reference):
             self.assertIn("`docs/adr/`", line)
