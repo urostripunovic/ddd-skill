@@ -1,7 +1,7 @@
 # Context: <name>
 
 Status: draft
-<!-- Written by tools/stamp-model.sh (approve, review, draft), never by hand. -->
+<!-- draft, then "approved <date>" on the user's yes; ", reviewed <date>" is added after a model review. -->
 
 Depth: standard
 <!-- standard or strict. Optional next line: Strict commands: PlaceOrder, CancelOrder -->

@@ -11,19 +11,19 @@ Turn the approved model in `docs/domain/` into tickets an agent can pick up one 
 Two things come out of this that a general ticket breakdown does not give:
 
 - Every ticket says what it **runs with**. Most domain tickets run with nothing: no database, no broker, no container. Only tickets that write an adapter need a running dependency.
-- `task-review` gets a task whose requirements are row numbers in a hashed model, so "done" can be checked row by row.
+- `task-review` gets a task whose requirements are row numbers in the approved model, so "done" can be checked row by row.
 
 ## Before you start
 
 1. If `docs/domain/` does not exist, this repository has not adopted the kit. Say so and stop.
 2. Run `tools/check-model.sh` on each context file in scope. If it fails, or the status is `draft` or `derived from code, not confirmed`, stop and say which. Tickets are cut only from an approved model.
-3. Note the model-hash from the Status line. Every ticket carries it.
+3. Note the commit the context file last changed in: `git log -1 --format=%h -- <file>`. Every ticket carries it. If the approved model is not committed yet, ask the user to commit it first.
 4. Read [depth.md](../ddd-modelling/lifecycle/depth.md) and [code-style.md](../ddd-modelling/lifecycle/code-style.md). A missing `Depth:` means strict. Carry each ticket's effective depth into it, naming the strict scopes it touches.
 5. In the repository's own code style, tickets describe the model's behaviour in the project's existing style; do not add a typed refactor to the work, and see **Without the cards** below.
 
 ## Scope
 
-Ask what to cut tickets for, if the user did not say: a whole context, one aggregate, or the commands a model change touched (`git diff` on the context file since the last approval).
+Ask what to cut tickets for, if the user did not say: a whole context, one aggregate, or the commands a model change touched (`git diff <commit>` on the context file, from the commit the existing tickets carry).
 
 If the user gives a spec or a parent issue, read it. Behaviour the spec asks for and the model does not have is not a ticket: stop and offer `ddd-modelling`. Work in the spec that is not domain behaviour (screens, endpoints, reports, deployment) is out of scope here; see **With to-tickets**.
 
@@ -142,7 +142,7 @@ Use the vocabulary of the glossary in titles and text. No code in a ticket, and 
 
 **Kind:** tracer | command | storage | adapter | policy | property test
 
-**Model:** `docs/domain/contexts/<context>.md`, model-hash `<hash>`
+**Model:** `docs/domain/contexts/<context>.md`, at commit `<commit>`
 
 **Depth:** standard | strict (name the strict commands whose strict scope this ticket touches)
 
@@ -168,15 +168,15 @@ Use the vocabulary of the glossary in titles and text. No code in a ticket, and 
 
 ## When a ticket is picked up
 
-The ticket says so itself, in one line under **Model**: if `tools/model-hash.sh` on the context file no longer gives the hash in the ticket, the model was approved again since the ticket was cut. The implementer looks at what changed (`git log -p` on the context file) and at the rows this ticket lists. If none of them changed, the work goes on and the ticket gets the new hash. If one did, the ticket is updated first, as described below. Add that line to every ticket.
+The ticket says so itself, in one line under **Model**: if `git log -1 --format=%h -- <file>` no longer gives the commit in the ticket, the model changed since the ticket was cut. The implementer looks at what changed (`git diff <commit> -- <file>`) and at the rows this ticket lists. If none of them changed, the work goes on and the ticket gets the new commit. If one did, the ticket is updated first, as described below. Add that line to every ticket.
 
 An implementer also reads the `## Amendments` and `## Pending` rows that name this ticket's command. A pending row blocks the ticket until `ddd-modelling` settles it.
 
 ## When the model changes
 
-A model grows: amendments are folded in, a command is added, a rule changes. Do not cut a new set of tickets. Run this skill again on the change (`git diff` of the context file between the two approvals) and:
+A model grows: amendments are folded in, a command is added, a rule changes. Do not cut a new set of tickets. Run this skill again on the change (`git diff <commit> -- <file>`, from the commit the tickets carry) and:
 
-- update the open tickets whose rows changed, and give them the new hash
+- update the open tickets whose rows changed, and give them the new commit
 - cut tickets only for commands, facts and policies that are new
 - for a ticket that is already done and whose rows changed, cut a small follow-up that lists only the changed rows
 - leave every other ticket alone

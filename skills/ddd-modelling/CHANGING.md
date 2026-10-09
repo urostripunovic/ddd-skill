@@ -14,4 +14,4 @@ A change to the rest of an approved model (a bound, a payload, an edge case, an 
 
 Any other change, to the core, inside a strict scope, at strict depth, or to a draft: update only the affected sections, including the matrix column or row and the examples the change touches. Show the change as a diff, run `tools/check-model.sh`, set an approved model back to draft, and wait for approval. A new rule, state, command or term always goes through the model first. When unsure whether a change touches the core, treat it as core.
 
-A change inside a strict scope of a model that was already reviewed needs a review of the changed rows only: give the reviewer the diff, in the earlier review session or a fresh one.
+A change inside a strict scope of a model that was already reviewed needs a review of the changed rows only: remove `, reviewed <date>` from the Status line, give the reviewer the diff, in the earlier review session or a fresh one, and write it back once no blocker is left.

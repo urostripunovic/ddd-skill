@@ -12,7 +12,7 @@ The copying is a script and the lint rules are yours to merge. Install no progra
 
 ## 1. Choose how much of the kit
 
-The kit has two halves: the model (what the software must do) and the pattern cards (how the code that does it is written). The model works for any language and any coding style, and comes with the strategic cards in `docs/ddd/strategic/`, which help decide how contexts relate. The pattern cards are one style, the kit's suggestion and not a requirement: typed and functional in the manner of Scott Wlaschin, in `docs/ddd/cards/functional/`, with examples for Go and TypeScript. Ask which the repository wants, with your recommendation from what you see in it. Setup asks in two rounds, each question with your proposal: this choice and the language (step 2) first, then the conventions (step 3), who may approve models, and any ESLint question (step 4) together. Look at the repository before each round, so that every question in it can be answered without the others.
+The kit has two halves: the model (what the software must do) and the pattern cards (how the code that does it is written). The model works for any language and any coding style, and comes with the strategic cards in `docs/ddd/strategic/`, which help decide how contexts relate. The pattern cards are one style, the kit's suggestion and not a requirement: typed and functional in the manner of Scott Wlaschin, in `docs/ddd/cards/functional/`, with examples for Go and TypeScript. Ask which the repository wants, with your recommendation from what you see in it. Setup asks in two rounds, each question with your proposal: this choice and the language (step 2) first, then the conventions (step 3) and any ESLint question (step 4) together. Look at the repository before each round, so that every question in it can be answered without the others.
 
 | Choice | When | What is installed |
 |---|---|---|
@@ -26,7 +26,7 @@ With model only, skip step 4, and in step 3 describe the repository's own style 
 
 ## 1b. Look
 
-- Confirm this is a git repository, and note whether the working tree is clean. If it is not clean, tell the user, so they can tell your changes from theirs afterwards. If it is not a repository, offer `git init` and wait for the answer: `install.sh`, the model hash and `tools/ddd-status.sh` need git.
+- Confirm this is a git repository, and note whether the working tree is clean. If it is not clean, tell the user, so they can tell your changes from theirs afterwards. If it is not a repository, offer `git init` and wait for the answer: `install.sh` and `tools/ddd-status.sh` need git.
 - Find the domain code: the packages or directories that hold business rules and no I/O. The domain lint rules in step 4 apply only there. If it is not obvious, ask, with the directory you would pick as the proposal. If there is no domain code yet, settle the layout in step 3 first and take the domain path from it: the `domain/` directory of layout (a), or each context's `domain/` directory in layout (b). The domain path never includes the use-case or infrastructure directories beside it, or the domain rules would forbid the I/O they exist to do.
 
 ## 2. Copy the files
@@ -37,7 +37,7 @@ It never overwrites. A file that exists with other content is kept and listed. F
 
 - A card: its **Corrections** section holds mistakes recorded by this team, and that is the most valuable part of the card. Show the diff above the Corrections heading and ask whether to take the kit's text; recommend taking it unless the team has edited the rules. Keep the repository's Corrections in every case. If the script reports the earlier card layout, or a card has `## Go` and `## TypeScript` sections, follow [UPGRADING.md](UPGRADING.md).
 - A context map or context file: leave it. Never modify an existing model here.
-- A tool or a reference config: show the diff and ask before replacing it.
+- A tool or a reference config: show the diff and ask before replacing it. If the script reports the earlier approval tools, follow [UPGRADING.md](UPGRADING.md).
 
 The script installs no glossary. The glossary is `GLOSSARY.md` at the repository root, shared with any other skill that reads one, and `ddd-modelling` creates it when the first term is settled. If `CONTEXT.md`, `CONTEXT-MAP.md` or `docs/domain/glossary.md` exists, follow [UPGRADING.md](UPGRADING.md).
 
@@ -52,7 +52,7 @@ Look at what the repository already does and propose that. Where it does nothing
 - **Layout.** (a) Layers: `domain/` for the model's types and decisions, `services/` or `app/` for one use case per file, `infrastructure/` for repositories and adapters; the domain imports nothing from the others. (b) One directory per bounded context with the same three inside it. (c) The repository's own layout, described in a sentence.
 - **Where tests go.** (a) Next to the code. (b) In a `__tests__` (or `__test__`) directory in each folder. (c) In a top-level `test/` directory.
 
-Write the answers, and the choice from step 1 ("Code style: the kit's functional cards" or "Code style: the repository's own; the kit's cards are not used"), under a heading `## Domain code` in the repository's agent instructions (`CLAUDE.md`, or `AGENTS.md` if that is what it has; create `CLAUDE.md` if neither exists), in two or three lines, and `Approvers: <names>` with the names the user gives for who may approve models (ask for them; never take a name from git config or an account). Every later session reads that file. Where a rule can be linted (which layer may import which), add it in the next step, so a session that gets it wrong fails lint.
+Write the answers, and the choice from step 1 ("Code style: the kit's functional cards" or "Code style: the repository's own; the kit's cards are not used"), under a heading `## Domain code` in the repository's agent instructions (`CLAUDE.md`, or `AGENTS.md` if that is what it has; create `CLAUDE.md` if neither exists), in two or three lines. Every later session reads that file. Where a rule can be linted (which layer may import which), add it in the next step, so a session that gets it wrong fails lint.
 
 ## 4. Lint rules
 

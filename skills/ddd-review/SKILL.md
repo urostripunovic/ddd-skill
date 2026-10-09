@@ -44,12 +44,11 @@ If there is no model for the code under review, stop and say so. Without it this
 For each context file you use, read its `Status:` line.
 
 - Not approved (`draft`, or `derived from code, not confirmed`): say so at the top of the report. You can still review, but every "matches the model" finding is provisional.
-- Approved with a `model-hash`: run `tools/check-model.sh <file>`. If it reports that the file was edited after approval, or any other problem, that is a blocker; name the file. The user must fix and re-approve the model before the review result means anything.
-- Approved without a hash: note that the approval cannot be verified.
+- Approved: run `tools/check-model.sh <file>`. A problem it reports is a blocker; name the file. Then look at what the pinned range did to the file: `git diff <base>...HEAD -- <file>`. Rows changed above the notes tail while the Status line stayed as it was mean the model changed without being approved again: a blocker, with the changed rows quoted. The user approves the change or reverts it before the review result means anything.
 
 Rows under the context file's `## Amendments` are part of the model for this review: where a row says what the code does, trace the code against the row and not against the text it amends. Code that matches neither is a finding. An element marked `(assumed)` is traced like any other.
 
-An amendment inside a strict scope (as `tools/check-model.sh` prints it), or in a context at strict depth, should have been a `## Pending` row and a reapproval, so it is a finding. A missing `Depth:` means strict. Depth does not relax conformance to rules already written. Flag a changed glossary definition or context-map relationship that changes an approved rule's meaning; the hash does not cover them.
+An amendment inside a strict scope (as `tools/check-model.sh` prints it), or in a context at strict depth, should have been a `## Pending` row and a reapproval, so it is a finding. A missing `Depth:` means strict. Depth does not relax conformance to rules already written. Flag a changed glossary definition or context-map relationship that changes an approved rule's meaning; the Status line does not cover them.
 
 ## A repository without the cards
 
@@ -164,7 +163,7 @@ Open and close the report as [review-range.md](../ddd-modelling/lifecycle/review
 
 - location as `file:line`
 - which part of the model or which card it breaks
-- severity: **blocker** (model violated, invariant not enforced, check suppressed, model changed after approval), **should fix**, or **note**
+- severity: **blocker** (model violated, invariant not enforced, check suppressed, model changed without approval), **should fix**, or **note**
 - a concrete fix; show code changes as a diff
 
 After the findings:

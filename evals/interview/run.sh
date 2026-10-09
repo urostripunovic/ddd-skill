@@ -49,7 +49,7 @@ say() {
 
 interviewer() {
   say "${repo}" "$1" "${interviewer_id}" "$2" \
-    --permission-mode acceptEdits --allowedTools "Bash(tools/check-model.sh:*)" "Bash(tools/model-hash.sh:*)"
+    --permission-mode acceptEdits --allowedTools "Bash(tools/check-model.sh:*)"
 }
 expert() {
   say "${expert_dir}" "$1" "${expert_id}" "$2" --system-prompt "$(cat "${here}/expert-brief.md")"

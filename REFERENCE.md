@@ -44,7 +44,7 @@ Setup copies the files, records your code style and code and test locations unde
 docs/domain/         Context map, model template and your context files
 docs/ddd/strategic/  10 strategic cards, quoted from Evans' DDD Reference and the DDD Crew
 docs/ddd/cards/      Pattern cards per code style; functional/ holds 20, with Go and TypeScript examples
-tools/               Model checker, approval stamping, workflow status, card checks and lint configs
+tools/               Model checker, workflow status, card checks and lint configs
 ```
 
 Modelling creates `GLOSSARY.md`, the glossary, when the first term is agreed. Several contexts share it, with a heading each, until a word means different things in two of them; then each context gets its own `GLOSSARY.md` and a root `GLOSSARY-MAP.md` links them.
@@ -55,7 +55,7 @@ The kit works without other skills. You need a coding agent that can read skills
 
 | Use | Requirements |
 |---|---|
-| Setup, modelling and approval | A Git repository, Git, Bash and Python 3. The model checker uses Python; approval hashing uses Git |
+| Setup, modelling and approval | A Git repository, Git, Bash and Python 3. The model checker uses Python; the workflow status uses Git |
 | Go implementation with the supplied rules | Go and `golangci-lint`; the reference lint config uses v2 format. Checking the card examples needs Go 1.24 or later and `golangci-lint` v2 |
 | TypeScript implementation with the supplied rules | Node.js, TypeScript, ESLint and `typescript-eslint`, plus your project's test tooling. The reference ESLint config uses flat config and type-aware rules |
 | Model only, or another language | Your project's compiler or runtime, lint and test tools |
@@ -163,7 +163,7 @@ If you tried the technology first in a prototype on another branch, name the bra
 
 ## Review and approval
 
-Modelling stops at the model. Approval is a separate step, and only you can give it. The exact rules are in [lifecycle/approval.md](skills/ddd-modelling/lifecycle/approval.md).
+Modelling writes the model and asks whether you approve it. Only you can. The exact rules are in [lifecycle/approval.md](skills/ddd-modelling/lifecycle/approval.md).
 
 For a strict model, or one with strict commands, review it in a **fresh session** in the same project, so the reviewer did not write it. At standard depth, review is optional.
 
@@ -178,7 +178,7 @@ Use ddd-modelling to address these review findings in
 docs/domain/contexts/ordering.md: [paste the findings].
 ```
 
-If the review found blockers, return to the review session to check the fixes; a review with no blockers needs no further round. The agent then records the review on the `Status:` line as `reviewed <date>`, with the hash it reviewed in the line's comment. If the model changes later, that review is out of date, and only the changed rows need reviewing again. With strict commands, the review also records each strict scope, and approval is refused after a change inside one until it is reviewed again.
+If the review found blockers, return to the review session to check the fixes; a review with no blockers needs no further round. The agent then records the review on the `Status:` line as `, reviewed <date>`. If a strict model, or a strict scope, changes later, the agent removes that note, and only the changed rows need reviewing again.
 
 When you have read the model and are satisfied:
 
@@ -186,9 +186,9 @@ When you have read the model and are satisfied:
 I approve docs/domain/contexts/ordering.md.
 ```
 
-Setup records who may approve (`Approvers:` in `CLAUDE.md`). With more than one name there, add `Approver: <your name>`.
+Any clear yes about the model works; permission to act ("go ahead") does not, and the agent asks once. The agent writes `Status: approved <date>` in the context file and carries on with what you asked for. It does not ask while the model fails its check. At standard depth, approval also accepts the listed assumptions you did not correct.
 
-The agent stamps it with `tools/stamp-model.sh`: `Status: approved by <name> on <date>`, with the model-hash in a comment at the end of the line. The script refuses while the model fails its check. At standard depth, approval also accepts the listed assumptions you did not correct.
+Nothing in the file records who approved or ties the approval to an exact text: git does (`git log -p` on the context file). A code review that finds the model changed in its range without a new approval reports it as a blocker.
 
 ## Implementation
 
@@ -205,7 +205,7 @@ Use ddd-implementation to implement PlaceOrder from
 docs/domain/contexts/ordering.md.
 ```
 
-Implementation works one command at a time. It writes the model's examples as tests first, naming each case `example <n>` after its row, then the types, decision and surrounding code in the style chosen at setup, and runs compile, lint and tests. A draft model, or one changed since approval, stops it until you approve.
+Implementation works one command at a time. It writes the model's examples as tests first, naming each case `example <n>` after its row, then the types, decision and surrounding code in the style chosen at setup, and runs compile, lint and tests. A draft model stops it until you approve; saying so is enough, and it continues.
 
 Code in an area with no model is not blocked: the agent makes the change in the surrounding style and mentions that the area can be modelled. Modelling is needed when a change adds a new context, aggregate or lifecycle.
 
@@ -252,7 +252,7 @@ You approve the updated model once.
 
 A context file follows `docs/domain/contexts/_template.md`. `tools/check-model.sh` requires every section (write `None.` where there is nothing) and checks the structure, but not whether the business rules are right; [lifecycle/checker.md](skills/ddd-modelling/lifecycle/checker.md) lists what it checks and what it does not. Example row numbers are permanent, because tests and tickets refer to them.
 
-The `Status:` line is always written by `tools/stamp-model.sh`. The approval hash covers the whole file except the `Status:` line and the **notes tail**: `## Migration`, `## Amendments` and `## Pending`, in that order, at the end. Writing to the tail never undoes an approval; every other edit does. That is why, at standard depth, a change to the rest of an approved model (a bound, a payload, an edge case) is written as an `## Amendments` row and the approval stands, while a change to the core sets the model back to draft. A model section placed after the tail is an error. The hash does not cover the glossary or the context map: when a change there alters what an approved rule means, the agent shows the affected contexts and asks for approval again. See [lifecycle/notes-tail.md](skills/ddd-modelling/lifecycle/notes-tail.md).
+The agent writes the `Status:` line: `draft`, then `approved <date>` when you approve. A context file ends with the **notes tail**: `## Migration`, `## Amendments` and `## Pending`, in that order. Writing to the tail never undoes an approval. That is why, at standard depth, a change to the rest of an approved model (a bound, a payload, an edge case) is written as an `## Amendments` row and the approval stands, while a change to the core sets the model back to draft. A model section placed after the tail is an error. The glossary and the context map have no status of their own: when a change there alters what an approved rule means, the agent shows the affected contexts and asks for approval again. See [lifecycle/notes-tail.md](skills/ddd-modelling/lifecycle/notes-tail.md).
 
 ## Strategic and pattern cards
 
@@ -262,13 +262,13 @@ The `Status:` line is always written by `tools/stamp-model.sh`. The approval has
 
 ## Optional integrations
 
-With [Matt Pocock's skills](https://github.com/mattpocock/skills) installed, the kit uses `grilling` for interviews, `domain-modeling` for challenging terms while modelling, `tdd` for the failing-test-to-passing-code loop, `to-tickets` for the work around the domain, and `code-review` for the rest of a branch. None is required: without them, the kit's skills carry their own rules for the same work. The glossary is his `GLOSSARY.md`, in his format, so his `domain-modeling`, `tdd` and other skills read and extend the same terms. Domain decisions go in the context file's `## Decisions`, under the approval hash; technical ones are his ADRs in `docs/adr/`.
+With [Matt Pocock's skills](https://github.com/mattpocock/skills) installed, the kit uses `grilling` for interviews, `domain-modeling` for challenging terms while modelling, `tdd` for the failing-test-to-passing-code loop, `to-tickets` for the work around the domain, and `code-review` for the rest of a branch. None is required: without them, the kit's skills carry their own rules for the same work. The glossary is his `GLOSSARY.md`, in his format, so his `domain-modeling`, `tdd` and other skills read and extend the same terms. Domain decisions go in the context file's `## Decisions`, and changing one means approving again; technical ones are his ADRs in `docs/adr/`.
 
 ## Compatibility
 
 - A model with no `Depth:` line is treated as strict.
 - A glossary under its earlier name, `CONTEXT.md` or `CONTEXT-MAP.md` (Matt Pocock's skills before 1.3), is not read: `tools/check-model.sh` fails and gives the `git mv` that fixes it, and `/ddd-setup` does the rename with your agreement. A `CONTEXT.md` left beside a `GLOSSARY.md` gets a warning.
-- An approval recorded without a hash is accepted with a warning and cannot be verified.
+- A `Status:` line written by the earlier `tools/stamp-model.sh` (`approved by <name> on <date>`, with hashes in a comment) still reads as approved. The two scripts are no longer installed; `/ddd-setup` reports them in a repository that has them.
 - Cards installed before the style directories sit directly under `docs/ddd/cards/`. `/ddd-setup` reports them and, with your agreement, moves them into `docs/ddd/cards/functional/`, keeping their Corrections.
 
 ## Developing the kit

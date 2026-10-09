@@ -9,7 +9,7 @@ Turn the approved model in `docs/domain/` into code and tests.
 
 Read [code-style.md](../ddd-modelling/lifecycle/code-style.md), [depth.md](../ddd-modelling/lifecycle/depth.md), [notes-tail.md](../ddd-modelling/lifecycle/notes-tail.md) and [gaps.md](../ddd-modelling/lifecycle/gaps.md) in `../ddd-modelling/lifecycle/` first. They define the code style, effective depth, the notes tail and what to do with a gap, and this file does not repeat them. Read [approval.md](../ddd-modelling/lifecycle/approval.md) or [adoption.md](../ddd-modelling/lifecycle/adoption.md) only when the case below sends you there. Whether or not you open them, these hold:
 
-- Never implement from a draft model, or one edited since approval, and never write an approved status yourself: only the user approves.
+- Never implement from a draft model, and never write an approved status without the user's yes: only the user approves.
 - When the model is missing a state, command, invariant, who may issue a command or what makes a caller or outside fact trusted, or two rules contradict: stop, write the question under `## Pending`, and wait. Never invent the rule in code.
 - At strict depth, or inside a strict scope, every gap stops the work the same way.
 - Never edit the model above its notes tail (`## Migration`, `## Amendments`, `## Pending`).
@@ -51,9 +51,9 @@ If the task needs a pattern that no card covers, say so before writing it, and a
 
 ## Which case applies
 
-**The code belongs to a context with an approved model.** Follow the model, with its `## Amendments`. Run `tools/check-model.sh <file>` first; a changed approved body or a structural error needs correction before implementation. An approved Status line that passes the check was written by `tools/stamp-model.sh` and stands, committed or not: do not ask the user to confirm it. If the glossary or context map conflicts with an approved rule, show the discrepancy and ask for a model update (approval.md).
+**The code belongs to a context with an approved model.** Follow the model, with its `## Amendments`. Run `tools/check-model.sh <file>` first; a structural error needs correction before implementation. An approved Status line that passes the check stands, committed or not: do not ask the user to confirm it. If the glossary or context map conflicts with an approved rule, show the discrepancy and ask for a model update (approval.md).
 
-**The model exists but is a draft, or derived from code and not confirmed.** If the scope is still listed under `## Prototypes`, an adoption is in progress: read [MIGRATION.md](MIGRATION.md) instead. Otherwise stop and say what is needed: the user's approval, and first the review approval.md requires at this depth, unless the Status line has a current one.
+**The model exists but is a draft, or derived from code and not confirmed.** If the scope is still listed under `## Prototypes`, an adoption is in progress: read [MIGRATION.md](MIGRATION.md) instead. Otherwise say that the model is not approved yet and ask whether they approve it; at strict depth, the review approval.md requires comes first, unless the Status line records one. On the user's yes, write the status as approval.md says and continue with the task.
 
 **A recorded prototype, or a step from the migration plan.** The scope is listed under `## Prototypes`, or the task is a step under the context file's `## Migration` and the model is approved: read [MIGRATION.md](MIGRATION.md).
 

@@ -11,7 +11,7 @@ The reason for the hard stop: a wrong business rule is cheap to fix in a model a
 
 Read [lifecycle/depth.md](lifecycle/depth.md) and [lifecycle/notes-tail.md](lifecycle/notes-tail.md) first; read [lifecycle/approval.md](lifecycle/approval.md) and [lifecycle/checker.md](lifecycle/checker.md) before step 6. They define depth, the core and the rest, strict scope, approval, the notes tail and the checker's limits, and this file does not repeat them. Whether or not you open them, these hold:
 
-- Only the user approves a model, with the word "approve". Never write an approved status yourself; `tools/stamp-model.sh approve` writes it, with the approver's name as the user gives it, or the one name on the `Approvers:` line the user wrote; never take it from git config, an account or an email.
+- Only the user approves a model. On a clear yes about the model ("I approve", "approved"), write `Status: approved <date>` and carry on; never write it without one.
 - A strict model, or one with strict commands, is reviewed in a fresh session (`ddd-model-review`) before approval.
 - Never mark the core (states, commands and who may issue them, what makes callers and outside facts trusted, invariants, aggregate boundaries, glossary) `(assumed)`, and never fill it with a placeholder.
 
@@ -80,7 +80,7 @@ _Avoid_: Submitted order
 - When several words exist for one concept, pick one and list the others under `_Avoid_`. The checks search for those words, so a rejected synonym that is not written down will come back.
 - With one context, or several that share their words, there is one `GLOSSARY.md` at the root, with a `# <Context>` heading per context once there are two; an `_Avoid_` under one context's heading applies to that context only, so Billing can avoid a word that Payments uses. Split it into a `GLOSSARY.md` per context and a `GLOSSARY-MAP.md` at the root only when a word means different things in two contexts, or the user asks: `- [Ordering](./src/ordering/GLOSSARY.md): one line on what it is`. How the contexts relate is written only in `docs/domain/context-map.md`: the map's `## Relationships` section is the one line `See docs/domain/context-map.md.` If it holds relationships written by another skill, move each into `docs/domain/context-map.md`, ask about any the two files describe differently, and leave that line in their place.
 - Create the file when the first term is settled, not before.
-- A term is written the moment it is settled, with no separate approval step. Approval hashes cover context files, not the glossary or context map. When a shared definition or relationship changes, identify the affected contexts and show the impact to the user. If it changes an approved rule's meaning, record that change in the context, set it to draft and get approval again. The checker catches some missing names, rejected synonyms, and terms that cross a boundary in the context map but are missing from a side's glossary; it cannot detect a change of meaning.
+- A term is written the moment it is settled, with no separate approval step. Approval is recorded on context files, not on the glossary or context map. When a shared definition or relationship changes, identify the affected contexts and show the impact to the user. If it changes an approved rule's meaning, record that change in the context, set it to draft and get approval again. The checker catches some missing names, rejected synonyms, and terms that cross a boundary in the context map but are missing from a side's glossary; it cannot detect a change of meaning.
 
 ## Write as you go
 
@@ -204,7 +204,7 @@ CancelOrder : DraftOrder | PlacedOrder -> CancelledOrder + [OrderCancelled]
 - **Aggregates**: keep them small. Data belongs in the same aggregate only if a rule requires it to change together. Other aggregates are referenced by ID.
 - **Rules across aggregates**: immediate or eventual. An immediate rule means the things involved are one aggregate, or a database constraint holds it. An eventual rule names the policy that restores it and what the user sees in the meantime.
 - **Policies**: each reaction from the interview: the event, the command it causes, and what happens when that command fails.
-- **Decisions**: the model says what was decided; this section says why. Record a decision only when all three hold: it is hard to reverse, a later reader would be surprised by it, and a real alternative was rejected. Only decisions about the domain go here: a rule, a boundary, a split between contexts. They are under the approval hash, so changing one means approving again. A technical decision (storage, a framework, event sourcing, deployment) is an ADR in `docs/adr/`, as Matt Pocock's `domain-modeling` writes them, and not a Decisions row.
+- **Decisions**: the model says what was decided; this section says why. Record a decision only when all three hold: it is hard to reverse, a later reader would be surprised by it, and a real alternative was rejected. Only decisions about the domain go here: a rule, a boundary, a split between contexts. They are part of the approved model, so changing one means approving again. A technical decision (storage, a framework, event sourcing, deployment) is an ADR in `docs/adr/`, as Matt Pocock's `domain-modeling` writes them, and not a Decisions row.
 
 ## 4. Model it twice
 
@@ -236,13 +236,13 @@ The files are already written.
 2. Present the model for approval as its flow, not as its tables: the numbered steps, and under each step only what the user has to decide or might not expect. Then the open questions, with the unanswered core questions (who may issue a command, what makes a caller or fact trusted, an invariant) first and apart from the rest: the model cannot be approved until those are answered. At standard depth, the assumptions after them. Do not paste tables into the conversation; the user can open the file.
 3. Ask for the review lifecycle/approval.md requires at strict depth or with strict commands.
 
-When the user brings back a review's findings, apply them. At strict depth, a proposed assumption the user accepts is confirmed: write it without the `(assumed)` marker. Once the review has no blockers left, run `tools/stamp-model.sh review <file>`, so a later session does not ask for the review again.
+When the user brings back a review's findings, apply them. At strict depth, a proposed assumption the user accepts is confirmed: write it without the `(assumed)` marker. Once the review has no blockers left, add `, reviewed <date>` to the Status line, so a later session does not ask for the review again.
 
 Never ask again for something the user has answered. An answer is written to the model the moment it is given, in the section it affects, and later rounds, reviews and sessions read it there. Only a choice that meets the three conditions under **Decisions** also gets a Decisions row.
 
-Approval follows lifecycle/approval.md: only the user approves, and `tools/stamp-model.sh` writes the Status line. If the approved model adopts a scope listed under `## Prototypes`, remove that row in the same step, or narrow it to the part still unmodelled.
+Approval follows lifecycle/approval.md: ask, and on the user's yes write `Status: approved <date>`. If the approved model adopts a scope listed under `## Prototypes`, remove that row in the same step, or narrow it to the part still unmodelled.
 
-Stop here. Implementation is a separate step with the `ddd-implementation` skill.
+Then carry on with what the user asked for. If that includes the code, hand over to `ddd-implementation` now, without asking again; otherwise say in one line that implementation is the next step. This skill itself writes no implementation code.
 
 ## Changing a model
 

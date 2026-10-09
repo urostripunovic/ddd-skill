@@ -1,21 +1,21 @@
-"""Usage: check_model.py [--glossary PATH] [--approving] <context-file>...
+"""Usage: check_model.py [--glossary PATH] <context-file>...
 
 Checks selected structural properties: that every section of the template is
 present (with "None." where there is nothing), state-field type references, command
 signature/table agreement, incoming/outgoing command mentions, matrix cells,
 example mentions for commands and decision failures, unique example numbers,
 selected glossary names, rejected synonyms and the terms each context-map row says cross
-this context's boundary, depth override names, approval
-hash boundaries, and that no 'Issued by' cell, invariant or 'Believed when' cell of
+this context's boundary, depth override names, that no model section follows the
+notes tail, and that no 'Issued by' cell, invariant or 'Believed when' cell of
 a fact from outside is marked (assumed) or left as a placeholder such as TBD. For each name on a "Strict commands:" line it
 prints the strict scope: the command's own rows, the rows that name it, and every
 primitive its states and inputs use.
 
 An approved status is checked against its depth. At strict depth it may not rest
-on (assumed) entries, open questions, amendment rows or a missing or out-of-date
-review. With strict commands, the same holds for their strict scope: tools/stamp-model.sh
-review records a hash of each scope, and a new approval is refused when one has changed
-since.
+on (assumed) entries, open questions, amendment rows or a missing review. With strict
+commands, the same holds for their strict scope. The Status line is written by hand
+("approved <date>", then ", reviewed <date>" after a model review), so the check
+cannot tell whether the model changed after it was approved or reviewed: git can.
 
 It does not prove reachability from creation, resolve event/failure payload
 types, judge whether an outside fact's trust rule is sufficient, cover use-case failures or all glossary
@@ -23,17 +23,14 @@ terms, or judge examples against rules. Review those at the chosen depth.
 
 A missing or unconfirmed 'Believed when' cell joined the core after models were approved without
 it, so in an approved model it is a warning, to settle at the next change. It is an
-error in a draft, and with --approving, which tools/stamp-model.sh passes, so no new
-approval rests on it.
+error in a draft, which is where a model is checked before the user is asked to approve.
 
 Exit status is 1 when any problem is found. Lines starting with "warning:" and the
 strict-scope lines do not change the exit status.
 """
-import hashlib
 import os
 import pathlib
 import re
-import subprocess
 import sys
 
 BUILTIN = {"Timestamp", "Boolean", "NonEmpty", "List", "Set", "Map", "Optional"}
@@ -41,36 +38,40 @@ NONE = re.compile(r"^\s*none\b", re.I | re.M)
 PLACEHOLDER = re.compile(r"tbd|tbc|to be (decided|confirmed)|unknown|open( question)?|see open questions|\?+")
 
 
+TAIL = ("Migration", "Amendments", "Pending")
+
+
 def read_status(raw):
-    """The Status line in its long form, "approved by X on D, model-hash H, reviewed D at H", whichever form
-    the file uses. tools/stamp-model.sh writes the hashes in a comment at the end of the line, so the line
-    reads short; models stamped before that have them in the text. None without a Status line."""
+    """The Status line's text: "draft", "approved 2026-10-09", "approved 2026-10-09, reviewed 2026-10-08". None
+    without a Status line. Models approved with the earlier stamping tool carry a name and hashes
+    ("approved by Ann on <date> <!-- model-hash ... -->"); those are dropped here, so such a line still reads as approved."""
     line = re.search(r"^Status:([^\n]*)$", raw, re.M)
     if not line:
         return None
-    hidden = " ".join(re.findall(r"<!--(.*?)-->", line.group(1)))
-    state = re.sub(r"<!--.*?-->", "", line.group(1)).strip().rstrip(",").strip()
-    approved_hash = re.search(r"model-hash\s+([0-9a-f]+)", hidden)
-    review_hash = re.search(r"reviewed at\s+([0-9a-f]+)", hidden)
-    review = re.search(r"\breviewed\s+[^,\s]+", state)
-    if approved_hash and "model-hash" not in state:
-        end = review.start() if review else len(state)
-        state = state[:end].rstrip().rstrip(",") + f", model-hash {approved_hash.group(1)}" + (", " + state[end:] if review else "")
-        review = re.search(r"\breviewed\s+[^,\s]+", state)
-    if review_hash and review and not re.search(r"\breviewed\s+[^,\s]+\s+at\s", state):
-        state = state[:review.end()] + f" at {review_hash.group(1)}" + state[review.end():]
-    return state
+    state = re.sub(r"<!--.*?-->", "", line.group(1))
+    state = re.sub(r",?\s*model-hash\s+[0-9a-f]+", "", state)
+    state = re.sub(r"(\breviewed\s+[^,\s]+)\s+at\s+[0-9a-f]+", r"\1", state)
+    return state.strip().rstrip(",").strip()
 
 
-def reviewed_scopes(raw):
-    """The strict-scope hashes tools/stamp-model.sh review recorded in the Status line's comment, as {command: hash}."""
-    line = re.search(r"^Status:([^\n]*)$", raw, re.M)
-    hidden = " ".join(re.findall(r"<!--(.*?)-->", line.group(1))) if line else ""
-    return dict(re.findall(r"\bscope\s+(\w+)\s+([0-9a-f]+)", hidden))
-
-
-def scope_hash(cells):
-    return hashlib.sha1("\n".join(cells).encode()).hexdigest()[:12]
+def sections_after_tail(text):
+    """(line number, heading) for each '#' or '##' heading below the first notes-tail heading that is not one itself.
+    A heading inside a fenced code block is an example, not a section."""
+    found, tail, fence = [], False, None
+    for number, line in enumerate(text.splitlines(), 1):
+        marker = re.match(r"^ {0,3}(`{3,}|~{3,})(.*)$", line)
+        if marker:
+            run, rest = marker.groups()
+            if fence is None:
+                fence = run
+            elif run[0] == fence[0] and len(run) >= len(fence) and not rest.strip():
+                fence = None
+        elif fence is None:
+            if re.fullmatch(rf"## ({'|'.join(TAIL)})\s*", line):
+                tail = True
+            elif tail and re.match(r"^#{1,2} ", line):
+                found.append((number, line.strip()))
+    return found
 
 
 def unconfirmed(cell):
@@ -278,24 +279,12 @@ def strict_scope(command, signature, subs, examples, primitives, defs, policies)
     return command, parts, cells, names
 
 
-def check_approval(state, hashed, depth, strict_commands, scopes, top, assumed, err, warnings, reviewed, approving):
+def check_approval(state, depth, strict_commands, scopes, top, assumed, err, warnings):
     """What an approved status may rest on. Strict depth is held to 'everything confirmed and reviewed'."""
-    actual = hashed.stdout.strip() if hashed.returncode == 0 else None
-    review = re.search(r"\breviewed\s+[^,\s]+(?:\s+at\s+([0-9a-f]+))?", state)
-    review_hash = review.group(1) if review else None
-    stale = bool(review_hash and actual and review_hash != actual)
-    restamp = "review the changed rows with ddd-model-review, then run tools/stamp-model.sh review <file>"
-
     if not state.lower().startswith("approved"):
-        if stale:
-            warnings.append(f"the review on the Status line is of model-hash {review_hash}; the model has changed since, so {restamp}")
         return
-
-    recorded = re.search(r"model-hash\s+([0-9a-f]+)", state)
-    if not recorded:
-        err("approved without a model-hash, so the approval cannot be verified; approve with tools/stamp-model.sh approve <file> <name>")
-    elif actual and actual != recorded.group(1):
-        err(f"edited after approval: the Status line records model-hash {recorded.group(1)}, the file now hashes to {actual}")
+    review = re.search(r"\breviewed\s+[^,\s]+", state)
+    add_review = "run ddd-model-review in a fresh session, then add ', reviewed <date>' to the Status line"
 
     questions = find(top, "Open questions")
     open_questions = bool(questions and questions.strip() and not NONE.search(questions))
@@ -312,11 +301,7 @@ def check_approval(state, hashed, depth, strict_commands, scopes, top, assumed, 
         if amendments:
             err(f"strict depth, {len(amendments)} amendment row(s): at strict depth a gap stops implementation and changes the model through ddd-modelling")
         if not review:
-            err("strict depth, approved without a review: run ddd-model-review in a fresh session, then tools/stamp-model.sh review <file>")
-        elif not review_hash:
-            warnings.append("the review on the Status line names no model-hash, so it cannot be tied to this version of the model")
-        elif stale:
-            err(f"strict depth: the review is of model-hash {review_hash}, the approved model is {actual}; {restamp}")
+            err(f"strict depth, approved without a review: {add_review}")
         return
 
     if open_questions:
@@ -330,46 +315,32 @@ def check_approval(state, hashed, depth, strict_commands, scopes, top, assumed, 
                     if any(re.search(rf"\b{re.escape(name)}\b", " ".join(row.values())) for name in names)]
         if touching:
             err(f"strict scope of {command}: {len(touching)} amendment row(s) touch it; a gap in a strict scope changes the model through ddd-modelling")
-    if strict_commands:
-        if not review:
-            err("approved with strict commands, but their strict scope was not reviewed: run ddd-model-review, then tools/stamp-model.sh review <file>")
-        elif not review_hash:
-            warnings.append("the review on the Status line names no model-hash, so it cannot be tied to this version of the model")
-        elif stale and not reviewed:
-            # A review stamped before scope hashes were recorded: the tool cannot tell which rows changed.
-            warnings.append(f"the review is of model-hash {review_hash}, the approved model is {actual}. If the change touched a strict scope, "
-                            f"{restamp}; if it touched none, re-stamp the review and say so")
-        elif stale:
-            changed = [command for command, _, cells, _ in scopes if reviewed.get(command) != scope_hash(cells)]
-            if changed:
-                message = (f"the strict scope of {', '.join(changed)} changed after the review (model-hash {review_hash}), "
-                           f"or was never reviewed; {restamp}")
-                # Only a new approval is refused: a model approved before scopes were hashed keeps its approval.
-                (err if approving else warnings.append)(message)
+    if strict_commands and not review:
+        err(f"approved with strict commands, but their strict scope was not reviewed: {add_review}")
 
 
-def check(path, glossary_override, approving=False, scope_hashes=None):
-    """Returns problems, warnings and notes. A dict passed as scope_hashes receives a hash of each strict scope's rows."""
+def check(path, glossary_override):
+    """Returns problems, warnings and notes."""
     problems, warnings, notes = [], [], []
     err = problems.append
     raw = path.read_text()
-    text = re.sub(r"<!--.*?-->", "", raw, flags=re.S)
+    text = re.sub(r"<!--.*?-->", lambda m: "\n" * m.group().count("\n"), raw, flags=re.S)
 
     title = re.search(r"^# Context:\s*(.+)$", text, re.M)
     context = title.group(1).strip() if title else path.stem
     top = split(text, "## ")
 
-    hasher = pathlib.Path(__file__).with_name("model-hash.sh")
-    hashed = subprocess.run([str(hasher), str(path)], capture_output=True, text=True)
-    if hashed.returncode:
-        err("model hash failed: " + (hashed.stderr.strip() or "no diagnostic"))
+    # The notes tail is written after approval and read apart from the model, so a model section below it would be
+    # missed by every reader that stops at the tail.
+    for number, heading in sections_after_tail(text):
+        err(f"line {number}: '{heading}' comes after the notes tail (Migration, Amendments, Pending); move it before the tail")
 
     state = read_status(raw)
     status = re.match(r"(.+)", state) if state else None
     if not status:
         err("no Status line")
     # A rule added to the core after approval is settled at the next change, not by breaking the approval.
-    earlier_approval = bool(status and status.group(1).lower().startswith("approved") and not approving)
+    earlier_approval = bool(status and status.group(1).lower().startswith("approved"))
 
     depth = re.search(r"^Depth:\s*(.+)$", text, re.M)
     if depth and depth.group(1).strip() not in ("standard", "strict"):
@@ -625,10 +596,7 @@ def check(path, glossary_override, approving=False, scope_hashes=None):
         err(f"Strict commands names {name!r}, which has no command signature")
 
     if status:
-        check_approval(status.group(1), hashed, depth, strict_commands, scopes, top, assumed, err, warnings,
-                       reviewed_scopes(raw), approving)
-    if scope_hashes is not None:
-        scope_hashes.update({command: scope_hash(cells) for command, _, cells, _ in scopes})
+        check_approval(status.group(1), depth, strict_commands, scopes, top, assumed, err, warnings)
 
     glossary, found = load_glossary(path, context, glossary_override)
     if glossary is not None and glossary.name == "GLOSSARY.md" and (glossary.parent / "CONTEXT.md").exists():
@@ -665,8 +633,6 @@ def check(path, glossary_override, approving=False, scope_hashes=None):
 
 def main(argv):
     glossary = None
-    approving = "--approving" in argv
-    argv = [a for a in argv if a != "--approving"]
     if argv[:1] == ["--glossary"]:
         glossary, argv = argv[1], argv[2:]
     if not argv:
@@ -674,7 +640,7 @@ def main(argv):
         return 2
     failed = False
     for name in argv:
-        problems, warnings, notes = check(pathlib.Path(name), glossary, approving)
+        problems, warnings, notes = check(pathlib.Path(name), glossary)
         for message in notes:
             print(f"{name}: {message}")
         for message in warnings:

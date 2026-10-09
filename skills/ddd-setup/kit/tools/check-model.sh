@@ -4,7 +4,7 @@
 # Checks that every template section is present, selected type/signature
 # references, incoming/outgoing command mentions, matrix agreement,
 # command/decision-failure example mentions, unique example numbers, selected
-# glossary names, depth overrides and approval hash boundaries, rejects an
+# glossary names, depth overrides and the place of the notes tail, rejects an
 # unconfirmed 'Issued by' or invariant, and prints the
 # strict scope of each strict command. See check_model.py for the limits: a
 # passing check does not establish model completeness or correctness.
