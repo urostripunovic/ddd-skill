@@ -1,7 +1,10 @@
 # Changelog
 
-## Unreleased
+## 0.4.0 (2026-10-19)
 
+The tag `v0.3.0` was pushed without release notes or a version bump. Its one change is the first entry below, so 0.4.0 lists everything since 0.2.0.
+
+- **`ddd-modelling` asks who owns each part before modelling it.** "Is any of this decided by another model, team or system?" A part with its own model becomes another context on the context map, and only what crosses the boundary is modelled. Before, the interview modelled everything it heard, including values another model owns.
 - **TypeScript brands on object types use an unexported symbol.** Cards 02 (`Money`) and 14 (`Actor`) branded an object type with `readonly __brand: "..."`, which anyone can type into an object literal: `{ kind: "customer", id, __brand: "Actor" }` compiled and forged an actor. They now use a `unique symbol` the module does not export. `ts/README.md` says when a string brand is safe (on a `string` or `number`) and when it is not. The clean TypeScript fixture had copied the pattern for `Actor` and `CustomerEmail`; it is fixed, with a compile-time test for each.
 - **Model changes go through `ddd-modelling`, by an instruction in `CLAUDE.md`.** A request that names no skill ("raise the limit to 2000", "I approve the model") did not load `ddd-modelling`, and the session edited the model directly: in the guard probes it changed the body of an approved model with no Amendments row, and approved a strict model that had no review. `ddd-setup` now writes a line under `## Domain code` sending every change to `docs/domain/` through the skill. With it, the three failing probes went from 1 of 6 to 6 of 6.
 - **`tools/check-model.sh` no longer reads types out of field names.** In a command's Input column, `toolId: ToolId` reported a type named `Id`, and `missingPartsCharge: Kronor` one named `PartsCharge`, each as undefined. The check now matches a type name only at the start of a word.
