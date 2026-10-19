@@ -49,6 +49,8 @@ Score a seeded violation as **caught** when the report names the same problem at
 
 The linters report some of these on their own: D4, D8 and D9, the logging in S6, and the `throw` and `new Date()` in D15. The reviewers do not run the linters, because CI and `ddd-implementation` do. A seed counts as caught when the report names it; one the report leaves out but the linters report is scored **lint**, not missed.
 
+`tools/check-range.sh <base>` reports four more on its own: D1 as `model changed` (exit status 1), and, to judge, D2 (`SubmittedOrder` contains the avoided "Submitted order"), D12 (rows 1 to 10 untested) and D16 (the disabled exhaustiveness rule in `order.ts`). A seed the report leaves out but the script reports is scored **check**, not missed. On the clean fixtures the script exits 0: nothing for Go, and for TypeScript only the commented casts in the parsers and the `@ts-expect-error` tests, which are listed to judge and are correct.
+
 ## Controls: must not be reported
 
 | ID | Where | Why it is correct |

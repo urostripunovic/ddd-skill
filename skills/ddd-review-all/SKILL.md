@@ -22,6 +22,7 @@ If you have no tool for starting sub-agents, say so and stop. Tell the user to r
 2. Resolve both ends to full commit hashes with `git rev-parse`. The range is `<base>...<head>`.
 3. Confirm that `git diff --stat <base>...<head>` is not empty. A bad ref or an empty diff should stop here, not inside three sub-agents.
 4. If the working tree has uncommitted changes, tell the user they will not be reviewed, and ask whether to continue or commit first.
+5. If the repository has `tools/check-range.sh`, run it once on the range and save its output to `<tmp>/range-check.txt`, outside the repository. It is the mechanical part of every reviewer's checks (a model changed without approval, avoided words, suppressions, loosened lint configs, untested example rows), so it runs once here instead of in each reviewer.
 
 ## 1b. Full or standard
 
@@ -76,6 +77,7 @@ Give each sub-agent a prompt containing only:
 - for the DDD reviewer only: the absolute path of a file outside the repository and outside the worktree, `<tmp>/ddd-tracing.md`, as the place to write its complete tracing tables
 - for the standard review: also the absolute path of `../secure-by-design-review/SKILL.md`, with the instruction to read and apply only its sections **Authorisation**, **Sensitive data** and **Input at the boundary**, to tag those findings `[SbD]` with that skill's severities, and to say under what it did not check that the rest of that checklist and its abuse attempts were not run, instead of saying that security was not reviewed
 - the absolute path of a file outside the repository and outside the worktree, `<tmp>/<reviewer>-report.md`, with the instruction to write its full report there and to return only its verdict, its number of blockers and that path
+- the absolute path of `<tmp>/range-check.txt`, when step 1 made it, stated as that script's output for this range
 - the part to review, when the user named one
 - for a re-review (see **7. What comes next**): the path of that reviewer's earlier report, stated as a re-review of the fix commits
 

@@ -141,6 +141,8 @@ All of these pass, run by you, before you report the work as finished:
 - lint, with the project's rules and the kit's rules when that setup supplies them
 - tests, covering the examples and acceptance criteria for this command or ticket; aggregate completion also needs the property test, where the setup calls for one (above)
 
+If the repository has `tools/check-range.sh`, run it against the base branch too. A `model changed` problem must be settled before the work is reported done; look at each item it lists to judge, and name in the summary the ones you keep.
+
 If an expected linter or config is not set up, say so instead of skipping it silently. Model-only and cards-without-examples modes use the project's own checks and need no kit lint config. If you created a new domain directory and the project uses the kit's domain lint rules, add it to their domain paths, the places marked `DOMAIN-PATHS` that [ddd-setup](../ddd-setup/SKILL.md) step 4 names, so the rules apply to it. In the summary, distinguish this ticket's completion from any remaining storage, adapter, race-test or property-test work.
 
 Never make a check pass by weakening it:
