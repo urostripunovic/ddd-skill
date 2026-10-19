@@ -13,7 +13,7 @@
 ### Upgrading
 
 - Copy `tools/check_model.py`, `tools/ddd_status.py`, `tools/check-range.sh`, `tools/check_range.py` and `docs/domain/contexts/_light-template.md` from the kit, or run `/ddd-setup` again.
-- Extend the line under `## Domain code` in `CLAUDE.md` or `AGENTS.md` with: "The one exception: `ddd-implementation` adds the Requests and Examples rows of a light context (`Depth: light`) alongside its code." Without it, a session that reads the line sends every light row through `ddd-modelling`.
+- Extend the line under `## Domain code` in `CLAUDE.md` or `AGENTS.md` with: "`ddd-implementation` writes only what its skill says it does: rows in a context file's notes tail (`## Migration`, `## Amendments`, `## Pending`), and the Requests and Examples rows of a light context (`Depth: light`) alongside its code." Without it, a session that reads the line sends every light row through `ddd-modelling`. Name the notes tail too: in a guard probe, a line that named only the light rows as an exception stopped implementation from writing its `## Pending` row.
 
 ## 0.4.0 (2026-10-19)
 

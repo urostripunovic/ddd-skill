@@ -62,7 +62,7 @@ If the task needs a pattern that no card covers, say so before writing it, and a
 - If the user is not there to answer, build the proposal, mark the row's Facts `(assumed)`, and say in the summary which rows rest on a guess.
 - If the change meets one of [depth.md](../ddd-modelling/lifecycle/depth.md)'s reasons to move up (something on the strict list, another context reacting to these facts, a second lifecycle, more than about a dozen rows), stop and offer `ddd-modelling` to move the context up before going on.
 
-The order of work below still holds, with the rows as the examples: one request at a time, its rows as tests first.
+The order of work below still holds, with the rows as the examples: one request at a time, its rows as tests first. After adding rows, run `tools/check-model.sh <file>` again; the work is not done while it fails.
 
 **The model exists but is a draft, or derived from code and not confirmed.** If the scope is still listed under `## Prototypes`, an adoption is in progress: read [MIGRATION.md](MIGRATION.md) instead. Otherwise say that the model is not approved yet and ask whether they approve it; at strict depth, the review approval.md requires comes first, unless the Status line records one. On the user's yes, write the status as approval.md says and continue with the task.
 

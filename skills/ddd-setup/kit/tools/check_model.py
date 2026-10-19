@@ -326,7 +326,8 @@ def check_approval(state, depth, strict_commands, scopes, top, assumed, err, war
 def request_name(cell):
     """'TunnelEntered(loadout)' -> 'TunnelEntered'. None for a starting state ('none', empty)."""
     cell = (cell or "").strip().strip("`")
-    if not cell or NONE.match(cell):
+    # "any request" or "every request": one rule for all of them, such as a finished run refusing everything.
+    if not cell or NONE.match(cell) or re.match(r"(any|every)\b", cell, re.I):
         return None
     found = re.match(r"[A-Za-z][A-Za-z0-9]*", cell)
     return found.group() if found else cell

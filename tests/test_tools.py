@@ -843,6 +843,10 @@ class ToolTests(unittest.TestCase):
                 self.assertNotEqual(result.returncode, 0, result.stdout)
                 self.assertIn(message, result.stdout)
 
+    def test_light_row_may_answer_every_request_alike(self):
+        result = self.light(LIGHT.replace("\n\n## Open questions", "\n| 5 | Won or Lost | any request | RequestRefused(RunOver) | |\n\n## Open questions"))
+        self.assertEqual(result.returncode, 0, result.stdout)
+
     def test_light_warns_on_what_is_still_open(self):
         text = LIGHT.replace("| ArenaCleared | run.test.ts: example 1 |", "| ArenaCleared (assumed) | |")
         result = self.light(text)

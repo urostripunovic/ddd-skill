@@ -20,7 +20,8 @@ Depth: light
 
 <!-- One row per rule: the state, the request, the facts the rules decide, and the test that pins it, named
      "example <n>". Row numbers are permanent: a new row takes the next unused number, a removed row leaves a gap.
-     Write "none" in Request for a starting state, and "none" in Facts for a request that is already answered. -->
+     Write "none" in Request for a starting state, "any request" for a rule that answers every request alike, and "none"
+     in Facts for a request that is already answered. -->
 
 | # | State | Request | Facts | Test |
 |---|---|---|---|---|

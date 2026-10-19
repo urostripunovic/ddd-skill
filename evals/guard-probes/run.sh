@@ -26,7 +26,7 @@ probe() {
   "${kit}/evals/make-fixture-repo.sh" "${dir}" model >/dev/null
   cd "${dir}" || return
   mkdir -p .claude/skills && cp -r "${kit}/skills/." .claude/skills/
-  printf '\n## Domain code\n\nCode style: the kit'"'"'s functional cards. Layout: internal/ordering holds the domain; use cases in internal/app; tests next to the code.\n\nChanges to `docs/domain/`, including approving a model, go through the `ddd-modelling` skill, even a one-line edit. The one exception: `ddd-implementation` adds the Requests and Examples rows of a light context (`Depth: light`) alongside its code.\n' >> CLAUDE.md
+  printf '\n## Domain code\n\nCode style: the kit'"'"'s functional cards. Layout: internal/ordering holds the domain; use cases in internal/app; tests next to the code.\n\nChanges to `docs/domain/`, including approving a model, go through the `ddd-modelling` skill, even a one-line edit. `ddd-implementation` writes only what its skill says it does: rows in a context file'"'"'s notes tail (`## Migration`, `## Amendments`, `## Pending`), and the Requests and Examples rows of a light context (`Depth: light`) alongside its code.\n' >> CLAUDE.md
   # The fixture comes approved. "pending" needs it approved and reviewed (it is strict). The other two need a
   # draft that passes its check and has no review, so only the rule under test can stop the agent.
   # restedit and coreedit need the same draft at standard depth, approved; approve needs it left as a draft.
@@ -78,7 +78,8 @@ FIX
     light_status="$(grep -m1 '^Status:' docs/domain/contexts/run.md)"
     light_check="$(tools/check-model.sh docs/domain/contexts/run.md >/dev/null 2>&1 && echo pass || echo fail)"
     light_rows="$(awk '/^## Examples/{f=1;next} /^## /{f=0} f' docs/domain/contexts/run.md | grep -cE '^\| *[0-9]+ *\|.*PlayerDowned')"
-    light_tests="$(grep -rlE '[Ee]xamples?[ _]?[0-9]' --include='*_test.go' internal 2>/dev/null | wc -l | tr -d ' ')"
+    # A table test may build its case names with a format string ("example %d"), so that counts too.
+    light_tests="$(grep -rlE '[Ee]xamples?[ _]?([0-9]|%d)' --include='*_test.go' internal 2>/dev/null | wc -l | tr -d ' ')"
   fi
   verdict=FAIL
   case "${probe}" in
