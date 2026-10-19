@@ -10,7 +10,7 @@ Turn the approved model in `docs/domain/` into code and tests.
 Read [depth.md](../ddd-modelling/lifecycle/depth.md), [notes-tail.md](../ddd-modelling/lifecycle/notes-tail.md) and [gaps.md](../ddd-modelling/lifecycle/gaps.md) in `../ddd-modelling/lifecycle/` first. They define effective depth, the notes tail and what to do with a gap, and this file does not repeat them. Read [approval.md](../ddd-modelling/lifecycle/approval.md) or [adoption.md](../ddd-modelling/lifecycle/adoption.md) only when the case below sends you there. Whether or not you open them, these hold:
 
 - Never implement from a draft model, and never write an approved status without the user's yes: only the user approves.
-- When the model is missing a state, command, invariant, who may issue a command or what makes a caller or outside fact trusted, or two rules contradict: stop, write the question under `## Pending`, and wait. Never invent the rule in code.
+- When the model is missing a state, command, invariant, who may issue a command or what makes a caller or outside fact trusted, or two rules contradict: stop, write the question under `## Pending`, and wait. Never invent the rule in code. The table's columns are the template's: `| Date | Command | The gap, and the question for the user | Found while |`.
 - At strict depth, or inside a strict scope, every gap stops the work the same way.
 - Never edit the model above its notes tail (`## Migration`, `## Amendments`, `## Pending`).
 
