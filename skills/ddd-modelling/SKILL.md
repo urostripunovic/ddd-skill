@@ -98,6 +98,8 @@ Whichever way you ask: a proposal is not a fact. If the user does not confirm it
 
 **Follow the timeline first.** People describe their business as things that happen, so open with the events: "what happens first, and then?" Collect the whole sequence before going deep on any part of it.
 
+**Then ask who owns each part.** "Is any of this decided by another model, team or system?" A part with its own model is another context: put it on the context map and model only what crosses the boundary.
+
 **Then one event at a time.** For each: what triggers it, who may trigger it and on whose data, what must be true before, what can go wrong, which data it needs that lives somewhere else, and who needs to know that it happened.
 
 **Ask what the timeline hides.** A timeline shows one thing after another, done by people, to one thing. Five kinds of question find the rest:
