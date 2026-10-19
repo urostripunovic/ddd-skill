@@ -173,7 +173,7 @@ If you tried the technology first in a prototype on another branch, name the bra
 
 ## Review and approval
 
-Modelling writes the model and asks whether you approve it. Only you can. The exact rules are in [lifecycle/approval.md](skills/ddd-modelling/lifecycle/approval.md).
+Modelling writes the model and asks whether you approve it. Only you can. At standard depth you are asked when the core is new or changes (states, commands, who may issue them, what makes callers and outside data trusted, invariants, aggregate boundaries, the meaning of a term), and at no other time: assumptions are listed for you to correct, and changes to the rest are recorded as amendments while work goes on. Light depth has no approval; strict asks for every change. The exact rules are in [lifecycle/approval.md](skills/ddd-modelling/lifecycle/approval.md).
 
 For a strict model, or one with strict commands, review it in a **fresh session** in the same project, so the reviewer did not write it. At standard depth, review is optional.
 

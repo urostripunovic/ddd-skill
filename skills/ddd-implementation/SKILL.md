@@ -52,7 +52,7 @@ If the task needs a pattern that no card covers, say so before writing it, and a
 
 ## Which case applies
 
-**The code belongs to a context with an approved model.** Follow the model, with its `## Amendments`. Run `tools/check-model.sh <file>` first; a structural error needs correction before implementation. An approved Status line that passes the check stands, committed or not: do not ask the user to confirm it. If the glossary or context map conflicts with an approved rule, show the discrepancy and ask for a model update (approval.md).
+**The code belongs to a context with an approved model.** Follow the model, with its `## Amendments`. At standard effective depth, only a gap in the core stops the work and asks for approval again; anything else is decided, tested and recorded as an amendment, and work goes on (gaps.md). Run `tools/check-model.sh <file>` first; a structural error needs correction before implementation. An approved Status line that passes the check stands, committed or not: do not ask the user to confirm it. If the glossary or context map conflicts with an approved rule, show the discrepancy and ask for a model update (approval.md).
 
 **The code belongs to a light context** (`Depth: light`). There is nothing to approve: do not ask. Run `tools/check-model.sh <file>` and fix what it reports in the rows. Then, for the change:
 

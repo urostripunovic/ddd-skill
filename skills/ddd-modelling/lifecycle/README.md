@@ -6,7 +6,7 @@ The rules every ddd skill shares, one topic per file, so that each skill reads o
 |---|---|
 | [Is the kit in use?](adoption.md) | 108 |
 | [Depth](depth.md) | 382 |
-| [Status and approval](approval.md) | 498 |
+| [Status and approval](approval.md) | 582 |
 | [The notes tail](notes-tail.md) | 202 |
 | [When to ask](triggers.md) | 418 |
 | [When code learns what the model did not say](gaps.md) | 312 |
