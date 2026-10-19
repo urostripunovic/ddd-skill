@@ -1,10 +1,14 @@
 # Changelog
 
-## Unreleased
+## 0.5.0 (2026-10-19)
 
-- **`ddd-implementation` names the `## Pending` columns.** One run wrote its own columns, which tools reading the table could not use.
-- **`secure-by-design-review` compares code with the approved model.** When the range changes primitive rules, bounds or other entries above the notes tail without a new approval, it compares against the version before the change and reports the edit as a blocker. Before, it took the edited rule as the one in force.
 - **`ddd-review` no longer compiles, lints or tests the change.** That is `ddd-implementation`'s and CI's job. The review still reads the diff for suppressions and loosened lint configs, which CI cannot see, and its break-it attempts still compile and run tests. The section is now called "Checks switched off". In the review eval, a seed the reviewer leaves to the linters is scored **lint**, not missed.
+- **`secure-by-design-review` compares code with the approved model.** When the range changes primitive rules, bounds or other entries above the notes tail without a new approval, it compares against the version before the change and reports the edit as a blocker. Before, it took the edited rule as the one in force.
+- **`ddd-implementation` names the `## Pending` columns.** One run wrote its own columns, which tools reading the table could not use.
+
+### Upgrading
+
+- Update the plugin, or copy `skills/` again. Nothing in your repository's `docs/`, `tools/` or `CLAUDE.md` changes. If CI does not already compile, lint and test domain code, add it: `ddd-review` no longer does.
 
 ## 0.4.0 (2026-10-19)
 
