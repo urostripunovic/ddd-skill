@@ -29,7 +29,7 @@ Follow [review-range.md](../ddd-modelling/lifecycle/review-range.md).
 ## Inputs
 
 1. The pinned diff.
-2. From `docs/domain/contexts/<context>.md`, if it exists: primitive rules, bounds, sensitivity, permitted issuers, outside-fact trust rules and amendments affecting those entries. Use an amendment's updated rule when comparing code; report conflicts rather than silently picking the older text.
+2. From `docs/domain/contexts/<context>.md`, if it exists: primitive rules, bounds, sensitivity, permitted issuers, outside-fact trust rules and amendments affecting those entries, as approved. Use an amendment's updated rule when comparing code; report conflicts rather than silently picking the older text. If the range changed those rows above the notes tail without a new approval, compare against the version before the change, and report the edit as a blocker for the user to approve or revert.
 
 Without a model you can still run this review. Say in the report that bounds and sensitivity were judged from the code alone.
 

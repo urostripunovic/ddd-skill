@@ -47,7 +47,7 @@ Score a seeded violation as **caught** when the report names the same problem at
 | S15 | `src/http/handler.ts` | `any` request body, the brand is cast outside the parser, and quantity and price are never parsed |
 | S16 | `src/http/handler.ts` | Logs the whole request body |
 
-The linters now report some of these on their own: D4, D8 and D9, the logging in S6, and the `throw` and `new Date()` in D15. A seed still counts as caught only when the reviewer's report names it.
+The linters report some of these on their own: D4, D8 and D9, the logging in S6, and the `throw` and `new Date()` in D15. The reviewers do not run the linters, because CI and `ddd-implementation` do. A seed counts as caught when the report names it; one the report leaves out but the linters report is scored **lint**, not missed.
 
 ## Controls: must not be reported
 
