@@ -50,11 +50,10 @@ Rows under the context file's `## Amendments` are part of the model for this rev
 
 An amendment inside a strict scope (as `tools/check-model.sh` prints it), or in a context at strict depth, should have been a `## Pending` row and a reapproval, so it is a finding. A missing `Depth:` means strict. Depth does not relax conformance to rules already written. Flag a changed glossary definition or context-map relationship that changes an approved rule's meaning; the Status line does not cover them.
 
-## Mechanical checks
+## Checks switched off
 
-Run these first. They are cheap and they are where agents cut corners.
+Compiling, linting and testing the change is `ddd-implementation`'s and CI's job, not this review's. Read the diff for what those checks cannot see, because it is where agents cut corners:
 
-- Compile, lint and tests, with the project's own commands.
 - Search the diff for checks switched off in passing (a lint or type-check suppression comment, a skipped test) and judge each one.
 - Check that lint configs were not loosened in the same change: a rule removed, a domain path narrowed so the domain rules no longer reach the code, a test exemption widened.
 
@@ -144,4 +143,4 @@ After the findings:
 
 Write both tracing tables in full to a file outside the repository, `ddd-review-<first 12 characters of the head hash>.md` in the system's temporary directory, and give its path. If you were told where to write it, write it there.
 
-What was not checked includes, for example, "lint not run: no config in the repository", and that security was not reviewed here.
+What was not checked includes, for example, that security was not reviewed here.

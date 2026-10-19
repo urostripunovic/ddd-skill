@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- **`ddd-review` no longer compiles, lints or tests the change.** That is `ddd-implementation`'s and CI's job. The review still reads the diff for suppressions and loosened lint configs, which CI cannot see, and its break-it attempts still compile and run tests. The section is now called "Checks switched off". In the review eval, a seed the reviewer leaves to the linters is scored **lint**, not missed.
+
 ## 0.4.0 (2026-10-19)
 
 The tag `v0.3.0` was pushed without release notes or a version bump. Its one change is the first entry below, so 0.4.0 lists everything since 0.2.0.
