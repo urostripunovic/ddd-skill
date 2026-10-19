@@ -17,7 +17,7 @@ Write the context file with `Status: light` and `Depth: light` as soon as you kn
 
 ## Later questions
 
-Further rules are not collected up front. When a change raises a question the rows do not answer, it is asked then, with a proposal, and the answer becomes a new row with the next unused number, written with its test. `ddd-implementation` does this as it goes; [lifecycle/gaps.md](lifecycle/gaps.md) has the rule.
+Further rules are not collected up front. When a change raises a question the rows do not answer, or hits a trigger in [lifecycle/triggers.md](lifecycle/triggers.md), it is asked then, with a proposal, and the answer becomes a new row with the next unused number, written with its test. `ddd-implementation` does this as it goes; [lifecycle/gaps.md](lifecycle/gaps.md) has the rule.
 
 ## Moving up
 

@@ -9,7 +9,7 @@ Produce a domain model the user approves. Write no implementation code in this s
 
 The reason for the hard stop: a wrong business rule is cheap to fix in a model and expensive to fix in code. Agents tend to fill gaps while implementing; this skill makes those decisions visible first. How the code is then written is not this skill's concern.
 
-Read [lifecycle/depth.md](lifecycle/depth.md) and [lifecycle/notes-tail.md](lifecycle/notes-tail.md) first; read [lifecycle/approval.md](lifecycle/approval.md) and [lifecycle/checker.md](lifecycle/checker.md) before step 6. They define depth, the core and the rest, strict scope, approval, the notes tail and the checker's limits, and this file does not repeat them. Whether or not you open them, these hold:
+Read [lifecycle/depth.md](lifecycle/depth.md), [lifecycle/notes-tail.md](lifecycle/notes-tail.md) and [lifecycle/triggers.md](lifecycle/triggers.md) first; read [lifecycle/approval.md](lifecycle/approval.md) and [lifecycle/checker.md](lifecycle/checker.md) before step 6. They define depth, the core and the rest, strict scope, approval, the notes tail and the checker's limits, and this file does not repeat them. Whether or not you open them, these hold:
 
 - Only the user approves a model. On a clear yes about the model ("I approve", "approved"), write `Status: approved <date>` and carry on; never write it without one.
 - A strict model, or one with strict commands, is reviewed in a fresh session (`ddd-model-review`) before approval.
@@ -84,13 +84,13 @@ If you are resuming, read the glossary and `docs/domain/` first and continue fro
 
 ## 1. Interview
 
-You do not know this domain. The user or their domain expert does. The model is found in this step; the later steps only write it down, so do not hurry through it.
+You do not know this domain. The user or their domain expert does. The model is found in this step; the later steps only write it down, so do not hurry through it. The interview comes before the code at every depth. What changes with depth is how much of it comes first: at standard depth, ask what the work in front of you needs, and come back when the work raises more (lifecycle/triggers.md).
 
 - **Ask about the core. Propose the rest.** For a bound, a payload, a race or an edge case, write your best guess into the model marked `(assumed)` and do not ask. Ask about something in the rest only when a wrong guess would lose money or data, expose something, or be hard to undo. Never mark the core `(assumed)`, and never fill it with a placeholder such as "TBD": `tools/check-model.sh` rejects an assumed or placeholder "Issued by" cell, invariant or "Believed when" cell. A core question still unanswered goes under open questions, and the model does not pass the check until the user answers it.
 - **Stop after each round.** End every round with a checkpoint of a few lines: the flow as it stands now, numbered, and under it what is still unclear. The user reads the flow and says where it is wrong. The next round is about the unclear points and nothing else; do not open new subjects while one is unclear.
-- **About three rounds.** If the core is not settled by then, say what is still unclear and ask whether to go on or to continue with it under open questions. Do not keep asking to reach completeness.
+- **Ask about the work in front of you.** Collect the whole timeline, which is cheap, but go deep only on the commands this work needs: the user's flow, or the change they asked for. For those, ask the core always and the rest only where lifecycle/triggers.md's triggers apply. Usually one or two rounds; if the core is not settled after about three, say what is still unclear and ask whether to go on or to continue with it under open questions. Do not keep asking to reach completeness. Later work that raises a new question comes back here for that question alone, and does not reopen the rest.
 
-**How to ask.** If a skill named `grilling` is available, call the Skill tool with "grilling" and use the rest of this section as what to grill about; it supplies the format of a round. This file decides when to stop: about three rounds, with the rest proposed and marked `(assumed)`, takes precedence over grilling's rule that the session ends when every branch is visited. If it is not, ask this way:
+**How to ask.** If a skill named `grilling` is available, call the Skill tool with "grilling" and use the rest of this section as what to grill about; it supplies the format of a round. This file decides what to ask and when to stop: the work in front of you, the triggers, and the rest proposed and marked `(assumed)`, take precedence over grilling's rule that the session ends when every branch is visited. If it is not, ask this way:
 
 - Work in rounds. A round holds every question you can ask now without guessing an answer you have not heard yet. Number the questions, and wait for the answers before the next round.
 - Give a proposed answer with every question. Correcting a proposal is quicker for the user than composing an answer.
@@ -102,9 +102,9 @@ Whichever way you ask: a proposal is not a fact. If the user does not confirm it
 
 **Then ask who owns each part.** "Is any of this decided by another model, team or system?" A part with its own model is another context: put it on the context map and model only what crosses the boundary.
 
-**Then one event at a time.** For each: what triggers it, who may trigger it and on whose data, what must be true before, what can go wrong, which data it needs that lives somewhere else, and who needs to know that it happened.
+**Then one event at a time**, for the events this work needs. For each: what triggers it, who may trigger it and on whose data, what must be true before, what can go wrong, which data it needs that lives somewhere else, and who needs to know that it happened.
 
-**Ask what the timeline hides.** A timeline shows one thing after another, done by people, to one thing. Five kinds of question find the rest:
+**Ask what the timeline hides, where a trigger applies.** A timeline shows one thing after another, done by people, to one thing. Five kinds of question find the rest. Ask each for a command this work needs when lifecycle/triggers.md says the command raises it; **Edges** is the core and is always asked:
 
 - **Reactions.** "Whenever this has happened, what has to happen next, and who or what does it?" Each answer is a policy.
 - **Time.** For every state that is not final: "what happens if nothing happens, and after how long?" Deadlines, expiry and reminders are commands that a scheduler issues. Write the answer under the States block, one line per state that is not final, including "no expiry".
@@ -135,7 +135,7 @@ A rule stated in general terms sounds complete until a specific case hits it. Wr
 
 **Bounds.** How many, how long, how large, which characters. Every primitive needs bounds, and "no limit" is not an answer. Propose them all at once ("I will use these unless you object") and mark them `(assumed)`; a bound the user states is theirs and is not marked.
 
-**The interview is done when** the timeline is whole, every state and command is named with who may issue it, every caller and outside fact says what makes it trusted, and every invariant is stated with one example. Ask whether anything is missing from the timeline at the end of the last checkpoint; the answer comes with the user's corrections. If the person who would know is not available, leave the item under open questions and do not keep asking.
+**The interview is done when** the timeline is whole, and for the commands this work needs every state and command is named with who may issue it, every caller and outside fact says what makes it trusted, every invariant is stated with one example, and every trigger they raise has its answer, proposed or confirmed. Ask whether anything is missing from the timeline at the end of the last checkpoint; the answer comes with the user's corrections. If the person who would know is not available, leave the item under open questions and do not keep asking.
 
 ## 2. Bounded contexts
 

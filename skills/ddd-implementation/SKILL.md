@@ -7,7 +7,7 @@ description: "Implement an approved domain model and its examples as tests. Use 
 
 Turn the approved model in `docs/domain/` into code and tests.
 
-Read [depth.md](../ddd-modelling/lifecycle/depth.md), [notes-tail.md](../ddd-modelling/lifecycle/notes-tail.md) and [gaps.md](../ddd-modelling/lifecycle/gaps.md) in `../ddd-modelling/lifecycle/` first. They define effective depth, the notes tail and what to do with a gap, and this file does not repeat them. Read [approval.md](../ddd-modelling/lifecycle/approval.md) or [adoption.md](../ddd-modelling/lifecycle/adoption.md) only when the case below sends you there. Whether or not you open them, these hold:
+Read [depth.md](../ddd-modelling/lifecycle/depth.md), [notes-tail.md](../ddd-modelling/lifecycle/notes-tail.md), [gaps.md](../ddd-modelling/lifecycle/gaps.md) and [triggers.md](../ddd-modelling/lifecycle/triggers.md) in `../ddd-modelling/lifecycle/` first. They define effective depth, the notes tail and what to do with a gap, and this file does not repeat them. Read [approval.md](../ddd-modelling/lifecycle/approval.md) or [adoption.md](../ddd-modelling/lifecycle/adoption.md) only when the case below sends you there. Whether or not you open them, these hold:
 
 - Never implement from a draft model, and never write an approved status without the user's yes: only the user approves.
 - When the model is missing a state, command, invariant, who may issue a command or what makes a caller or outside fact trusted, or two rules contradict: stop, write the question under `## Pending`, and wait. Never invent the rule in code. The table's columns are the template's: `| Date | Command | The gap, and the question for the user | Found while |`.
@@ -57,7 +57,7 @@ If the task needs a pattern that no card covers, say so before writing it, and a
 **The code belongs to a light context** (`Depth: light`). There is nothing to approve: do not ask. Run `tools/check-model.sh <file>` and fix what it reports in the rows. Then, for the change:
 
 - Read the rows the change touches. A rule with a row is implemented as the row says, with the row's test named `example <n>`.
-- A question the rows do not answer is asked now, one round, each question with a proposed answer, and the answer is written as a new row with the next unused number, in the same change as its code and test. Never renumber a row; a removed row leaves a gap.
+- A question the rows do not answer, or a trigger in triggers.md the change hits, is asked now, one round, each question with a proposed answer, and the answer is written as a new row with the next unused number, in the same change as its code and test. Never renumber a row; a removed row leaves a gap.
 - A new request gets a Requests row. Who or what may make it is asked, never assumed.
 - If the user is not there to answer, build the proposal, mark the row's Facts `(assumed)`, and say in the summary which rows rest on a guess.
 - If the change meets one of [depth.md](../ddd-modelling/lifecycle/depth.md)'s reasons to move up (something on the strict list, another context reacting to these facts, a second lifecycle, more than about a dozen rows), stop and offer `ddd-modelling` to move the context up before going on.
@@ -152,7 +152,7 @@ In your final summary, list every suppression comment you added and why. Then re
 
 ## When the model does not fit
 
-Implementation always learns something the model did not say. Handle each gap as gaps.md describes, by what it is and the effective depth: stop with a `## Pending` row, or settle it with a test and an `## Amendments` row.
+Implementation always learns something the model did not say. Before writing a command, check it against triggers.md: a trigger it hits that the model does not answer is a gap found early. Handle each gap as gaps.md describes, by what it is and the effective depth: stop with a `## Pending` row, or settle it with a test and an `## Amendments` row.
 
 In your final summary, list every amendment and pending row you recorded, and say that `ddd-modelling` settles the pending ones and can fold in the amendments. The code and the model must not drift apart silently.
 
