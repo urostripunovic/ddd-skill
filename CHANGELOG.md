@@ -4,9 +4,11 @@
 
 - **TypeScript brands on object types use an unexported symbol.** Cards 02 (`Money`) and 14 (`Actor`) branded an object type with `readonly __brand: "..."`, which anyone can type into an object literal: `{ kind: "customer", id, __brand: "Actor" }` compiled and forged an actor. They now use a `unique symbol` the module does not export. `ts/README.md` says when a string brand is safe (on a `string` or `number`) and when it is not. The clean TypeScript fixture had copied the pattern for `Actor` and `CustomerEmail`; it is fixed, with a compile-time test for each.
 - **Model changes go through `ddd-modelling`, by an instruction in `CLAUDE.md`.** A request that names no skill ("raise the limit to 2000", "I approve the model") did not load `ddd-modelling`, and the session edited the model directly: in the guard probes it changed the body of an approved model with no Amendments row, and approved a strict model that had no review. `ddd-setup` now writes a line under `## Domain code` sending every change to `docs/domain/` through the skill. With it, the three failing probes went from 1 of 6 to 6 of 6.
+- **`tools/check-model.sh` no longer reads types out of field names.** In a command's Input column, `toolId: ToolId` reported a type named `Id`, and `missingPartsCharge: Kronor` one named `PartsCharge`, each as undefined. The check now matches a type name only at the start of a word.
 
 ### Upgrading
 
+- Copy `tools/check_model.py` from the kit, or run `/ddd-setup` again.
 - Add this line under `## Domain code` in `CLAUDE.md` or `AGENTS.md`: "Changes to `docs/domain/`, including approving a model, go through the `ddd-modelling` skill, even a one-line edit."
 - In TypeScript domain code that followed cards 02 or 14, replace each `readonly __brand: "X"` on an object type with `readonly [xBrand]: true`, where `const xBrand: unique symbol = Symbol("X")` is not exported. Brands on `string` and `number` stay as they are.
 
