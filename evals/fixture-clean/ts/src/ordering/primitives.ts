@@ -58,8 +58,12 @@ export function parsePrice(minor: number): Result<Price, "invalid-price"> {
 // Sensitive in the model. A branded string would be printed by any log line or
 // JSON.stringify that reached it, so the address is held in a closure and every
 // way of printing or serialising the value gives a placeholder.
+// Keyed by a symbol this module does not export: a string brand could be typed into an
+// object literal anywhere, with a reveal() of its own, and skip the parser.
+const customerEmailBrand: unique symbol = Symbol("CustomerEmail");
+
 export type CustomerEmail = {
-  readonly __brand: "CustomerEmail";
+  readonly [customerEmailBrand]: true;
   // For the adapter that has to send or store the address. Nothing else calls it.
   readonly reveal: () => string;
   readonly toString: () => string;
@@ -77,7 +81,7 @@ export function parseCustomerEmail(raw: string): Result<CustomerEmail, "invalid-
   return {
     ok: true,
     value: Object.freeze({
-      __brand: "CustomerEmail",
+      [customerEmailBrand]: true,
       reveal: () => raw,
       toString: () => EMAIL_PLACEHOLDER,
       toJSON: () => EMAIL_PLACEHOLDER,

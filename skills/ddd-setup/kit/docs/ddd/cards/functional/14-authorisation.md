@@ -18,7 +18,7 @@
 
 - Both: the workflow's signature. It cannot be called without an actor.
 - Go: the actor variants are unexported, so another package cannot name one or build one; it can only call `Authenticate`. `gochecksumtype` makes the switch over actor kinds exhaustive.
-- TypeScript: the actor is branded and ESLint bans `as`, so an object literal is not an actor. `switch-exhaustiveness-check` makes the switch exhaustive.
+- TypeScript: the actor is branded with a symbol only its module can name, and ESLint bans `as`, so an object literal is not an actor. A string brand (`__brand: "Actor"`) can be typed into a literal and forges one. `switch-exhaustiveness-check` makes the switch exhaustive.
 
 ## Anti-pattern
 

@@ -10,6 +10,7 @@ import {
   parseSku,
   parseTimestamp,
   sameCustomer,
+  type CustomerEmail,
 } from "../src/ordering/primitives.ts";
 import type { Result } from "../src/ordering/result.ts";
 import { must } from "./support.ts";
@@ -104,9 +105,16 @@ await test("CustomerEmail never prints or serialises its address", () => {
   // No property holds the address, so nothing that walks the object can find it.
   assert.deepEqual(
     Object.values(customer).filter((value) => typeof value === "string"),
-    ["CustomerEmail"],
+    [],
   );
   assert.equal(customer.reveal(), address);
+});
+
+await test("CustomerEmail cannot be written as an object literal", () => {
+  const forged = { __brand: "CustomerEmail", reveal: () => "victim@example.com", toString: () => "", toJSON: () => "" } as const;
+  // @ts-expect-error -- this is the test: only parseCustomerEmail() can make a CustomerEmail
+  const accepted: CustomerEmail = forged;
+  assert.equal(accepted.reveal(), "victim@example.com");
 });
 
 await test("CustomerEmail is compared by address", () => {

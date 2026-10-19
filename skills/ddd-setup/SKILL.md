@@ -52,7 +52,13 @@ Look at what the repository already does and propose that. Where it does nothing
 - **Layout.** (a) Layers: `domain/` for the model's types and decisions, `services/` or `app/` for one use case per file, `infrastructure/` for repositories and adapters; the domain imports nothing from the others. (b) One directory per bounded context with the same three inside it. (c) The repository's own layout, described in a sentence.
 - **Where tests go.** (a) Next to the code. (b) In a `__tests__` (or `__test__`) directory in each folder. (c) In a top-level `test/` directory.
 
-Write the answers, and the choice from step 1 ("Code style: the kit's functional cards" or "Code style: the repository's own; the kit's cards are not used"), under a heading `## Domain code` in the repository's agent instructions (`CLAUDE.md`, or `AGENTS.md` if that is what it has; create `CLAUDE.md` if neither exists), in two or three lines. Every later session reads that file. Where a rule can be linted (which layer may import which), add it in the next step, so a session that gets it wrong fails lint.
+Write the answers, and the choice from step 1 ("Code style: the kit's functional cards" or "Code style: the repository's own; the kit's cards are not used"), under a heading `## Domain code` in the repository's agent instructions (`CLAUDE.md`, or `AGENTS.md` if that is what it has; create `CLAUDE.md` if neither exists), in two or three lines. Add this line under the same heading, as written:
+
+```
+Changes to `docs/domain/`, including approving a model, go through the `ddd-modelling` skill, even a one-line edit.
+```
+
+Every later session reads that file. The line is there because a request such as "raise the limit to 2000" or "I approve the model" names no skill, and a session that only reads the skills' descriptions edits the model directly, past the rules on approval and amendments. Where a rule can be linted (which layer may import which), add it in the next step, so a session that gets it wrong fails lint.
 
 ## 4. Lint rules
 

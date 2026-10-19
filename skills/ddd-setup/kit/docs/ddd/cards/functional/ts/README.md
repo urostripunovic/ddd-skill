@@ -5,6 +5,7 @@ How the kit's patterns are written in TypeScript. Read this once before writing 
 ## Idioms
 
 - Domain primitive: branded type plus a `parse...` function returning `Result`.
+- Brands: a `string & { readonly __brand: "X" }` brand is safe, because no object literal is a string. A brand on an object type (a value object, an actor, a wrapper around a secret) must be keyed by a `unique symbol` the module does not export; a string `__brand` property there can be typed into a literal anywhere.
 - Sum type: discriminated union, handled with a `switch` ending in `assertNever`.
 - Every field and array is `readonly`.
 - Types do not exist at runtime. Every boundary parses from `unknown`.

@@ -338,6 +338,19 @@ class ToolTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("takes Voucher, which is neither a primitive nor a defined type", result.stdout)
 
+    def test_input_field_names_are_not_read_as_types(self):
+        # "couponCode: Coupon" once yielded a type named Code from inside the field name.
+        model = (MODEL.replace("## Domain primitives\n\nNone.",
+                               "## Domain primitives\n\n| Name | Underlying type | Rules | Why | Sensitive? |\n|---|---|---|---|---|\n"
+                               "| Coupon | string | 1..20 | codes | no |")
+                 .replace("| Command | Issued by | Notes |\n|---|---|---|\n| StartOrder | customer | |\n| PlaceOrder | customer | |",
+                          "| Command | Issued by | Input | Notes |\n|---|---|---|---|\n| StartOrder | customer | none | |\n"
+                          "| PlaceOrder | customer | couponCode: Coupon, giftCouponId: Coupon | |"))
+        self.model.write_text(model)
+        result = self.run_tool("check-model.sh", self.model)
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.assertNotIn("neither a primitive nor a defined type", result.stdout)
+
     def test_status_line_from_the_stamping_tool_still_reads(self):
         # Models approved with the earlier stamp-model.sh carry a name and hashes. They stay approved, the hashes are
         # ignored, and nothing compares them with the text any more.

@@ -68,6 +68,12 @@ async function actorFor(address: string): Promise<Actor> {
   return must(await authenticate(() => Promise.resolve({ ok: true, value: { customer: email(address) } })));
 }
 
+await test("an actor cannot be written as an object literal", () => {
+  // @ts-expect-error -- this is the test: only authenticate() can make an Actor
+  const forged: Actor = { kind: "customer", email: email("victim@example.com"), __brand: "Actor" };
+  assert.equal(forged.kind, "customer");
+});
+
 type Fixture = {
   readonly deps: Deps;
   readonly orders: MemOrders;

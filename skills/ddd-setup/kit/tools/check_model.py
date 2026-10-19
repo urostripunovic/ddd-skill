@@ -114,7 +114,8 @@ def code(body):
 
 
 def names_in(cell):
-    return re.findall(r"[A-Z][A-Za-z0-9]*", cell or "")
+    # The word boundary stops a camelCase field name ("couponCode") yielding a type ("Code").
+    return re.findall(r"\b[A-Z][A-Za-z0-9]*", cell or "")
 
 
 def words(name):

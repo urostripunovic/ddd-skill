@@ -36,7 +36,7 @@ Everything the [README](README.md) leaves out. The rules the skills themselves f
 | Cards without examples | Model templates, checker, strategic cards and pattern cards | Adapts the cards to your language's idioms, best effort. No language examples or lint rules |
 | Model only | Model templates, checker and strategic cards. Recommended when your project already has a consistent code style | Follows your existing style, using the model's rules and examples, and your project's own checks |
 
-Setup copies the files, records your code style and code and test locations under `## Domain code` in `CLAUDE.md` or `AGENTS.md`, and merges the lint rules into your configs. It never overwrites a file, installs no programs or dependencies, and reports missing tools.
+Setup copies the files, records your code style, code and test locations, and that model changes go through `ddd-modelling` under `## Domain code` in `CLAUDE.md` or `AGENTS.md`, and merges the lint rules into your configs. It never overwrites a file, installs no programs or dependencies, and reports missing tools.
 
 ### What setup installs
 
@@ -73,7 +73,7 @@ skills/ddd-setup/install.sh --lang none /path/to/your-project    # cards without
 skills/ddd-setup/install.sh --model-only /path/to/your-project   # model only
 ```
 
-Without flags, the script detects languages from `go.mod` and `tsconfig.json`; for an empty project, name them. It copies the files and, with cards, adds `.cards-check/` to `.gitignore`. The rest is yours to do: record the code style and code and test locations under `## Domain code` in your agent instructions, merge the rules from `tools/lint/` into your own configs, and set their `DOMAIN-PATHS` placeholders to your domain directories. Leave the copies in `tools/lint/` unchanged: `tools/check-cards.sh` uses them.
+Without flags, the script detects languages from `go.mod` and `tsconfig.json`; for an empty project, name them. It copies the files and, with cards, adds `.cards-check/` to `.gitignore`. The rest is yours to do: record the code style, code and test locations, and the line "Changes to `docs/domain/`, including approving a model, go through the `ddd-modelling` skill, even a one-line edit." under `## Domain code` in your agent instructions, merge the rules from `tools/lint/` into your own configs, and set their `DOMAIN-PATHS` placeholders to your domain directories. Leave the copies in `tools/lint/` unchanged: `tools/check-cards.sh` uses them.
 
 ## Terms
 
