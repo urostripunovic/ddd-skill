@@ -66,6 +66,10 @@ for round in $(seq 1 "${max_rounds}"); do
   turn=next
   printf '\n## Expert\n\n%s\n' "${answer}" >> "${transcript}"
   case "${answer}" in *"END OF INTERVIEW"*) break ;; esac
+  # The expert sometimes signs off ("Bye.") instead of writing the marker, and the two
+  # sessions then trade goodbyes until max-rounds. Two short answers in a row end it.
+  if [ "${#answer}" -lt 80 ]; then short=$((${short:-0} + 1)); else short=0; fi
+  [ "${short}" -ge 2 ] && break
   question="$(interviewer next "${answer}")"
 done
 
