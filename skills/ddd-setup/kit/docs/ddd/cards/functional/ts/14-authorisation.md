@@ -17,20 +17,21 @@ export type Claims = { readonly subject: CustomerId; readonly support: boolean }
 // for a credential it has checked: a signature, a session lookup.
 export type VerifyCredential = () => Promise<Result<Claims, "not-authenticated">>;
 
-type Authenticated = { readonly __brand: "Actor" };
+// A string brand ({ __brand: "Actor" }) can be typed out in an object literal anywhere,
+// which forges an actor. Only this module can name an unexported symbol.
+const actorBrand: unique symbol = Symbol("Actor");
 
 export type Actor =
-  | ({ readonly kind: "customer"; readonly id: CustomerId } & Authenticated)
-  | ({ readonly kind: "support-agent" } & Authenticated);
+  | { readonly kind: "customer"; readonly id: CustomerId; readonly [actorBrand]: true }
+  | { readonly kind: "support-agent"; readonly [actorBrand]: true };
 
 export async function authenticate(verify: VerifyCredential): Promise<Result<Actor, "not-authenticated">> {
   const claims = await verify();
   if (!claims.ok) return claims;
-  const unbranded = claims.value.support
-    ? { kind: "support-agent" }
-    : { kind: "customer", id: claims.value.subject };
-  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- the brand is applied only here, after the credential was verified
-  return { ok: true, value: unbranded as Actor };
+  const actor: Actor = claims.value.support
+    ? { kind: "support-agent", [actorBrand]: true }
+    : { kind: "customer", id: claims.value.subject, [actorBrand]: true };
+  return { ok: true, value: actor };
 }
 
 export type DraftOrder = {

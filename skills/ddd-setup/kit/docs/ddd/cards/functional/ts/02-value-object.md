@@ -9,19 +9,23 @@ export type Result<T, E> =
 
 export type Currency = "SEK" | "EUR";
 
+// A string brand ({ __brand: "Money" }) can be typed out in an object literal anywhere,
+// skipping money(). Only this module can name an unexported symbol, so only it can make a Money.
+const moneyBrand: unique symbol = Symbol("Money");
+
 export type Money = {
   readonly minor: bigint;
   readonly currency: Currency;
-  readonly __brand: "Money";
+  readonly [moneyBrand]: true;
 };
 
 export function money(minor: bigint, currency: Currency): Result<Money, "negative-amount"> {
   if (minor < 0n) return { ok: false, error: "negative-amount" };
-  return { ok: true, value: { minor, currency, __brand: "Money" } };
+  return { ok: true, value: { minor, currency, [moneyBrand]: true } };
 }
 
 export function add(a: Money, b: Money): Result<Money, "currency-mismatch"> {
   if (a.currency !== b.currency) return { ok: false, error: "currency-mismatch" };
-  return { ok: true, value: { minor: a.minor + b.minor, currency: a.currency, __brand: "Money" } };
+  return { ok: true, value: { minor: a.minor + b.minor, currency: a.currency, [moneyBrand]: true } };
 }
 ```

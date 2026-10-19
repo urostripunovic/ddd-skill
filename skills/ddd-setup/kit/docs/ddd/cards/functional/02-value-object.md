@@ -14,7 +14,7 @@
 ## Enforced by
 
 - Go: unexported fields; `exhaustive` on the currency switch.
-- TypeScript: `readonly` fields plus a brand, so an object literal with the right shape is not accepted as `Money`.
+- TypeScript: `readonly` fields plus a brand keyed by a symbol the module does not export, so an object literal with the right shape is not accepted as `Money`. A string brand (`__brand: "Money"`) does not do this: anyone can type it.
 
 ## Anti-pattern
 
