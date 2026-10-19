@@ -25,7 +25,7 @@ probe() {
   "${kit}/evals/make-fixture-repo.sh" "${dir}" model >/dev/null
   cd "${dir}" || return
   mkdir -p .claude/skills && cp -r "${kit}/skills/." .claude/skills/
-  printf '\n## Domain code\n\nCode style: the kit'"'"'s functional cards. Layout: internal/ordering holds the domain; use cases in internal/app; tests next to the code.\n' >> CLAUDE.md
+  printf '\n## Domain code\n\nCode style: the kit'"'"'s functional cards. Layout: internal/ordering holds the domain; use cases in internal/app; tests next to the code.\n\nChanges to `docs/domain/`, including approving a model, go through the `ddd-modelling` skill, even a one-line edit.\n' >> CLAUDE.md
   # The fixture comes approved. "pending" needs it approved and reviewed (it is strict). The other two need a
   # draft that passes its check and has no review, so only the rule under test can stop the agent.
   # restedit and coreedit need the same draft at standard depth, approved; approve needs it left as a draft.
