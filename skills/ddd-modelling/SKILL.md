@@ -26,13 +26,15 @@ Carry on with the request without this skill, and say in one line what it could 
 ## Which mode
 
 - **Building a model**: asked to model something new, or to change a model. Follow this file.
+- **Moving a light context up**: when a light context meets one of depth.md's reasons to move up, or the user asks. Read [ADOPTING.md](ADOPTING.md#moving-a-light-context-up).
 - **Adopting existing code**: optional, and only when the user asks for it. It derives a draft model from the code that is already there. When domain code exists with no model and the user has not said which they want, ask once: derive a draft from the code, or model from the interview alone. If they choose the code, read [ADOPTING.md](ADOPTING.md) and follow it; it uses the interview and the notation from this file. Otherwise follow this file, and treat the existing code as one more source of facts. That includes a spike on another branch: if the user tried the technology first, ask where, read it for what it showed is possible and how the outside systems behave, and do not treat its structure as something to keep.
 - **Reviewing a model**: that is the `ddd-model-review` skill, in a fresh session.
 
 ## How deep
 
-A model is worth what it saves later, and no more. This file describes **standard** depth: you ask about the core and propose the rest. The depths and what each settles are in lifecycle/depth.md. Reuse the recorded depth when resuming. For a new model, use the depth the user requested; otherwise use standard, or strict when the work is strict by that file's table, and say which in one line of the first round so the user can change it. Write it on the context file's `Depth:` line.
+A model is worth what it saves later, and no more: depth follows what it costs to be wrong. This file describes **standard** depth: you ask about the core and propose the rest. The depths and what each settles are in lifecycle/depth.md. Reuse the recorded depth when resuming. For a new model, use the depth the user requested; otherwise use standard, or strict when the work is strict by that file's table, and say which in one line of the first round so the user can change it. Where that file's table fits light (being wrong is cheap, and nothing outside reacts), mention in the same line that light is an option. Write it on the context file's `Depth:` line.
 
+- **Light**: read [LIGHT.md](LIGHT.md) and follow it instead of the steps below. A light context is a Requests table and an Examples table, written alongside the code, with no approval step.
 - **Strict**: read [STRICT.md](STRICT.md) before the interview. It says what each step below does differently at strict depth.
 - **Strict commands**: when part of a standard context is strict, write `Strict commands: ChargePayment, RefundPayment` under `Depth:`, using command names from the model, and show the user the strict scope `tools/check-model.sh` prints for each. Omit the line when there are none. STRICT.md applies inside those scopes.
 - **None (a spike)**: do not model. Record the named scope and code paths, if known, under `## Prototypes` in `docs/domain/context-map.md` (or the agent instructions, without a map). Say in one line that the code can be adopted later with [ADOPTING.md](ADOPTING.md), and carry on with the request without this skill.

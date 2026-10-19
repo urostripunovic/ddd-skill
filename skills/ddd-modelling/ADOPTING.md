@@ -50,3 +50,14 @@ When the code uses names the glossary lists under `_Avoid_`, add a rename step o
 List the discrepancies from step 3 that were judged to be bugs, as separate items. Fixing behaviour and restructuring code are different changes and should not share a commit.
 
 Stop here. Each migration step is implemented with `ddd-implementation`.
+
+## Moving a light context up
+
+A light context (`Depth: light`) already has confirmed requests, issuers and rows, and code with tests that name them. Moving it to standard is this file's steps 2 and 3 with less to derive:
+
+- Keep every Examples row and its number. The standard Examples table's columns map one to one: State is Given, Request is When, Facts is Then, and Covers names the command the request became. Tests named `example <n>` stay true.
+- Derive from the code and the rows what light did not write: states, commands with their signatures, the matrix, invariants, failures and the rest of the template. A request becomes a command; its "Issued by" carries over as it was confirmed.
+- Ask about the core the rows did not settle, as SKILL.md does at standard depth, and propose the rest marked `(assumed)`.
+- Set `Depth: standard`, or add `Strict commands:` for the part that made it move up, and `Status: draft`. The new core is approved like any other (lifecycle/approval.md); until then, `ddd-implementation` treats the context as a draft.
+
+No migration plan is needed when the code already does what the rows say: say so.

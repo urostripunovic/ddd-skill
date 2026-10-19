@@ -35,6 +35,8 @@ Take the first row that applies to the chosen context. Use the context's file pa
 | 12 | `amendments` above 0, nothing above applies | `Use ddd-modelling to fold the amendments in <file> into the model.` |
 | 13 | nothing above applies | The context is done. Name the next context that needs something, or say that the whole repository is up to date |
 
+A light context (`status: light`) is never approved or reviewed: rows 6 to 8 do not apply to it, and its example rows feed row 10 like any other's.
+
 A row about the model (4 to 8) comes before a row about code: code built on a model that is not approved is built on guesses.
 
 The test column is a match on test names (`example 3`, `TestExamples3And4`). A row "without" a test may have one under another name. If the user says it is done, say once that naming the case `example <n>` lets the status see it, and move on to the next row.

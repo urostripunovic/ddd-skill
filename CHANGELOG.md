@@ -2,9 +2,16 @@
 
 ## Unreleased
 
+- **Light depth, between none and standard.** A light context is a Requests table (who or what may make each request, never assumed) and a numbered Examples table (state, request, facts, the test that pins it), written alongside the code with no approval step. It comes from a game prototype built this way, where the rules stayed modular with no approval rounds and the safety came from tests, lint and types. The interview still comes first, in one short round; later questions are asked when a change raises them, and each answer is a new row with its test. It moves to standard, or strict for the part that needs it, when a request touches money, credentials, authorisation, personal data or anything hard to undo, another context reacts to its facts, it gains a second lifecycle, it outgrows about a dozen rows, or the user asks; the rows keep their numbers. `tools/check-model.sh` checks a light context's two tables, `tools/ddd-status.sh` reads its rows, `ddd-to-tickets` cuts one ticket per request, and `ddd-review-all` gives it the standard review. Strict depth and strict scopes are unchanged.
+
 - **`ddd-implementation` names the `## Pending` columns.** One run wrote its own columns, which tools reading the table could not use.
 - **`secure-by-design-review` compares code with the approved model.** When the range changes primitive rules, bounds or other entries above the notes tail without a new approval, it compares against the version before the change and reports the edit as a blocker. Before, it took the edited rule as the one in force.
 - **`ddd-review` no longer compiles, lints or tests the change.** That is `ddd-implementation`'s and CI's job. The review still reads the diff for suppressions and loosened lint configs, which CI cannot see, and its break-it attempts still compile and run tests. The section is now called "Checks switched off". In the review eval, a seed the reviewer leaves to the linters is scored **lint**, not missed.
+
+### Upgrading
+
+- Copy `tools/check_model.py`, `tools/ddd_status.py` and `docs/domain/contexts/_light-template.md` from the kit, or run `/ddd-setup` again.
+- Extend the line under `## Domain code` in `CLAUDE.md` or `AGENTS.md` with: "The one exception: `ddd-implementation` adds the Requests and Examples rows of a light context (`Depth: light`) alongside its code." Without it, a session that reads the line sends every light row through `ddd-modelling`.
 
 ## 0.4.0 (2026-10-19)
 

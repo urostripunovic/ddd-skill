@@ -73,7 +73,7 @@ skills/ddd-setup/install.sh --lang none /path/to/your-project    # cards without
 skills/ddd-setup/install.sh --model-only /path/to/your-project   # model only
 ```
 
-Without flags, the script detects languages from `go.mod` and `tsconfig.json`; for an empty project, name them. It copies the files and, with cards, adds `.cards-check/` to `.gitignore`. The rest is yours to do: record the code style, code and test locations, and the line "Changes to `docs/domain/`, including approving a model, go through the `ddd-modelling` skill, even a one-line edit." under `## Domain code` in your agent instructions, merge the rules from `tools/lint/` into your own configs, and set their `DOMAIN-PATHS` placeholders to your domain directories. Leave the copies in `tools/lint/` unchanged: `tools/check-cards.sh` uses them.
+Without flags, the script detects languages from `go.mod` and `tsconfig.json`; for an empty project, name them. It copies the files and, with cards, adds `.cards-check/` to `.gitignore`. The rest is yours to do: record the code style, code and test locations, and the line "Changes to `docs/domain/`, including approving a model, go through the `ddd-modelling` skill, even a one-line edit. The one exception: `ddd-implementation` adds the Requests and Examples rows of a light context (`Depth: light`) alongside its code." under `## Domain code` in your agent instructions, merge the rules from `tools/lint/` into your own configs, and set their `DOMAIN-PATHS` placeholders to your domain directories. Leave the copies in `tools/lint/` unchanged: `tools/check-cards.sh` uses them.
 
 ## Terms
 
@@ -128,9 +128,17 @@ Depth controls how much you confirm before coding. It is a sentence in your prom
 
 | Depth | What you confirm |
 |---|---|
+| `light` | Who may make each request, and each rule as a numbered example with its test. Nothing else is written, and there is no approval. For an area where a wrong rule is cheap to find and fix: nothing on the strict list, and no other context reacts to it. One short interview round, then further questions as each change raises them |
 | `standard` | The usual choice. You confirm the **core**: states, commands, who may issue them, what makes callers and outside data trusted, invariants, aggregate boundaries and terms. The agent proposes the rest, such as limits and edge cases, marks it `(assumed)` and shows one list to correct. Who may issue a command and the invariants are never assumed: the checker rejects them until you answer. About three interview rounds; review is optional |
 | `strict` | The details too: limits, failures, concurrent actions that conflict, worked examples. A review in a fresh session before approval. Recommended for money, credentials, authorisation, personal data and anything hard to undo |
 | `none` | Postpone modelling for a prototype. The scope is recorded under `## Prototypes` in the context map, and no model is written. Ask your agent separately to write the prototype; it can be adopted into a model later |
+
+A light context is a Requests table and an Examples table (`docs/domain/contexts/_light-template.md`), written alongside the code: `ddd-implementation` adds a row, with its test, whenever a change raises a question and you answer it. It moves to standard, or strict for the part that needs it, when a request touches something on the strict list, another context reacts to its facts, it gains a second lifecycle, it outgrows about a dozen rows, or you ask; the rows keep their numbers, so their tests stay true. See [LIGHT.md](skills/ddd-modelling/LIGHT.md).
+
+```text
+Use ddd-modelling at light depth for the run's rules:
+which arena you are in, clearing it, and moving on.
+```
 
 Make single commands strict inside a standard context:
 
@@ -250,7 +258,7 @@ You approve the updated model once.
 
 ## The context file
 
-A context file follows `docs/domain/contexts/_template.md`. `tools/check-model.sh` requires every section (write `None.` where there is nothing) and checks the structure, but not whether the business rules are right; [lifecycle/checker.md](skills/ddd-modelling/lifecycle/checker.md) lists what it checks and what it does not. Example row numbers are permanent, because tests and tickets refer to them.
+A context file follows `docs/domain/contexts/_template.md`, or `_light-template.md` at light depth. `tools/check-model.sh` requires every section (write `None.` where there is nothing) and checks the structure, but not whether the business rules are right; [lifecycle/checker.md](skills/ddd-modelling/lifecycle/checker.md) lists what it checks and what it does not. Example row numbers are permanent, because tests and tickets refer to them.
 
 The agent writes the `Status:` line: `draft`, then `approved <date>` when you approve. A context file ends with the **notes tail**: `## Migration`, `## Amendments` and `## Pending`, in that order. Writing to the tail never undoes an approval. That is why, at standard depth, a change to the rest of an approved model (a bound, a payload, an edge case) is written as an `## Amendments` row and the approval stands, while a change to the core sets the model back to draft. A model section placed after the tail is an error. The glossary and the context map have no status of their own: when a change there alters what an approved rule means, the agent shows the affected contexts and asks for approval again. See [lifecycle/notes-tail.md](skills/ddd-modelling/lifecycle/notes-tail.md).
 

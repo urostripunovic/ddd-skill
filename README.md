@@ -65,6 +65,15 @@ Use ddd-modelling at standard depth to model the ordering flow,
 from adding the first item to placing or cancelling the order.
 ```
 
+Pick the depth by what a wrong rule would cost, not by the kind of project. Leave it out and the agent picks one and says which.
+
+| Depth | For | Settled before code | Approval |
+|---|---|---|---|
+| `none` | a spike you may throw away | nothing | none |
+| `light` | an area where a wrong rule is cheap to find and fix: a game's rules, an internal tool | who may make each request, then one numbered example per rule, asked when a change raises it and written with its test | none |
+| `standard` | most work | the core (states, commands, who may issue them, trust, invariants, boundaries); the rest is proposed as assumptions | yes |
+| `strict` | money, credentials, authorisation, personal data, anything hard to undo | everything, then a review in a fresh session | yes |
+
 The agent asks questions in rounds, each with a proposed answer, and writes the model as you go. Anything you state in the prompt (how contexts relate, who owns them, the words to use and to avoid) is written down, not asked again.
 
 **4. Approve it.** Read the model it shows you. When it is right:

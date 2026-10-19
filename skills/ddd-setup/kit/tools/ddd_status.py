@@ -207,6 +207,12 @@ def context_lines(path, tested):
                 sig = re.match(r"\s*(\w+)\s*:", line)
                 if sig:
                     commands.add(sig.group(1))
+    if depth and depth.group(1).strip() == "light":
+        # A light context keeps its rows at the top level, and its requests in a table rather than signatures.
+        examples = [r for r in section_rows(top, "Examples") if r.get("#")]
+        commands = {n for n in (check_model.request_name(r.get("Request")) for r in section_rows(top, "Requests")) if n}
+        for row in examples:
+            row.setdefault("Covers", row.get("Request", ""))
     if examples:
         rows = [r["#"] for r in examples if r["#"].isdigit()]
         have = [n for n in rows if n in tested]

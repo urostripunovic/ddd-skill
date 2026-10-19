@@ -12,7 +12,8 @@ Read [depth.md](../ddd-modelling/lifecycle/depth.md), [notes-tail.md](../ddd-mod
 - Never implement from a draft model, and never write an approved status without the user's yes: only the user approves.
 - When the model is missing a state, command, invariant, who may issue a command or what makes a caller or outside fact trusted, or two rules contradict: stop, write the question under `## Pending`, and wait. Never invent the rule in code. The table's columns are the template's: `| Date | Command | The gap, and the question for the user | Found while |`.
 - At strict depth, or inside a strict scope, every gap stops the work the same way.
-- Never edit the model above its notes tail (`## Migration`, `## Amendments`, `## Pending`).
+- At light depth there is no approval and no `## Pending`: a question the change raises is asked then, and its answer is a new Examples row with its test. Who may make a request is never guessed.
+- Never edit the model above its notes tail (`## Migration`, `## Amendments`, `## Pending`). The one exception is a light context: you add its Requests and Examples rows alongside the code.
 
 ## Is this repository using the kit?
 
@@ -52,6 +53,16 @@ If the task needs a pattern that no card covers, say so before writing it, and a
 ## Which case applies
 
 **The code belongs to a context with an approved model.** Follow the model, with its `## Amendments`. Run `tools/check-model.sh <file>` first; a structural error needs correction before implementation. An approved Status line that passes the check stands, committed or not: do not ask the user to confirm it. If the glossary or context map conflicts with an approved rule, show the discrepancy and ask for a model update (approval.md).
+
+**The code belongs to a light context** (`Depth: light`). There is nothing to approve: do not ask. Run `tools/check-model.sh <file>` and fix what it reports in the rows. Then, for the change:
+
+- Read the rows the change touches. A rule with a row is implemented as the row says, with the row's test named `example <n>`.
+- A question the rows do not answer is asked now, one round, each question with a proposed answer, and the answer is written as a new row with the next unused number, in the same change as its code and test. Never renumber a row; a removed row leaves a gap.
+- A new request gets a Requests row. Who or what may make it is asked, never assumed.
+- If the user is not there to answer, build the proposal, mark the row's Facts `(assumed)`, and say in the summary which rows rest on a guess.
+- If the change meets one of [depth.md](../ddd-modelling/lifecycle/depth.md)'s reasons to move up (something on the strict list, another context reacting to these facts, a second lifecycle, more than about a dozen rows), stop and offer `ddd-modelling` to move the context up before going on.
+
+The order of work below still holds, with the rows as the examples: one request at a time, its rows as tests first.
 
 **The model exists but is a draft, or derived from code and not confirmed.** If the scope is still listed under `## Prototypes`, an adoption is in progress: read [MIGRATION.md](MIGRATION.md) instead. Otherwise say that the model is not approved yet and ask whether they approve it; at strict depth, the review approval.md requires comes first, unless the Status line records one. On the user's yes, write the status as approval.md says and continue with the task.
 

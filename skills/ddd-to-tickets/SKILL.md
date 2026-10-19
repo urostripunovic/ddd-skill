@@ -16,7 +16,7 @@ Two things come out of this that a general ticket breakdown does not give:
 ## Before you start
 
 1. If `docs/domain/` does not exist, this repository has not adopted the kit. Say so and stop.
-2. Run `tools/check-model.sh` on each context file in scope. If it fails, or the status is `draft` or `derived from code, not confirmed`, stop and say which. Tickets are cut only from an approved model.
+2. Run `tools/check-model.sh` on each context file in scope. If it fails, or the status is `draft` or `derived from code, not confirmed`, stop and say which. Tickets are cut only from an approved model, or from a light context, which has no approval (see **From a light context**).
 3. Note the commit the context file last changed in: `git log -1 --format=%h -- <file>`. Every ticket carries it. If the approved model is not committed yet, ask the user to commit it first.
 4. Read [depth.md](../ddd-modelling/lifecycle/depth.md). A missing `Depth:` means strict. Carry each ticket's effective depth into it, naming the strict scopes it touches.
 5. Tickets describe the model's behaviour and take the project's structure as it is. How the code is written is `ddd-implementation`'s business: never add a move to another code style to the work.
@@ -33,6 +33,10 @@ A ticket is one commit, or one small pull request: small enough to review in one
 
 - An aggregate with three commands or fewer and no adapter is **one ticket**: the tracer, with every command's rows in it.
 - Otherwise use the kinds below, one ticket per command.
+
+## From a light context
+
+A light context (`Depth: light`) has a Requests table and an Examples table and nothing else, so its tickets are simple: one **command** ticket per request, whose acceptance criteria are the Examples rows that name the request, each passing as a test named after its row, and the request's "Issued by" row: any other caller is refused. There is no tracer, storage, adapter, policy or property-test ticket unless the user asks for one. The ticket's **Depth** line says light. A request the rows leave unclear is not guessed in the ticket: list it as an open question in the ticket, for the implementer to ask.
 
 ## Ticket kinds
 
@@ -135,7 +139,7 @@ Use the vocabulary of the glossary in titles and text. No code in a ticket, and 
 
 **Model:** `docs/domain/contexts/<context>.md`, at commit `<commit>`
 
-**Depth:** standard | strict (name the strict commands whose strict scope this ticket touches)
+**Depth:** light | standard | strict (name the strict commands whose strict scope this ticket touches)
 
 **What to build:** one or two sentences, from the point of view of whoever issues the command, and the step of the model's flow it belongs to.
 

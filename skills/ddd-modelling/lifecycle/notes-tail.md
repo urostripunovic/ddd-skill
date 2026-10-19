@@ -8,4 +8,6 @@ A context file ends with three sections, in this order, after every model sectio
 | `## Amendments` | changes to the rest of an approved model at standard effective depth: what implementation learned and settled, or what the user changed | `ddd-implementation`; `ddd-modelling` for a change the user asks for | `ddd-modelling`, folding the rows into the model, then approval again |
 | `## Pending` | gaps implementation found and may not settle: the question for the user | `ddd-implementation` | `ddd-modelling`, once the model is approved with the answer |
 
+A light context has no approval to protect, so it needs no tail: rows are added to its Examples table directly.
+
 Amendments are part of the model for every reader: implementation, tickets and reviews read them alongside the rows they amend.

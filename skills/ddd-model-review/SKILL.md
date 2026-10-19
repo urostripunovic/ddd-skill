@@ -32,6 +32,7 @@ Read the context file's `Depth:` line and what the system is for (the glossary's
 
 A missing `Depth:` line means strict. Review at the effective depth defined in [depth.md](../ddd-modelling/lifecycle/depth.md): each strict scope gets strict review even under `Depth: standard`, the rest the context's depth. Name the reviewed scope in the report.
 
+- **`light`**: a light context has no approval, so there is nothing to review before it. Say so, run `tools/check-model.sh`, and stop. If the user wants a review, the context is ready to move up to standard (ddd-modelling's ADOPTING.md), which is reviewed as standard.
 - **`standard`**: one pass, in this session, no sub-agents. Apply the three lenses to the **core** only (depth.md). Skip section 3. Entries marked `(assumed)` in the rest are not findings: nobody claimed they were confirmed. An unconfirmed core fails `tools/check-model.sh` and is a blocker, because an implementer would have to invent who may issue or what must hold. Report at most five questions, the ones where a wrong answer costs most.
 - **`strict`**, or no `Depth:` line: everything below, and [STRICT.md](STRICT.md), in full.
 

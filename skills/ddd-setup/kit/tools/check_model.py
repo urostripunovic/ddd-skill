@@ -11,6 +11,9 @@ a fact from outside is marked (assumed) or left as a placeholder such as TBD. Fo
 prints the strict scope: the command's own rows, the rows that name it, and every
 primitive its states and inputs use.
 
+A light context (Depth: light) is checked by check_light: its Requests and Examples tables, and who may make each
+request. It has no approval.
+
 An approved status is checked against its depth. At strict depth it may not rest
 on (assumed) entries, open questions, amendment rows or a missing review. With strict
 commands, the same holds for their strict scope. The Status line is written by hand
@@ -320,6 +323,103 @@ def check_approval(state, depth, strict_commands, scopes, top, assumed, err, war
         err(f"approved with strict commands, but their strict scope was not reviewed: {add_review}")
 
 
+def request_name(cell):
+    """'TunnelEntered(loadout)' -> 'TunnelEntered'. None for a starting state ('none', empty)."""
+    cell = (cell or "").strip().strip("`")
+    if not cell or NONE.match(cell):
+        return None
+    found = re.match(r"[A-Za-z][A-Za-z0-9]*", cell)
+    return found.group() if found else cell
+
+
+def check_light(path, raw, text, top, context, glossary_override, problems):
+    """A light context is a Requests table and an Examples table, with no approval. Checked: what those two tables
+    need to hold to be read by tests, tickets and reviews, and the one part of the core light keeps, who may make
+    each request. Everything a standard model adds is out of scope until the context moves up."""
+    warnings, notes = [], []
+    err = problems.append
+    state = read_status(raw)
+    if state is None:
+        err("no Status line")
+    elif state != "light":
+        err(f"Status is '{state}'; a light context has no approval and its Status line is 'light'. "
+            "To approve it, move it to standard depth through ddd-modelling")
+    if re.search(r"^Strict commands:", text, re.M):
+        err("a light context has no strict commands; move it to standard depth, with this line, through ddd-modelling")
+
+    requests_body = find(top, "Requests")
+    requests = {}
+    if requests_body is None:
+        err("no 'Requests' section")
+    else:
+        for row in table(requests_body):
+            name = request_name(row.get("Request"))
+            if not name:
+                continue
+            if name in requests:
+                err(f"request {name} is listed twice")
+            requests[name] = row
+            issuer = row.get("Issued by")
+            if not issuer:
+                err(f"request {name} has no 'Issued by'")
+            elif unconfirmed(issuer):
+                err(f"request {name}: 'Issued by' is not confirmed ({issuer}); who may make a request is never assumed, "
+                    "so ask the user and write their answer")
+        if not requests:
+            err("'Requests' has no rows")
+
+    examples_body = find(top, "Examples")
+    examples = table(examples_body) if examples_body is not None else []
+    if examples_body is None:
+        err("no 'Examples' section")
+    elif not examples:
+        err("'Examples' has no rows")
+    numbers, pinned = [], set()
+    for row in examples:
+        number = row.get("#", "").strip()
+        if not number.isdigit():
+            err(f"example '{number or '?'}': row numbers are whole numbers, so tests named 'example <n>' can be found")
+        numbers.append(number)
+        for column in ("State", "Request", "Facts"):
+            if not row.get(column):
+                err(f"example {number or '?'} has no '{column}'; write 'none' where there is none")
+        name = request_name(row.get("Request"))
+        if name:
+            pinned.add(name)
+            if requests and name not in requests:
+                err(f"example {number}: request {name} is not in the Requests table")
+        if not row.get("Test"):
+            warnings.append(f"example {number} names no test yet")
+        if "(assumed)" in row.get("Facts", ""):
+            warnings.append(f"example {number}: the facts are (assumed); confirm them with the user")
+    for number in sorted({n for n in numbers if n and numbers.count(n) > 1}):
+        err(f"example number {number} is used twice; numbers are permanent, so give a new row the next unused number")
+    for name in sorted(set(requests) - pinned):
+        err(f"request {name} has no example")
+
+    for number, heading in sections_after_tail(text):
+        err(f"line {number}: '{heading}' comes after the notes tail (Migration, Amendments, Pending); move it before the tail")
+
+    glossary, found = load_glossary(path, context, glossary_override)
+    if glossary is None and found in EARLIER_NAMES:
+        err(f"found {found}, the glossary's name before Matt Pocock's 1.3, which is not read; rename it with "
+            f"`git mv {found} {EARLIER_NAMES[found]}` (ddd-setup's UPGRADING.md)")
+    elif glossary is None or not glossary.exists():
+        warnings.append("no glossary yet: GLOSSARY.md at the repository root holds the terms once they settle")
+    else:
+        terms, avoid, _ = parse_glossary(glossary, context)
+        for name in sorted(requests):
+            if re.sub(r"[^a-z0-9]", "", name.lower()) not in terms:
+                warnings.append(f"request {name} is not in {glossary.name}")
+        for phrase, preferred in avoid:
+            needle = words(phrase.replace(" ", "_").title().replace("_", ""))
+            for name in sorted(requests):
+                if contains(words(name), needle):
+                    err(f"{name} uses '{phrase}', which {glossary.name} lists under Avoid for {preferred}")
+    notes.append("light depth: requests and examples only; move to standard when depth.md's reasons apply")
+    return problems, warnings, notes
+
+
 def check(path, glossary_override):
     """Returns problems, warnings and notes."""
     problems, warnings, notes = [], [], []
@@ -330,6 +430,8 @@ def check(path, glossary_override):
     title = re.search(r"^# Context:\s*(.+)$", text, re.M)
     context = title.group(1).strip() if title else path.stem
     top = split(text, "## ")
+    if re.search(r"^Depth:[ \t]*light[ \t]*$", text, re.M):
+        return check_light(path, raw, text, top, context, glossary_override, problems)
 
     # The notes tail is written after approval and read apart from the model, so a model section below it would be
     # missed by every reader that stops at the tail.
@@ -345,7 +447,7 @@ def check(path, glossary_override):
 
     depth = re.search(r"^Depth:\s*(.+)$", text, re.M)
     if depth and depth.group(1).strip() not in ("standard", "strict"):
-        err(f"Depth is '{depth.group(1).strip()}'; it is 'standard' or 'strict'")
+        err(f"Depth is '{depth.group(1).strip()}'; it is 'light', 'standard' or 'strict'")
     overrides = re.findall(r"^Strict commands:[ \t]*(.*)$", text, re.M)
     strict_commands = []
     if len(overrides) > 1:

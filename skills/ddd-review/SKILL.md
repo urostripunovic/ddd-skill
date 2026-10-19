@@ -43,6 +43,7 @@ If there is no model for the code under review, stop and say so. Without it this
 
 For each context file you use, read its `Status:` line.
 
+- Light (`Status: light`, `Depth: light`): there is no approval to check. Run `tools/check-model.sh <file>`; a problem it reports is a blocker. The model is the Requests and Examples tables: trace each request and each row, and skip what a light context does not have (states, matrix, invariants, races). Rows the range added are part of the model; a row the range changed or removed while code still relies on it is a finding.
 - Not approved (`draft`, or `derived from code, not confirmed`): say so at the top of the report. You can still review, but every "matches the model" finding is provisional.
 - Approved: run `tools/check-model.sh <file>`. A problem it reports is a blocker; name the file. Then look at what the pinned range did to the file: `git diff <base>...HEAD -- <file>`. Rows changed above the notes tail while the Status line stayed as it was mean the model changed without being approved again: a blocker, with the changed rows quoted. The user approves the change or reverts it before the review result means anything.
 

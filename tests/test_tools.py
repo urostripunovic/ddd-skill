@@ -94,6 +94,32 @@ None.
 """
 
 
+LIGHT = """# Context: Run
+
+Status: light
+Depth: light
+
+## Requests
+
+| Request | Issued by | Notes |
+|---|---|---|
+| BossCleared | the simulation, in the same process | |
+| TunnelEntered | the simulation, in the same process | |
+
+## Examples
+
+| # | State | Request | Facts | Test |
+|---|---|---|---|---|
+| 1 | Fighting, not the last arena | BossCleared | ArenaCleared | run.test.ts: example 1 |
+| 2 | Fighting | TunnelEntered(loadout) | TunnelRefused(NotCleared) | run.test.ts: example 2 |
+| 4 | Cleared | TunnelEntered(loadout) | ArenaEntered(next, loadout) | run.test.ts: example 4 |
+
+## Open questions
+
+None.
+"""
+
+
 class ToolTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
@@ -770,6 +796,71 @@ class ToolTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual((self.repo / ".gitignore").read_text(), "node_modules/\n.cards-check/\n")
 
+
+    def light(self, text=LIGHT):
+        self.model.write_text(text)
+        return self.run_tool("check-model.sh", self.model)
+
+    def test_light_context_passes_with_requests_and_examples(self):
+        result = self.light()
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.assertIn("light depth", result.stdout)
+        # Removed rows leave a gap (3 here); that is how numbers stay permanent.
+        self.assertNotIn("example 3", result.stdout)
+
+    def test_light_context_has_no_approval_and_no_strict_commands(self):
+        cases = {
+            "approved": (LIGHT.replace("Status: light", "Status: approved 2026-10-19"), "has no approval"),
+            "draft": (LIGHT.replace("Status: light", "Status: draft"), "has no approval"),
+            "strict commands": (LIGHT.replace("Depth: light", "Depth: light\nStrict commands: BossCleared"), "no strict commands"),
+        }
+        for name, (text, message) in cases.items():
+            with self.subTest(name=name):
+                result = self.light(text)
+                self.assertNotEqual(result.returncode, 0, result.stdout)
+                self.assertIn(message, result.stdout)
+
+    def test_light_keeps_who_may_make_a_request_unassumed(self):
+        for cell in ("anyone (assumed)", "TBD", "?", ""):
+            with self.subTest(cell=cell):
+                result = self.light(LIGHT.replace("| BossCleared | the simulation, in the same process |", f"| BossCleared | {cell} |"))
+                self.assertNotEqual(result.returncode, 0, result.stdout)
+                self.assertRegex(result.stdout, "BossCleared: 'Issued by' is not confirmed|BossCleared has no 'Issued by'")
+
+    def test_light_rows_are_whole_unique_complete_and_pinned(self):
+        cases = {
+            "letter number": (LIGHT.replace("| 4 | Cleared", "| R4 | Cleared"), "row numbers are whole numbers"),
+            "duplicate": (LIGHT.replace("| 4 | Cleared", "| 2 | Cleared"), "example number 2 is used twice"),
+            "no facts": (LIGHT.replace("| ArenaCleared |", "| |"), "example 1 has no 'Facts'"),
+            "unknown request": (LIGHT.replace("| BossCleared | ArenaCleared", "| BossDowned | ArenaCleared"),
+                                "request BossDowned is not in the Requests table"),
+            "unpinned request": (LIGHT.replace("| 1 | Fighting, not the last arena | BossCleared | ArenaCleared | run.test.ts: example 1 |\n", ""),
+                                 "request BossCleared has no example"),
+        }
+        for name, (text, message) in cases.items():
+            with self.subTest(name=name):
+                result = self.light(text)
+                self.assertNotEqual(result.returncode, 0, result.stdout)
+                self.assertIn(message, result.stdout)
+
+    def test_light_warns_on_what_is_still_open(self):
+        text = LIGHT.replace("| ArenaCleared | run.test.ts: example 1 |", "| ArenaCleared (assumed) | |")
+        result = self.light(text)
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.assertIn("warning: example 1 names no test yet", result.stdout)
+        self.assertIn("warning: example 1: the facts are (assumed)", result.stdout)
+        self.assertIn("warning: request BossCleared is not in GLOSSARY.md", result.stdout)
+
+    def test_status_reads_light_rows(self):
+        self.model.write_text(LIGHT)
+        test = self.repo / "src/run.test.ts"
+        test.parent.mkdir(parents=True)
+        test.write_text("it('example 1: clearing a boss', () => {});\n")
+        out = self.status()
+        self.assertIn("status: light", out)
+        self.assertIn("depth: light", out)
+        self.assertIn("model check: passed", out)
+        self.assertIn("examples: 3 rows; with a test: 1; without: 2, 4 (commands: TunnelEntered)", out)
 
 if __name__ == "__main__":
     unittest.main()

@@ -32,6 +32,8 @@ Run the **full** review, all three reviewers, when any of these holds:
 - the diff names a command listed on a `Strict commands:` line
 - there is no `docs/domain/`, or you are unsure
 
+A context at `Depth: light` takes the standard review too.
+
 Otherwise run the **standard** review: one sub-agent, in one worktree, that follows `ddd-review` and also applies three sections of `secure-by-design-review`: **Authorisation**, **Sensitive data** and **Input at the boundary**. There is no task reviewer, and the rest of the Secure by Design checklist and its abuse attempts are not run. Say which review runs, and why, in one line before starting, and end the report with: "For the full three-reviewer review, run `/ddd-review-all full`."
 
 ## 2. Find the task

@@ -55,7 +55,7 @@ Look at what the repository already does and propose that. Where it does nothing
 Write the answers, and the choice from step 1 ("Code style: the kit's functional cards" or "Code style: the repository's own; the kit's cards are not used"), under a heading `## Domain code` in the repository's agent instructions (`CLAUDE.md`, or `AGENTS.md` if that is what it has; create `CLAUDE.md` if neither exists), in two or three lines. Add this line under the same heading, as written:
 
 ```
-Changes to `docs/domain/`, including approving a model, go through the `ddd-modelling` skill, even a one-line edit.
+Changes to `docs/domain/`, including approving a model, go through the `ddd-modelling` skill, even a one-line edit. The one exception: `ddd-implementation` adds the Requests and Examples rows of a light context (`Depth: light`) alongside its code.
 ```
 
 Every later session reads that file. The line is there because a request such as "raise the limit to 2000" or "I approve the model" names no skill, and a session that only reads the skills' descriptions edits the model directly, past the rules on approval and amendments. Where a rule can be linted (which layer may import which), add it in the next step, so a session that gets it wrong fails lint.
