@@ -477,6 +477,29 @@ class ToolTests(unittest.TestCase):
         self.assertIn("open questions: 2", out)
         self.assertIn("migration: 1 of 2 steps done; next: step 2: Introduce OrderId.", out)
 
+    def test_status_reports_the_system_design_record(self):
+        self.assertIn("system design: none", self.status())
+        git = lambda *a: subprocess.run(["git", "-c", "user.name=t", "-c", "user.email=t@t", *a], cwd=self.repo, check=True, capture_output=True)
+        git("add", "-A")
+        git("commit", "-qm", "model")
+        commit = subprocess.run(["git", "log", "-1", "--format=%h"], cwd=self.repo, capture_output=True, text=True).stdout.strip()
+        record = self.repo / "docs/system-design/ordering.md"
+        record.parent.mkdir(parents=True)
+        record.write_text(f"# System design: ordering\n\nModel: docs/domain/contexts/ordering.md, at commit {commit}\n\n"
+                          "## Placing\n\n| Step | Pattern | Verdict | Why | How |\n|---|---|---|---|---|\n"
+                          "| 1. PlaceOrder | message queue | blocked by the model | what does the customer see meanwhile? | |\n"
+                          "| 1. PlaceOrder | caching | not needed | no signal | |\n")
+        out = self.status()
+        self.assertIn(f"system design: checked at {commit}; blocked by the model: 1", out)
+        self.assertNotIn("approved again", out)
+        self.model.write_text(MODEL + "\n## Amendments\n\n| Date | Section | The model said | What was learned, and what the code does |\n"
+                              "|---|---|---|---|\n| 2026-10-20 | Examples, row 2 | nothing | a timestamp is stored |\n")
+        git("commit", "-qam", "amend")
+        self.assertNotIn("approved again", self.status())
+        self.model.write_text(self.model.read_text().replace("Status: draft", "Status: approved 2026-10-20"))
+        git("commit", "-qam", "approve")
+        self.assertIn("the model was approved again since", self.status())
+
     def test_glossary_under_its_earlier_name_fails_with_the_rename(self):
         # Before Matt Pocock's 1.3 the glossary was CONTEXT.md. It is not read: the check names the rename instead of
         # saying there is no glossary, and passes again once the file has its new name.

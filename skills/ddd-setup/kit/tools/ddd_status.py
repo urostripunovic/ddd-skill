@@ -2,8 +2,8 @@
 
 Prints where the repository stands in the DDD workflow, as facts, one per line:
 what setup installed, each context file's status, depth, review, check result,
-open questions, assumptions, amendments, pending gaps and migration steps, which
-example rows have a test, and the branch. It decides nothing and changes nothing;
+open questions, assumptions, amendments, pending gaps and migration steps, its
+system-design record, which example rows have a test, and the branch. It decides nothing and changes nothing;
 the ddd-next skill reads the output and recommends the next step.
 
 A test counts for an example row when a test file names it: "example 3", "examples 3
@@ -143,6 +143,24 @@ def tested_rows(contexts):
     return tested, loose
 
 
+def system_design_line(path):
+    """The record ddd-system-design keeps in docs/system-design/<context>.md, against the model's last commit."""
+    record = pathlib.Path("docs/system-design") / path.name
+    if not record.exists():
+        return "system design: none"
+    text = record.read_text()
+    at = re.search(r"^Model:.*\bat commit\s+([0-9a-f]{4,40})\b", text, re.M)
+    line = "system design: " + (f"checked at {at.group(1)}" if at else "checked, with no 'Model: ... at commit' line")
+    # Only a new approval counts: rows implementation adds to the notes tail leave the patterns as they were.
+    diff = git("diff", at.group(1), "--", str(path)) if at else None
+    if diff and re.search(r"^\+Status:", diff, re.M):
+        line += f"; the model was approved again since (git diff {at.group(1)} -- {path})"
+    blocked = len(re.findall(r"^\|[^\n]*\|\s*blocked by the model\s*\|", text, re.M | re.I))
+    if blocked:
+        line += f"; blocked by the model: {blocked}"
+    return line
+
+
 def context_lines(path, tested):
     raw = path.read_text()
     text = re.sub(r"<!--.*?-->", "", raw, flags=re.S)
@@ -197,6 +215,8 @@ def context_lines(path, tested):
         if todo:
             line += f"; next: step {todo[0][0]}: {todo[0][1].strip()}"
         lines.append(line)
+
+    lines.append(system_design_line(path))
 
     examples, commands = [], set()
     for title, body in top:
