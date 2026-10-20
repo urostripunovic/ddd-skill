@@ -7,6 +7,7 @@ If you are given an earlier report of yours and the commits that fix it, this is
 1. Ask for a base ref if none was given. If the user has no preference, use the merge base with the default branch: `git merge-base HEAD origin/main` (or the repository's default branch).
 2. Review exactly `git diff <base>...HEAD`. Uncommitted changes are not part of the review unless the user says so; if there are any, say that they were excluded.
 3. Put the base and head commit hashes at the top of the report.
+4. Run `tools/check-range.sh <base>` if the repository has it, or read its output if you were given it. What it decides is not re-checked by hand; what it lists to judge is judged in the skill's own sections.
 
 The report:
 

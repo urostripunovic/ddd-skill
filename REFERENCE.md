@@ -120,6 +120,8 @@ Use ddd-modelling to update docs/domain/contexts/ordering.md
 so customers can cancel a placed order until picking starts.
 ```
 
+At standard depth the agent asks what the work in front of you needs, not everything at once: who may make each request always, and the harder questions (what if something outside reverses an outcome, two requests at once, what happens if nothing happens) when the work raises them. A question that surfaces later is asked then, without reopening the rest. Strict asks everything up front. See [lifecycle/triggers.md](skills/ddd-modelling/lifecycle/triggers.md).
+
 The agent writes as the conversation goes: the glossary in `GLOSSARY.md`, the contexts and how they relate in `docs/domain/context-map.md`, and a model per context in `docs/domain/contexts/<context>.md`. It runs `tools/check-model.sh` on the structure. You decide whether the business rules are right.
 
 ### Choose a depth
@@ -128,7 +130,7 @@ Depth controls how much you confirm before coding. It is a sentence in your prom
 
 | Depth | What you confirm |
 |---|---|
-| `standard` | The usual choice. You confirm the **core**: states, commands, who may issue them, what makes callers and outside data trusted, invariants, aggregate boundaries and terms. The agent proposes the rest, such as limits and edge cases, marks it `(assumed)` and shows one list to correct. Who may issue a command and the invariants are never assumed: the checker rejects them until you answer. About three interview rounds; review is optional |
+| `standard` | The usual choice. You confirm the **core**: states, commands, who may issue them, what makes callers and outside data trusted, invariants, aggregate boundaries and terms. The agent proposes the rest, such as limits and edge cases, marks it `(assumed)` and shows one list to correct. Who may issue a command and the invariants are never assumed: the checker rejects them until you answer. The interview asks about the work in front of you, usually in one or two rounds, and asks again when later work raises a question; review is optional |
 | `strict` | The details too: limits, failures, concurrent actions that conflict, worked examples. A review in a fresh session before approval. Recommended for money, credentials, authorisation, personal data and anything hard to undo |
 | `none` | Postpone modelling for a prototype. The scope is recorded under `## Prototypes` in the context map, and no model is written. Ask your agent separately to write the prototype; it can be adopted into a model later |
 
@@ -163,7 +165,7 @@ If you tried the technology first in a prototype on another branch, name the bra
 
 ## Review and approval
 
-Modelling writes the model and asks whether you approve it. Only you can. The exact rules are in [lifecycle/approval.md](skills/ddd-modelling/lifecycle/approval.md).
+Modelling writes the model and asks whether you approve it. Only you can. At standard depth you are asked when the core is new or changes (states, commands, who may issue them, what makes callers and outside data trusted, invariants, aggregate boundaries, the meaning of a term), and at no other time: assumptions are listed for you to correct, and changes to the rest are recorded as amendments while work goes on. Strict asks for every change. The exact rules are in [lifecycle/approval.md](skills/ddd-modelling/lifecycle/approval.md).
 
 For a strict model, or one with strict commands, review it in a **fresh session** in the same project, so the reviewer did not write it. At standard depth, review is optional.
 
@@ -218,7 +220,7 @@ Work on a branch, commit the changes, and ask:
 The task is: [link or path to the original task].
 ```
 
-Only committed changes are reviewed. Without a base branch, the reviewer uses the point where your branch left the default branch. `ddd-review-all` reviews in separate subagents and temporary Git worktrees. The full review runs three: `ddd-review` (code against the model), `secure-by-design-review` (security) and `task-review` (code against the task; skipped if you have no task). It runs when a context is strict, has no `Depth:` line, or the change names a strict command, or when you ask: `/ddd-review-all full`. Otherwise, at standard depth, one reviewer runs `ddd-review` and the Secure by Design sections on authorisation, sensitive data and input at the boundary; it does not ask for a task. Without subagents, run the review skills one by one in fresh sessions.
+Only committed changes are reviewed. `tools/check-range.sh <base>` runs the mechanical part first, once: it fails when the model changed without a new approval, and lists for the reviewers to judge the words the glossary avoids in new code, suppressions, loosened lint configs, glossary or context-map changes, and example rows no test names. `ddd-implementation` runs it before reporting done, and you can run it in CI. Without a base branch, the reviewer uses the point where your branch left the default branch. `ddd-review-all` reviews in separate subagents and temporary Git worktrees. The full review runs three: `ddd-review` (code against the model), `secure-by-design-review` (security) and `task-review` (code against the task; skipped if you have no task). It runs when a context is strict, has no `Depth:` line, or the change names a strict command, or when you ask: `/ddd-review-all full`. Otherwise, at standard depth, one reviewer runs `ddd-review` and the Secure by Design sections on authorisation, sensitive data and input at the boundary; it does not ask for a task. Without subagents, run the review skills one by one in fresh sessions.
 
 With Matt Pocock's skills, review domain code with `ddd-review-all` and the rest of a branch (screens, endpoints, reports) with his `code-review`, which checks the repository's documented standards and common code smells. When his `implement` or `implement-spec` built domain code, `ddd-review-all` takes the place of their `/code-review` step.
 

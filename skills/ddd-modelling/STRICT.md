@@ -7,6 +7,7 @@ SKILL.md describes standard depth, where you ask about the core and propose the 
 ## 1. Interview
 
 - **Ask about the rest too.** A bound, a payload, a race, an edge case and an example at a limit are each a question with a proposed answer. Nothing is written `(assumed)`: a proposal the user has not confirmed goes under open questions.
+- **The whole model, not only the work in front of you.** lifecycle/triggers.md does not apply: every command is asked about, and every kind of question under "Ask what the timeline hides" is asked for each.
 - **No limit on rounds.** Go on until the list below holds. If `grilling` runs the interview, its own rule applies: the session ends when every branch is visited. Still end each round with the checkpoint.
 - **The matrix.** Go through every pair of state and command with the user. Where the command is not allowed in that state, ask why not, with a proposal.
 - **Bounds.** Ask for each one: how many, how long, how large, which characters. Do not propose them in one batch.

@@ -44,7 +44,7 @@ If there is no model for the code under review, stop and say so. Without it this
 For each context file you use, read its `Status:` line.
 
 - Not approved (`draft`, or `derived from code, not confirmed`): say so at the top of the report. You can still review, but every "matches the model" finding is provisional.
-- Approved: run `tools/check-model.sh <file>`. A problem it reports is a blocker; name the file. Then look at what the pinned range did to the file: `git diff <base>...HEAD -- <file>`. Rows changed above the notes tail while the Status line stayed as it was mean the model changed without being approved again: a blocker, with the changed rows quoted. The user approves the change or reverts it before the review result means anything.
+- Approved: run `tools/check-model.sh <file>`. A problem it reports is a blocker; name the file. Then look at what the pinned range did to the file. `tools/check-range.sh` reports it as `model changed`; without the script, `git diff <base>...HEAD -- <file>`. Rows changed above the notes tail while the Status line stayed as it was mean the model changed without being approved again: a blocker, with the changed rows quoted. The user approves the change or reverts it before the review result means anything.
 
 Rows under the context file's `## Amendments` are part of the model for this review: where a row says what the code does, trace the code against the row and not against the text it amends. Code that matches neither is a finding. An element marked `(assumed)` is traced like any other.
 
@@ -52,7 +52,7 @@ An amendment inside a strict scope (as `tools/check-model.sh` prints it), or in 
 
 ## Checks switched off
 
-Compiling, linting and testing the change is `ddd-implementation`'s and CI's job, not this review's. Read the diff for what those checks cannot see, because it is where agents cut corners:
+Compiling, linting and testing the change is `ddd-implementation`'s and CI's job, not this review's. If the repository has `tools/check-range.sh`, run it on the pinned range (`tools/check-range.sh <base>`), or read its output if you were given a file of it, and put its output in the report as it is. It lists the suppressions, lint configs and example rows below for you to judge; finding them is the script's job, judging each is yours. Without the script, find them by reading the diff, because it is where agents cut corners:
 
 - Search the diff for checks switched off in passing (a lint or type-check suppression comment, a skipped test) and judge each one.
 - Check that lint configs were not loosened in the same change: a rule removed, a domain path narrowed so the domain rules no longer reach the code, a test exemption widened.
@@ -80,7 +80,7 @@ The verdict is one of **ok**, **wrong name**, **wrong place**, **differs** (say 
 
 ### Matches the model
 
-- Names in code are the model's and the glossary's names. No synonyms, no technical renames. Search the diff for every word listed under `_Avoid_`. A word that existing code already used, in an area whose `## Migration` plan has a rename step not yet done, is a note, not a finding; new code must use the glossary's name.
+- Names in code are the model's and the glossary's names. No synonyms, no technical renames. `tools/check-range.sh` lists every identifier in added code that contains a word under `_Avoid_`; judge each, since some (a database `row`) are ordinary words used in another sense. Without the script, search the diff for every word listed under `_Avoid_`. A word that existing code already used, in an area whose `## Migration` plan has a rename step not yet done, is a note, not a finding; new code must use the glossary's name.
 - Code respects context boundaries: no reaching into another context's types.
 - A concept the code relies on but the model never names is a finding. Report it as a gap in the model, not only in the code.
 - One domain idea is expressed in one place. Two pieces of code that merely look alike but express different ideas stay separate.
