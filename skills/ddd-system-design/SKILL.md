@@ -104,7 +104,7 @@ If the project keeps ADRs in `docs/adr/`, write one for each **applies** row who
 
 Rows that **apply** are work around the domain, not domain behaviour. `ddd-to-tickets` lists them as out of scope; they become tickets with Matt Pocock's `to-tickets`, or by hand, each blocked by the command ticket of its step. Show the user the record and the list of **blocked by the model** questions. Do not cut tickets here.
 
-When the model changes, run this again on the change (`git diff <commit> -- <context file>`) and update only the rows whose steps changed.
+When the model is approved again, run this again on the change (`git diff <commit> -- <context file>`), update only the rows whose steps changed, and give the record the new commit. Amendments rows alone do not call for a new run; `ddd-next` and `tools/ddd-status.sh` only flag a record once the model has been approved again since its commit.
 
 ## Do not
 
