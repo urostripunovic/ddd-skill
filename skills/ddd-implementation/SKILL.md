@@ -51,7 +51,7 @@ If the task needs a pattern that no card covers, say so before writing it, and a
 
 ## Which case applies
 
-**The code belongs to a context with an approved model.** Follow the model, with its `## Amendments`. Run `tools/check-model.sh <file>` first; a structural error needs correction before implementation. An approved Status line that passes the check stands, committed or not: do not ask the user to confirm it. If the glossary or context map conflicts with an approved rule, show the discrepancy and ask for a model update (approval.md).
+**The code belongs to a context with an approved model.** Follow the model, with its `## Amendments`. At standard effective depth, only a gap in the core stops the work and asks for approval again; anything else is decided, tested and recorded as an amendment, and work goes on (gaps.md). Run `tools/check-model.sh <file>` first; a structural error needs correction before implementation. An approved Status line that passes the check stands, committed or not: do not ask the user to confirm it. If the glossary or context map conflicts with an approved rule, show the discrepancy and ask for a model update (approval.md).
 
 **The model exists but is a draft, or derived from code and not confirmed.** If the scope is still listed under `## Prototypes`, an adoption is in progress: read [MIGRATION.md](MIGRATION.md) instead. Otherwise say that the model is not approved yet and ask whether they approve it; at strict depth, the review approval.md requires comes first, unless the Status line records one. On the user's yes, write the status as approval.md says and continue with the task.
 
