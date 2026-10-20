@@ -4,7 +4,7 @@ Use this when the context file has rows under `## Pending` or `## Amendments`, o
 
 ## Settling pending gaps and folding in amendments
 
-When the context file has rows under `## Pending`, settle them first: each is a question implementation is waiting on. Ask it, write the answer into the section it affects, and remove the row once the model is approved again.
+When the context file has rows under `## Pending`, settle them first: each is a question implementation is waiting on. Ask it, write the answer into the section it affects, and remove the row once the model is approved again. A pending row is a question raised mid-work, so it gets one round about that question and what it touches, the way lifecycle/triggers.md asks: do not reopen the rest of the interview.
 
 When it has rows under `## Amendments`, and the user asks to bring the model up to date or wants a larger change, fold them in: move what each row learned into the section it names, remove the row, and show the whole change as one diff. An amendment that touched only the rest needs no discussion. One that turns out to change the core (a new state, a command, an invariant, who may issue) is put to the user as a question. Then the user approves again, once, for all of them.
 

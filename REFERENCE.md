@@ -120,6 +120,8 @@ Use ddd-modelling to update docs/domain/contexts/ordering.md
 so customers can cancel a placed order until picking starts.
 ```
 
+At standard depth the agent asks what the work in front of you needs, not everything at once: who may make each request always, and the harder questions (what if something outside reverses an outcome, two requests at once, what happens if nothing happens) when the work raises them. A question that surfaces later is asked then, without reopening the rest. Strict asks everything up front. See [lifecycle/triggers.md](skills/ddd-modelling/lifecycle/triggers.md).
+
 The agent writes as the conversation goes: the glossary in `GLOSSARY.md`, the contexts and how they relate in `docs/domain/context-map.md`, and a model per context in `docs/domain/contexts/<context>.md`. It runs `tools/check-model.sh` on the structure. You decide whether the business rules are right.
 
 ### Choose a depth
@@ -128,7 +130,7 @@ Depth controls how much you confirm before coding. It is a sentence in your prom
 
 | Depth | What you confirm |
 |---|---|
-| `standard` | The usual choice. You confirm the **core**: states, commands, who may issue them, what makes callers and outside data trusted, invariants, aggregate boundaries and terms. The agent proposes the rest, such as limits and edge cases, marks it `(assumed)` and shows one list to correct. Who may issue a command and the invariants are never assumed: the checker rejects them until you answer. About three interview rounds; review is optional |
+| `standard` | The usual choice. You confirm the **core**: states, commands, who may issue them, what makes callers and outside data trusted, invariants, aggregate boundaries and terms. The agent proposes the rest, such as limits and edge cases, marks it `(assumed)` and shows one list to correct. Who may issue a command and the invariants are never assumed: the checker rejects them until you answer. The interview asks about the work in front of you, usually in one or two rounds, and asks again when later work raises a question; review is optional |
 | `strict` | The details too: limits, failures, concurrent actions that conflict, worked examples. A review in a fresh session before approval. Recommended for money, credentials, authorisation, personal data and anything hard to undo |
 | `none` | Postpone modelling for a prototype. The scope is recorded under `## Prototypes` in the context map, and no model is written. Ask your agent separately to write the prototype; it can be adopted into a model later |
 
