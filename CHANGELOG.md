@@ -2,9 +2,15 @@
 
 ## Unreleased
 
+- **New skill: `ddd-system-design`.** After approval, it goes through one flow step by step and checks it against the common system-design patterns: caching, read replicas, indexing, batching, sharding, async writes, real-time updates, queues, worker pools, workflow engines, retries, idempotency, circuit breakers, self-healing and CQRS. A pattern is only asked about when the model or the project gives a signal for it. Each is recorded as applies, not needed or deferred, with the reason, in `docs/system-design/<context>.md`. Answers that would change what the business sees are sent back to `ddd-modelling`; the skill never edits the model.
+- **`ddd-next` includes the system-design check.** After approval and before any code, it sends you to `/ddd-system-design` once per context, and again when the model is approved again. Questions the check marks "blocked by the model" are sent to `ddd-modelling`, with the other model rows. `tools/ddd-status.sh` reports the record: `system design: none`, the commit it was checked at, whether the model was approved again since, and how many rows are blocked by the model. Amendments rows alone do not count as a change.
 - **`ddd-implementation` names the `## Pending` columns.** One run wrote its own columns, which tools reading the table could not use.
 - **`secure-by-design-review` compares code with the approved model.** When the range changes primitive rules, bounds or other entries above the notes tail without a new approval, it compares against the version before the change and reports the edit as a blocker. Before, it took the edited rule as the one in force.
 - **`ddd-review` no longer compiles, lints or tests the change.** That is `ddd-implementation`'s and CI's job. The review still reads the diff for suppressions and loosened lint configs, which CI cannot see, and its break-it attempts still compile and run tests. The section is now called "Checks switched off". In the review eval, a seed the reviewer leaves to the linters is scored **lint**, not missed.
+
+### Upgrading
+
+- Copy `tools/ddd_status.py` from the kit, or run `/ddd-setup` again. Without it, `ddd-next` never sees a system-design record and suggests the check every time.
 
 ## 0.4.0 (2026-10-19)
 

@@ -104,6 +104,7 @@ At standard depth this is one reviewer: the code against the model, plus the sec
 | [`ddd-setup`](skills/ddd-setup/SKILL.md) | by name | Install templates, cards, tools and lint rules |
 | [`ddd-modelling`](skills/ddd-modelling/SKILL.md) | when asked in plain words | Build a model through questions, or derive one from existing code |
 | [`ddd-model-review`](skills/ddd-model-review/SKILL.md) | by name | Check a model for missing rules, contradictions and possible abuse |
+| [`ddd-system-design`](skills/ddd-system-design/SKILL.md) | by name | Check one flow against common system-design patterns and record which apply |
 | [`ddd-to-tickets`](skills/ddd-to-tickets/SKILL.md) | by name | Turn an approved model into tickets |
 | [`ddd-implementation`](skills/ddd-implementation/SKILL.md) | when asked in plain words | Implement the model and its tests |
 | [`ddd-review`](skills/ddd-review/SKILL.md) | by name | Check code against the model |

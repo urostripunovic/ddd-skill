@@ -19,7 +19,7 @@ Everything the [README](README.md) leaves out. The rules the skills themselves f
 
 ### Starting skills
 
-`ddd-modelling`, `ddd-implementation` and `ddd-next` start when you ask for them in plain words. In a repository without `docs/domain/`, modelling and implementation stay out of the way, so the kit is opt-in per repository. The other seven (`ddd-setup`, `ddd-model-review`, `ddd-to-tickets`, `ddd-review`, `secure-by-design-review`, `task-review` and `ddd-review-all`) only start when you invoke them by name, so the agent never runs setup or a review on its own.
+`ddd-modelling`, `ddd-implementation` and `ddd-next` start when you ask for them in plain words. In a repository without `docs/domain/`, modelling and implementation stay out of the way, so the kit is opt-in per repository. The other eight (`ddd-setup`, `ddd-model-review`, `ddd-system-design`, `ddd-to-tickets`, `ddd-review`, `secure-by-design-review`, `task-review` and `ddd-review-all`) only start when you invoke them by name, so the agent never runs setup or a review on its own.
 
 | Agent | Invoke a skill by name |
 |---|---|

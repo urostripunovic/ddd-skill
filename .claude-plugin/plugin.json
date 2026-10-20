@@ -14,6 +14,7 @@
     "./skills/ddd-setup",
     "./skills/ddd-modelling",
     "./skills/ddd-model-review",
+    "./skills/ddd-system-design",
     "./skills/ddd-to-tickets",
     "./skills/ddd-implementation",
     "./skills/ddd-review",
