@@ -2,18 +2,27 @@
 
 ## Unreleased
 
+## 0.6.0 (2026-10-20)
+
 - **New skill: `ddd-system-design`.** After approval, it goes through one flow step by step and checks it against the common system-design patterns: caching, read replicas, indexing, batching, sharding, async writes, real-time updates, queues, worker pools, workflow engines, retries, idempotency, circuit breakers, self-healing and CQRS. A pattern is only asked about when the model or the project gives a signal for it. Each is recorded as applies, not needed or deferred, with the reason, in `docs/system-design/<context>.md`. Answers that would change what the business sees are sent back to `ddd-modelling`; the skill never edits the model.
 - **`ddd-next` includes the system-design check.** After approval and before any code, it sends you to `/ddd-system-design` once per context, and again when the model is approved again. Questions the check marks "blocked by the model" are sent to `ddd-modelling`, with the other model rows. `tools/ddd-status.sh` reports the record: `system design: none`, the commit it was checked at, whether the model was approved again since, and how many rows are blocked by the model. Amendments rows alone do not count as a change.
 - **Questions are asked when the work raises them.** At standard depth, the interview goes deep only on the commands the work in front of it needs, and asks the harder questions (an outcome something outside can reverse, two requests at once, one decision with several consequences, what happens if nothing happens, who reacts, a limit) when a trigger in the new `lifecycle/triggers.md` applies. Who may issue a command and what makes a caller or fact trusted are still always asked. A question that surfaces later as a `## Pending` row gets one round of its own and does not reopen the interview. Before, standard depth swept every kind of question for every command, in about three rounds. Strict depth still asks everything.
 - **At standard depth, approval is asked only when the core is new or changes.** `lifecycle/approval.md` already allowed this, but the skills read as if every detail stopped the work: modelling ended every round with a stop, and called its whole output a hard stop. Now a round stops only when it has questions, the rest is written `(assumed)` and listed once, and the approval request says that later work will not stop for the rest. The core that does need approval is unchanged and includes what makes callers and outside facts trusted. Strict depth still approves every change.
 - **`tools/check-range.sh <base>` runs the mechanical part of a review.** It fails when the model above the notes tail changed in the range while the Status line stayed the same; that check was written out by hand in three reviewer skills. It also lists, to judge: identifiers in new code containing a word under `_Avoid_`, suppressions, changed lint configs with their removed lines, glossary or context-map changes, and example rows no test names. `ddd-review-all` runs it once and passes the output to each reviewer, the reviewers use it instead of finding these by reading, and `ddd-implementation` runs it before reporting done. On the seeded fixture it reports D1, D2, D12 and D16; in the review eval a seed it reports and the reviewer leaves out is scored **check**, not missed. Avoided words are listed, not failed: the fixture showed that `row` and `line` are also ordinary programming words.
+
+### Upgrading
+
+- Copy `tools/ddd_status.py`, `tools/check-range.sh` and `tools/check_range.py` from the kit, or run `/ddd-setup` again. Without the new `ddd_status.py`, `ddd-next` never sees a system-design record and suggests the check every time.
+
+## 0.5.0 (2026-10-19)
+
 - **`ddd-implementation` names the `## Pending` columns.** One run wrote its own columns, which tools reading the table could not use.
 - **`secure-by-design-review` compares code with the approved model.** When the range changes primitive rules, bounds or other entries above the notes tail without a new approval, it compares against the version before the change and reports the edit as a blocker. Before, it took the edited rule as the one in force.
 - **`ddd-review` no longer compiles, lints or tests the change.** That is `ddd-implementation`'s and CI's job. The review still reads the diff for suppressions and loosened lint configs, which CI cannot see, and its break-it attempts still compile and run tests. The section is now called "Checks switched off". In the review eval, a seed the reviewer leaves to the linters is scored **lint**, not missed.
 
 ### Upgrading
 
-- Copy `tools/ddd_status.py`, `tools/check-range.sh` and `tools/check_range.py` from the kit, or run `/ddd-setup` again. Without the new `ddd_status.py`, `ddd-next` never sees a system-design record and suggests the check every time.
+- Update the plugin, or copy `skills/` again. Nothing in your repository's `docs/`, `tools/` or `CLAUDE.md` changes. If your CI doesn't already compile, lint and test domain code, add it, since `ddd-review` no longer does.
 
 ## 0.4.0 (2026-10-19)
 
