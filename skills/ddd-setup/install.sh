@@ -83,7 +83,7 @@ put_all() { while IFS= read -r file; do put "${file#"${kit}"/}"; done < <(find "
 
 put_all docs/domain
 put_all docs/ddd/strategic
-for file in check-model.sh check_model.py ddd-status.sh ddd_status.py; do put "tools/${file}"; done
+for file in check-model.sh check_model.py ddd-status.sh ddd_status.py check-range.sh check_range.py; do put "tools/${file}"; done
 if [ -z "${model_only}" ]; then
   put_all docs/ddd/cards -maxdepth 1
   put_all docs/ddd/cards/functional -maxdepth 1

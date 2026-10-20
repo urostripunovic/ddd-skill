@@ -794,5 +794,55 @@ class ToolTests(unittest.TestCase):
         self.assertEqual((self.repo / ".gitignore").read_text(), "node_modules/\n.cards-check/\n")
 
 
+    def commit(self, message):
+        env = ["-c", "user.email=t@example.com", "-c", "user.name=t"]
+        subprocess.run(["git", *env, "add", "-A"], cwd=self.repo, check=True)
+        subprocess.run(["git", *env, "commit", "-qm", message], cwd=self.repo, check=True)
+        return subprocess.run(["git", "rev-parse", "HEAD"], cwd=self.repo, capture_output=True, text=True).stdout.strip()
+
+    def test_range_reports_a_model_changed_without_a_new_approval(self):
+        self.model.write_text(MODEL.replace("Status: draft", "Status: approved 2026-10-01"))
+        base = self.commit("approved")
+        self.model.write_text(self.model.read_text().replace("| PlacedOrder | no: already placed |", "| PlacedOrder | no: it is placed |"))
+        self.commit("edit the body")
+        result = self.run_tool("check-range.sh", base)
+        self.assertEqual(result.returncode, 1, result.stdout)
+        self.assertIn("model changed: docs/domain/contexts/ordering.md", result.stdout)
+
+    def test_range_accepts_a_new_approval_and_an_amendment(self):
+        self.model.write_text(MODEL.replace("Status: draft", "Status: approved 2026-10-01"))
+        base = self.commit("approved")
+        cases = {
+            "approved again": lambda: self.model.write_text(
+                self.model.read_text().replace("no: already placed", "no: it is placed").replace("approved 2026-10-01", "approved 2026-10-19")),
+            "amendment": lambda: self.model.write_text(self.model.read_text() + "\n## Amendments\n\n| Date | Section | The model said | What was learned |\n|---|---|---|---|\n| 2026-10-19 | Examples | x | y |\n"),
+        }
+        for name, change in cases.items():
+            with self.subTest(name=name):
+                subprocess.run(["git", "checkout", "-q", "-f", base], cwd=self.repo, check=True)
+                change()
+                self.commit(name)
+                result = self.run_tool("check-range.sh", base)
+                self.assertEqual(result.returncode, 0, result.stdout)
+                self.assertNotIn("model changed", result.stdout)
+
+    def test_range_lists_what_needs_judgement(self):
+        (self.repo / "GLOSSARY.md").write_text((self.repo / "GLOSSARY.md").read_text().replace(
+            "**Placed order**:\nA committed order.\n", "**Placed order**:\nA committed order.\n_Avoid_: Submitted order\n"))
+        base = self.commit("base")
+        code = self.repo / "internal/ordering/order.go"
+        code.parent.mkdir(parents=True)
+        code.write_text("package ordering\n\n// A SubmittedOrder in a comment is not reported.\ntype SubmittedOrder struct{}\n\n"
+                        "func f() {} //nolint:unused // kept for the next ticket\n")
+        (self.repo / ".golangci.yml").write_text("linters:\n  enable: []\n")
+        self.commit("head")
+        result = self.run_tool("check-range.sh", base)
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.assertIn("to judge: avoided word: internal/ordering/order.go:4: SubmittedOrder", result.stdout)
+        self.assertNotIn("order.go:3", result.stdout)
+        self.assertIn("to judge: suppression: internal/ordering/order.go:6", result.stdout)
+        self.assertIn("to judge: lint config: .golangci.yml changed", result.stdout)
+        self.assertIn("to judge: example untested: docs/domain/contexts/ordering.md: rows 1-2", result.stdout)
+
 if __name__ == "__main__":
     unittest.main()
