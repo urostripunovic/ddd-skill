@@ -2,7 +2,13 @@
 
 ## Unreleased
 
+## 0.7.0 (2026-10-22)
+
 - **A review round is handed over as files, not pasted.** `ddd-model-review` writes the report to `docs/domain/reviews/<context>-r<n>.md` and the fixes that need no domain fact to `<context>-r<n>.patch`, a unified diff it has checked with `git apply --check`; `ddd-modelling` applies that patch instead of reading the context file again to rebuild strings the diff already carried. Answers the user gives in the review session are folded into the patch, so the round comes back as one path. On a strict context of 98 KB the old loop cost roughly 12k tokens for the paste and another 35k for the modelling session to find the exact strings to edit; the patch makes the second of those nearly free. `REFERENCE.md` also says to commit the model after each round and to give the next round a diff, which the review skill already reads as "only the changed rows".
+
+### Upgrading
+
+- Update the plugin, or copy `skills/` again. Nothing in your repository's `docs/`, `tools/` or `CLAUDE.md` changes, and no tool changes. The reviewer writes `docs/domain/reviews/` on the first round that reports there; commit the reports if you want a round's questions and answers kept, and leave the patches out, since each is applied once.
 
 ## 0.6.0 (2026-10-20)
 
