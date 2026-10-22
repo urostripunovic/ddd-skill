@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **A review round is handed over as files, not pasted.** `ddd-model-review` writes the report to `docs/domain/reviews/<context>-r<n>.md` and the fixes that need no domain fact to `<context>-r<n>.patch`, a unified diff it has checked with `git apply --check`; `ddd-modelling` applies that patch instead of reading the context file again to rebuild strings the diff already carried. Answers the user gives in the review session are folded into the patch, so the round comes back as one path. On a strict context of 98 KB the old loop cost roughly 12k tokens for the paste and another 35k for the modelling session to find the exact strings to edit; the patch makes the second of those nearly free. `REFERENCE.md` also says to commit the model after each round and to give the next round a diff, which the review skill already reads as "only the changed rows".
+
 ## 0.6.0 (2026-10-20)
 
 - **New skill: `ddd-system-design`.** After approval, it goes through one flow step by step and checks it against the common system-design patterns: caching, read replicas, indexing, batching, sharding, async writes, real-time updates, queues, worker pools, workflow engines, retries, idempotency, circuit breakers, self-healing and CQRS. A pattern is only asked about when the model or the project gives a signal for it. Each is recorded as applies, not needed or deferred, with the reason, in `docs/system-design/<context>.md`. Answers that would change what the business sees are sent back to `ddd-modelling`; the skill never edits the model.

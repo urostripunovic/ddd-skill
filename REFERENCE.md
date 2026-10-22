@@ -173,11 +173,19 @@ For a strict model, or one with strict commands, review it in a **fresh session*
 /ddd-model-review docs/domain/contexts/ordering.md
 ```
 
-The reviewer reports findings; it does not change or approve the model. Take them back to modelling:
+For a context with more than about six commands, the reviewer proposes one step of the flow per round, which you can also ask for: `/ddd-model-review docs/domain/contexts/ordering.md step 3`.
+
+The reviewer reports findings; it does not change or approve the model. It writes the round to `docs/domain/reviews/ordering-r1.md`, with the fixes that need no domain fact as `ordering-r1.patch` beside it, so nothing is pasted between the two sessions. Take the round back to modelling by its path:
 
 ```text
-Use ddd-modelling to address these review findings in
-docs/domain/contexts/ordering.md: [paste the findings].
+Use ddd-modelling to apply the review round in docs/domain/reviews/ordering-r1.md.
+```
+
+Answer the reviewer's questions in the review session, where the model is already in context, and ask it to fold your answers into the patch; the modelling session then applies one file instead of reading the model again. Commit the model after each round and give the next round a diff, which is what lets it read only the changed rows:
+
+```text
+/ddd-model-review docs/domain/contexts/ordering.md, the changes in
+git diff <the commit of the last round> -- docs/domain/contexts/ordering.md
 ```
 
 If the review found blockers, return to the review session to check the fixes; a review with no blockers needs no further round. The agent then records the review on the `Status:` line as `, reviewed <date>`. If a strict model, or a strict scope, changes later, the agent removes that note, and only the changed rows need reviewing again.
