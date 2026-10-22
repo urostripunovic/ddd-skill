@@ -119,8 +119,17 @@ Then, in this order:
    - **blocker**: only the three kinds under "What stops approval"
    - **assumption**: everything else that needs a value or a behaviour, with the one you propose
    - **note**
-3. The proposed changes as one diff: the fixes that need no domain fact, and every proposed assumption marked `(assumed)`. A question only for a blocker that needs the domain expert.
+3. The proposed changes as one diff: the fixes that need no domain fact, and every proposed assumption marked `(assumed)`. Write it so that it applies — a unified diff against the file on disk, three lines of context, no prose inside a hunk — because a diff that only describes the change makes the session that applies it read the whole model again to rebuild the strings you already had. A question only for a blocker that needs the domain expert.
 4. The questions for the domain expert, numbered, each with a proposed answer, most costly first.
 5. What you did not check and why.
 
 Do not pad the report with praise.
+
+## Handing the round back
+
+A report pasted from this session into the modelling session is paid for twice, and the session that applies it reads the whole model again to find the lines your diff describes. Hand over paths instead of text.
+
+- Write the report to the file the user names, or to `docs/domain/reviews/<context>-r<n>.md`, with section 3 beside it as `docs/domain/reviews/<context>-r<n>.patch`. Keep the terminal to the verdict, the blockers and the questions, and end with the two paths: the modelling session then needs one line, the path.
+- Check the patch with `git apply --check` before you report it. A patch that does not apply costs more than no patch at all.
+- The user may answer your questions here, where the model is already in context. Fold those answers into the patch and say which questions they settle. That is not rewriting the model: it is the answer to a question the user asked you, and the modelling session still applies it, records what was settled and owns the `Status:` line.
+- End with the command for the next round: `git diff <the commit this round reviewed> -- <the context file>`. A round that reads only the changed rows costs a fraction of this one, which is also why the model is committed after every round.
