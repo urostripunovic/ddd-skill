@@ -2,7 +2,13 @@
 
 ## Unreleased
 
+## 0.8.0 (2026-10-23)
+
 - **A review report is a summary first.** `ddd-model-review` now opens the report with the verdict, the blockers, the questions and one line of counts, and puts the rest below it: the assumptions and notes as one line each, then the patch, then `tools/check-model.sh`'s output last, as evidence rather than the first thing to scroll past. Before, the order led with the checker and gave every finding a paragraph with its entry quoted, assumptions and notes included — on a strict context that reported thirty-odd of them, the approval decision was buried in a report nobody reads to the end, and the fix the user asked for was to type "make a summary instead of a wall of text" into the review prompt. The detail is still in the file for whoever wants a line of it; the terminal keeps items 1 to 4. The round number is pinned down with it: `<n>` is one more than the highest report in `docs/domain/reviews/`, which is one reason they are committed.
+
+### Upgrading
+
+- Update the plugin, or copy `skills/` again. Nothing in your repository's `docs/`, `tools/` or `CLAUDE.md` changes, no tool changes, and a report written in the old order still applies: the change is the order the reviewer writes the next one in, so a round already in `docs/domain/reviews/` needs nothing. If your reports were never committed, the reviewer can no longer infer `<n>` from an empty directory — name the round in the prompt once, or commit the ones you have.
 
 ## 0.7.0 (2026-10-22)
 
