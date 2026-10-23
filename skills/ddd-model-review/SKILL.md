@@ -110,26 +110,29 @@ At strict depth only, in [STRICT.md](STRICT.md).
 
 ## Report
 
-Lead with the verdict: **ready for approval** (no blockers), **ready after changes** (blockers you can fix with the diffs below), or **needs another interview round** (blockers only the domain expert can answer). Then one line: whether another review round is needed, and why.
+The report is read by someone deciding whether to approve, not by someone looking for everything you found. So it opens with what they have to act on, and the detail sits under it: the summary is the report, and the rest is there for the line of it that is not enough.
 
-Then, in this order:
+**The summary, first and in this order:**
 
-1. The output of `tools/check-model.sh`.
-2. Findings per lens, most severe first. For each: the file and section, the entry quoted, what is wrong, and severity:
-   - **blocker**: only the three kinds under "What stops approval"
-   - **assumption**: everything else that needs a value or a behaviour, with the one you propose
-   - **note**
-3. The proposed changes as one diff: the fixes that need no domain fact, and every proposed assumption marked `(assumed)`. Write it so that it applies — a unified diff against the file on disk, three lines of context, no prose inside a hunk — because a diff that only describes the change makes the session that applies it read the whole model again to rebuild the strings you already had. A question only for a blocker that needs the domain expert.
-4. The questions for the domain expert, numbered, each with a proposed answer, most costly first.
-5. What you did not check and why.
+1. The verdict: **ready for approval** (no blockers), **ready after changes** (blockers the diff below fixes), or **needs another interview round** (blockers only the domain expert can answer). Then one line: whether another review round is needed, and why.
+2. The blockers, numbered, one or two sentences each: the entry, what is wrong, and what you propose. Nothing else in the report can hold an approval up, so nothing else belongs here.
+3. The questions for the domain expert, numbered, most costly first, each with a proposed answer and the one line of consequence that makes it worth answering.
+4. One line of counts: how many assumptions, notes and mechanical fixes follow, and that the patch carries them.
 
-Do not pad the report with praise.
+**Then the detail, for the reader who wants it:**
+
+5. The assumptions and the notes, **one line each**: the file, the section and the entry, what you would write, and no more. Twenty of them as paragraphs is the wall of text nobody reads to the end; as a list they are skimmed in a minute and accepted in a word. Group them by lens, in flow order.
+6. The proposed changes as one diff: the fixes that need no domain fact, and every proposed assumption marked `(assumed)`. Write it so that it applies — a unified diff against the file on disk, three lines of context, no prose inside a hunk — because a diff that only describes the change makes the session that applies it read the whole model again to rebuild the strings you already had.
+7. The output of `tools/check-model.sh`, as it is. It is evidence, not a finding: whoever needs it goes looking for it, and nobody should scroll past it to reach the verdict.
+8. What you did not check, and why.
+
+Quote one line of an entry, not the row it sits in. Do not restate what the model says before saying what is wrong with it: the reader has the file open, and a finding that cannot be made in two sentences is usually two findings. Do not pad the report with praise.
 
 ## Handing the round back
 
 A report pasted from this session into the modelling session is paid for twice, and the session that applies it reads the whole model again to find the lines your diff describes. Hand over paths instead of text.
 
-- Write the report to the file the user names, or to `docs/domain/reviews/<context>-r<n>.md`, with section 3 beside it as `docs/domain/reviews/<context>-r<n>.patch`. Keep the terminal to the verdict, the blockers and the questions, and end with the two paths: the modelling session then needs one line, the path.
+- Write the report to the file the user names, or to `docs/domain/reviews/<context>-r<n>.md`, with section 6 beside it as `docs/domain/reviews/<context>-r<n>.patch`. `<n>` is one more than the highest round already in that directory; an empty directory means 1, unless the model's own open questions name a later round — reports are committed, so an empty one can also mean the earlier rounds were not. Keep the terminal to the summary, items 1 to 4, and end with the two paths: the modelling session then needs one line, the path.
 - Check the patch with `git apply --check` before you report it. A patch that does not apply costs more than no patch at all.
 - The user may answer your questions here, where the model is already in context. Fold those answers into the patch and say which questions they settle. That is not rewriting the model: it is the answer to a question the user asked you, and the modelling session still applies it, records what was settled and owns the `Status:` line.
 - End with the command for the next round: `git diff <the commit this round reviewed> -- <the context file>`. A round that reads only the changed rows costs a fraction of this one, which is also why the model is committed after every round.
