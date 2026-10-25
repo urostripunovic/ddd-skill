@@ -238,6 +238,32 @@ class ToolTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stdout)
         self.assertIn("1 assumption(s)", result.stdout)
 
+    def test_answered_items_under_open_questions_warn(self):
+        # The archive a session gathers when nothing tells it to remove an item it has answered.
+        answered = ("## Open questions\n"
+                    "1. **How many items may an order hold?** *Proposed:* a thousand.\n"
+                    "   **Answered 2026-10-06:** as proposed. Written into the Quantity row.\n")
+        self.model.write_text(MODEL.replace("## Open questions\nNone.", answered))
+        result = self.run_tool("check-model.sh", self.model)
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.assertIn("warning: 1 answered item(s) under Open questions", result.stdout)
+
+    def test_open_question_nobody_answered_does_not_warn(self):
+        self.model.write_text(MODEL.replace("## Open questions\nNone.",
+                                            "## Open questions\n1. Can a customer place twice?\n"))
+        result = self.run_tool("check-model.sh", self.model)
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.assertNotIn("under Open questions", result.stdout)
+
+    def test_a_derivation_in_a_table_cell_warns(self):
+        # A cell long enough to be a Decisions row that never moved out of the table.
+        derivation = "| PlaceOrder | the customer who opened the order | " + "because " * 70 + "|"
+        self.model.write_text(MODEL.replace("| PlaceOrder | customer | |", derivation))
+        result = self.run_tool("check-model.sh", self.model)
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.assertIn("table cell(s) over 60 words", result.stdout)
+        self.assertIn("is a Decisions row the cell can name instead", result.stdout)
+
     def test_example_numbers_are_unique(self):
         self.model.write_text(MODEL.replace("| 2 | PlaceOrder |", "| 1 | PlaceOrder |"))
         result = self.run_tool("check-model.sh", self.model)

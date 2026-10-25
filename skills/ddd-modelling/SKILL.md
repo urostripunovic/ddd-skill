@@ -75,7 +75,7 @@ Do not hold the model in the conversation until the end. A long interview can be
 
 - Create the context file with `Status: draft` as soon as you know which context you are in.
 - The moment a term is settled, write it to the glossary. The moment a state, command, invariant or example is settled, write it to the context file.
-- Anything asked but not yet answered goes under open questions straight away.
+- Anything asked but not yet answered goes under open questions straight away, and comes back out when it is answered: the answer goes in the section it affects, and the item is removed in the same step.
 - After each write, tell the user in one line what was recorded.
 
 If you are resuming, read the glossary and `docs/domain/` first and continue from what is there and from its open questions.
@@ -186,6 +186,7 @@ CancelOrder : DraftOrder | PlacedOrder -> CancelledOrder + [OrderCancelled]
 - **Aggregates**: keep them small. Data belongs in the same aggregate only if a rule requires it to change together. Other aggregates are referenced by ID.
 - **Rules across aggregates**: immediate or eventual. An immediate rule means the things involved are one aggregate, or a database constraint holds it. An eventual rule names the policy that restores it and what the user sees in the meantime.
 - **Policies**: each reaction from the interview: the event, the command it causes, and what happens when that command fails.
+- **Keep a cell a cell.** A table cell states the rule and the one reason for it, in a sentence or two. Anything longer is a derivation, and a derivation goes in a `## Decisions` row the cell names, or in a paragraph under the table; `tools/check-model.sh` warns past sixty words. The flow is what a person reads and the tables are what they look things up in, so a cell that has to be read twice has stopped doing its job.
 - **Decisions**: the model says what was decided; this section says why. Record a decision only when all three hold: it is hard to reverse, a later reader would be surprised by it, and a real alternative was rejected. Only decisions about the domain go here: a rule, a boundary, a split between contexts. They are part of the approved model, so changing one means approving again. A technical decision (storage, a framework, event sourcing, deployment) is an ADR in `docs/adr/`, as Matt Pocock's `domain-modeling` writes them, and not a Decisions row.
 
 ## 4. Model it twice
@@ -220,7 +221,7 @@ The files are already written.
 
 When the user brings back a review's findings, apply them. A path is the usual way they arrive: apply `<round>.patch` with `git apply` once `git apply --check` passes, and read `<round>.md` for the verdict, the proposed changes and the questions — not the whole context file, whose strings the patch already carries. Read a part of the model only for a finding the patch does not settle, and put the blockers the report says need the user's word to them, each with the report's proposed answer. Once the review has no blockers left, add `, reviewed <date>` to the Status line, so a later session does not ask for the review again.
 
-Never ask again for something the user has answered. An answer is written to the model the moment it is given, in the section it affects, and later rounds, reviews and sessions read it there. Only a choice that meets the three conditions under **Decisions** also gets a Decisions row.
+Never ask again for something the user has answered. An answer is written to the model the moment it is given, in the section it affects, and later rounds, reviews and sessions read it there — and the open-questions item it answers is removed in the same step, so that section holds what is still unanswered and nothing else. An answered item kept as a record is a second copy of the model's own rows, and the record of what a round asked is already committed in `docs/domain/reviews/`. Only a choice that meets the three conditions under **Decisions** also gets a Decisions row.
 
 Approval follows lifecycle/approval.md: ask, and on the user's yes write `Status: approved <date>`. If the approved model adopts a scope listed under `## Prototypes`, remove that row in the same step, or narrow it to the part still unmodelled.
 
