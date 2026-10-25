@@ -11,6 +11,11 @@ a fact from outside is marked (assumed) or left as a placeholder such as TBD. Fo
 prints the strict scope: the command's own rows, the rows that name it, and every
 primitive its states and inputs use.
 
+Two warnings count sediment, the layers a model gathers because adding a line feels
+safe and removing one feels risky: answered items left under Open questions, and
+table cells grown past CELL_WORDS into a derivation. Both are judgement calls, so
+neither changes the exit status.
+
 An approved status is checked against its depth. At strict depth it may not rest
 on (assumed) entries, open questions, amendment rows or a missing review. With strict
 commands, the same holds for their strict scope. The Status line is written by hand
@@ -39,6 +44,9 @@ PLACEHOLDER = re.compile(r"tbd|tbc|to be (decided|confirmed)|unknown|open( quest
 
 
 TAIL = ("Migration", "Amendments", "Pending")
+
+# Past this a table cell has stopped stating a rule and started deriving one.
+CELL_WORDS = 60
 
 
 def read_status(raw):
@@ -357,6 +365,26 @@ def check(path, glossary_override):
     assumed = len(re.findall(r"\(assumed\)", text))
     if assumed:
         warnings.append(f"{assumed} assumption(s) nobody has confirmed, marked (assumed)")
+
+    # An answer belongs in the row it affects, and a session that is never told to remove the question
+    # keeps it: on a strict context five rounds of answered items reached 59% of the file, under a
+    # heading whose first word was "None".
+    questions = find(top, "Open questions")
+    answered = len(re.findall(r"(?:^\s*|\*\*)Answered\b", questions or "", re.M))
+    if answered:
+        warnings.append(f"{answered} answered item(s) under Open questions: the answer belongs in the row it "
+                        "affects and what the round asked is in docs/domain/reviews/, so remove the item once "
+                        "its answer is in the model")
+
+    # A cell with a derivation in it is a Decisions row that never moved out of the table.
+    oversized = sorted((len(cell.split()), name) for name, body in top if name not in TAIL
+                       for row in re.findall(r"^\s*\|(.+)\|\s*$", body, re.M)
+                       for cell in row.split("|") if len(cell.split()) > CELL_WORDS)
+    if oversized:
+        worst, where = oversized[-1]
+        warnings.append(f"{len(oversized)} table cell(s) over {CELL_WORDS} words, the longest {worst} under "
+                        f"'{where}': a cell states the rule and the one reason for it, and a derivation that "
+                        "long is a Decisions row the cell can name instead")
 
     primitives = {}
     for row in table(find(top, "Domain primitives")):

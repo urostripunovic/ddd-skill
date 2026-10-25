@@ -100,7 +100,7 @@ Read the model looking for entries that were written without anyone being asked.
 - Examples with no value on either side of a limit, or that only show the success case.
 - A term whose definition would not let a newcomer tell it from its neighbour, or that nobody in the business would say out loud.
 - A Decisions row with no rejected alternative.
-- No open questions at all in a model of any size.
+- No open questions at all in a model of any size: where nothing is unconfirmed, usually nobody was asked. Answered items are not open questions, and a section built of them is the opposite finding — say so, because the answers are already in the rows they affect and what each round asked is in `docs/domain/reviews/`.
 
 Write each as a question for the domain expert, quoting the entry. Do not answer it yourself.
 
@@ -122,7 +122,7 @@ The report is read by someone deciding whether to approve, not by someone lookin
 **Then the detail, for the reader who wants it:**
 
 5. The assumptions and the notes, **one line each**: the file, the section and the entry, what you would write, and no more. Twenty of them as paragraphs is the wall of text nobody reads to the end; as a list they are skimmed in a minute and accepted in a word. Group them by lens, in flow order.
-6. The proposed changes as one diff: the fixes that need no domain fact, and every proposed assumption marked `(assumed)`. Write it so that it applies — a unified diff against the file on disk, three lines of context, no prose inside a hunk — because a diff that only describes the change makes the session that applies it read the whole model again to rebuild the strings you already had.
+6. The proposed changes as one diff: the fixes that need no domain fact, and every proposed assumption marked `(assumed)`. Write it so that it applies — a unified diff against the file on disk, three lines of context, no prose inside a hunk — and so that each row it fixes states the rule as it now stands: replace what was wrong instead of appending what it used to be, because "it was X until this round" is a sentence of this report, which is committed, and not of the model — because a diff that only describes the change makes the session that applies it read the whole model again to rebuild the strings you already had.
 7. The output of `tools/check-model.sh`, as it is. It is evidence, not a finding: whoever needs it goes looking for it, and nobody should scroll past it to reach the verdict.
 8. What you did not check, and why.
 
@@ -132,7 +132,7 @@ Quote one line of an entry, not the row it sits in. Do not restate what the mode
 
 A report pasted from this session into the modelling session is paid for twice, and the session that applies it reads the whole model again to find the lines your diff describes. Hand over paths instead of text.
 
-- Write the report to the file the user names, or to `docs/domain/reviews/<context>-r<n>.md`, with section 6 beside it as `docs/domain/reviews/<context>-r<n>.patch`. `<n>` is one more than the highest round already in that directory; an empty directory means 1, unless the model's own open questions name a later round — reports are committed, so an empty one can also mean the earlier rounds were not. Keep the terminal to the summary, items 1 to 4, and end with the two paths: the modelling session then needs one line, the path.
+- Write the report to the file the user names, or to `docs/domain/reviews/<context>-r<n>.md`, with section 6 beside it as `docs/domain/reviews/<context>-r<n>.patch`. `<n>` is one more than the highest round already in that directory; an empty directory means 1, and where the model looks like it has been reviewed before, ask the user which round this is rather than reading it out of the model's own prose — reports are committed, so an empty directory can also mean the earlier rounds were not. Keep the terminal to the summary, items 1 to 4, and end with the two paths: the modelling session then needs one line, the path.
 - Check the patch with `git apply --check` before you report it. A patch that does not apply costs more than no patch at all.
 - The user may answer your questions here, where the model is already in context. Fold those answers into the patch and say which questions they settle. That is not rewriting the model: it is the answer to a question the user asked you, and the modelling session still applies it, records what was settled and owns the `Status:` line.
 - End with the command for the next round: `git diff <the commit this round reviewed> -- <the context file>`. A round that reads only the changed rows costs a fraction of this one, which is also why the model is committed after every round.

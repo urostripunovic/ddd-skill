@@ -123,7 +123,9 @@ CancelOrder : DraftOrder | PlacedOrder -> CancelledOrder + [OrderCancelled]
 
 ## Open questions
 
-<!-- Anything assumed and not confirmed by someone who knows the domain. Write "None." when there are none. -->
+<!-- Anything assumed and not confirmed by someone who knows the domain. Write "None." when there are none.
+     An answered item is removed, not marked answered: the answer belongs in the row it affects, and what a
+     round asked is kept in docs/domain/reviews/. This section holds what is still unanswered and nothing else. -->
 
 ## Amendments
 
