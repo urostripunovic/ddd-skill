@@ -9,7 +9,7 @@ Produce a domain model the user approves. Write no implementation code in this s
 
 The reason for the stop: a wrong business rule is cheap to fix in a model and expensive to fix in code. Agents tend to fill gaps while implementing; this skill makes those decisions visible first. The stop is for the core. At standard depth, everything else is written as a proposal marked `(assumed)` and listed once; it never holds the work up, and approval is asked again only when the core changes (lifecycle/approval.md). How the code is then written is not this skill's concern.
 
-Read [lifecycle/depth.md](lifecycle/depth.md), [lifecycle/notes-tail.md](lifecycle/notes-tail.md) and [lifecycle/triggers.md](lifecycle/triggers.md) first; read [lifecycle/approval.md](lifecycle/approval.md) and [lifecycle/checker.md](lifecycle/checker.md) before step 6. They define depth, the core and the rest, strict scope, approval, the notes tail and the checker's limits, and this file does not repeat them. Whether or not you open them, these hold:
+Read [lifecycle/depth.md](lifecycle/depth.md) first, for depth, the core and the rest, and strict scope. Read the others at the step that needs them: [lifecycle/triggers.md](lifecycle/triggers.md) at step 1, [lifecycle/approval.md](lifecycle/approval.md) and [lifecycle/checker.md](lifecycle/checker.md) before step 6, and [lifecycle/notes-tail.md](lifecycle/notes-tail.md) before writing to a context file's notes tail. This file does not repeat any of them. Whether or not you open them, these hold:
 
 - Only the user approves a model. On a clear yes about the model ("I approve", "approved"), write `Status: approved <date>` and carry on; never write it without one.
 - A strict model, or one with strict commands, is reviewed in a fresh session (`ddd-model-review`) before approval.
@@ -31,7 +31,7 @@ Carry on with the request without this skill, and say in one line what it could 
 
 ## How deep
 
-A model is worth what it saves later, and no more. This file describes **standard** depth: you ask about the core and propose the rest. The depths and what each settles are in lifecycle/depth.md. Reuse the recorded depth when resuming. For a new model, use the depth the user requested; otherwise use standard, or strict when the work is strict by that file's table, and say which in one line of the first round so the user can change it. Write it on the context file's `Depth:` line.
+A model is worth what it saves later, and no more. This file describes **standard** depth: you ask about the core and propose the rest; depth.md has the others and what each settles. Reuse the recorded depth when resuming. For a new model, use the depth the user requested, otherwise standard, or strict when the work is strict by depth.md's table, and say which in one line of the first round so the user can change it. Write it on the context file's `Depth:` line.
 
 - **Strict**: read [STRICT.md](STRICT.md) before the interview. It says what each step below does differently at strict depth.
 - **Strict commands**: when part of a standard context is strict, write `Strict commands: ChargePayment, RefundPayment` under `Depth:`, using command names from the model, and show the user the strict scope `tools/check-model.sh` prints for each. Omit the line when there are none. STRICT.md applies inside those scopes.
@@ -47,27 +47,7 @@ If the templates are missing, tell the user to run `ddd-setup`. `tools/check-mod
 
 If any of these already has content, read it first and extend it. Do not start over or rename existing terms without asking.
 
-### The glossary is shared
-
-Other skills read and write the same `GLOSSARY.md`, among them Matt Pocock's `domain-modeling` and `tdd` (from his 1.3; before it the file was `CONTEXT.md`), so its name and format are fixed. It holds the glossary and nothing else:
-
-```md
-# Ordering
-
-Takes, places and cancels customer orders.
-
-## Language
-
-**Placed order**:
-An order the customer has committed to. It has at least one item and a time of placing.
-_Avoid_: Submitted order
-```
-
-- One or two sentences per term, written so a newcomer can tell it from its neighbours. Business words only: no record, entity, DTO, manager, handler or status.
-- When several words exist for one concept, pick one and list the others under `_Avoid_`. The checks search for those words, so a rejected synonym that is not written down will come back.
-- With one context, or several that share their words, there is one `GLOSSARY.md` at the root, with a `# <Context>` heading per context once there are two; an `_Avoid_` under one context's heading applies to that context only, so Billing can avoid a word that Payments uses. Split it into a `GLOSSARY.md` per context and a `GLOSSARY-MAP.md` at the root only when a word means different things in two contexts, or the user asks: `- [Ordering](./src/ordering/GLOSSARY.md): one line on what it is`. How the contexts relate is written only in `docs/domain/context-map.md`: the map's `## Relationships` section is the one line `See docs/domain/context-map.md.` If it holds relationships written by another skill, move each into `docs/domain/context-map.md`, ask about any the two files describe differently, and leave that line in their place.
-- Create the file when the first term is settled, not before.
-- A term is written the moment it is settled, with no separate approval step. Approval is recorded on context files, not on the glossary or context map. When a shared definition or relationship changes, identify the affected contexts and show the impact to the user. If it changes an approved rule's meaning, record that change in the context, set it to draft and get approval again. The checker catches some missing names, rejected synonyms, and terms that cross a boundary in the context map but are missing from a side's glossary; it cannot detect a change of meaning.
+The glossary is shared with other skills, so its name and format are fixed, and a term is written the moment it is settled: [glossary.md](glossary.md).
 
 ## Write as you go
 
@@ -102,36 +82,7 @@ Whichever way you ask: a proposal is not a fact. If the user does not confirm it
 
 **Then one event at a time**, for the events this work needs. For each: what triggers it, who may trigger it and on whose data, what must be true before, what can go wrong, which data it needs that lives somewhere else, and who needs to know that it happened.
 
-**Ask what the timeline hides, where a trigger applies.** A timeline shows one thing after another, done by people, to one thing. Five kinds of question find the rest. Ask each for a command this work needs when lifecycle/triggers.md says the command raises it; **Edges** is the core and is always asked:
-
-- **Reactions.** "Whenever this has happened, what has to happen next, and who or what does it?" Each answer is a policy.
-- **Time.** For every state that is not final: "what happens if nothing happens, and after how long?" Deadlines, expiry and reminders are commands that a scheduler issues. Write the answer under the States block, one line per state that is not final, including "no expiry".
-- **Races.** For every pair of commands that can reach the same thing at the same moment (two browser tabs, a customer and a member of staff, a retry, a person and the scheduler): "which wins, and what is the other told?"
-- **Edges.** For every way in and out: "who or what is on the other side, and how do we know?" A model that only says "the customer" has skipped how a request becomes a customer. For each caller: what proves who they are, and what is refused. For each thing received from another system (a sign-in token, a price, a webhook): what must be checked before it is believed, and what happens when it is wrong, late or missing. These are part of the core, because every "who may issue" rule rests on them. The answers go in the context map's relationships and in the context file's **Facts from outside**, and each refusal is a named use-case failure.
-- **Consistency.** For every rule that involves more than one thing: "if this were wrong for a few seconds, what would it cost, and who would notice?" The answer decides what belongs in one aggregate. Then: "can something outside the system make it wrong anyway?" A customer can pay twice, a carrier can lose a parcel; no boundary refuses a fact that has already happened. If so, the rule is not an invariant: name the state it leads to (an overpaid invoice) and the policy that resolves it.
-
-**Turn every rule into examples.** When the user states a rule, fill it in with real values and ask what happens: one ordinary case, one on each side of every limit, and one for each way it can fail.
-
-```
-Rule: orders over 10 000 kr need a manager's approval.
-Q3. What happens for each of these?
-    a. 9 999 kr              Proposed: placed directly.
-    b. exactly 10 000 kr     Proposed: placed directly; "over" means more than.
-    c. 8 000 kr plus VAT, which makes 10 000   Proposed: the limit is on the amount including VAT.
-```
-
-A rule stated in general terms sounds complete until a specific case hits it. Write the confirmed rows to the context file's Examples table as you go: they are the test cases later. Row numbers are permanent, because tests and tickets refer to them: give a new row the next unused number, never renumber, and leave a gap where a row was removed. Ask about the rows of a rule in the core; for the other rows at a limit, write your proposal marked `(assumed)`. Other edges worth an example: it happens twice, it happens late or in the wrong order, it happens partially, the amount is zero or huge, the wrong person does it.
-
-**Fill in the matrix yourself.** Once the states and commands are known, write `yes` where the signature allows the command, and for each other cell the likely reason, marked `(assumed)`. Ask only about a cell where the honest answer might be "yes, until…", or where a wrong guess would cost money or data: "Can a placed order still receive an item? Proposed: no, because picking has started." An answer like "yes, until it is packed" has just found a missing state. The other reasons go into the list of assumptions.
-
-**Challenge the wording at once.** Do not note a language problem for later. If a skill named `domain-modeling` is available, call the Skill tool with "domain-modeling" at the start of the interview: it challenges terms and writes `GLOSSARY.md` and ADRs as they settle, and the glossary rules under **Output** still hold. If it is not:
-
-- One word used with two meanings: stop and ask which is meant. This often marks a context boundary.
-- Two words for one thing: propose one. The other goes under `_Avoid_`.
-- A term that conflicts with the glossary: quote the entry and ask which is right.
-- A name the user would not say out loud to a colleague is the wrong name. Ask what they call it.
-
-**Bounds.** How many, how long, how large, which characters. Every primitive needs bounds, and "no limit" is not an answer. Propose them all at once ("I will use these unless you object") and mark them `(assumed)`; a bound the user states is theirs and is not marked.
+**Ask what the timeline hides, where a trigger applies.** A timeline shows one thing after another, done by people, to one thing. Five kinds of question find the rest — reactions, time, races, edges and consistency — and [interview.md](interview.md) asks each of them, with the examples, the matrix and the bounds they write down. Ask each for a command this work needs when lifecycle/triggers.md says the command raises it; **Edges** is the core and is always asked. Challenge the wording as it happens rather than noting it for later: if a skill named `domain-modeling` is available, call the Skill tool with "domain-modeling" at the start of the interview, and the glossary rules under **Output** still hold.
 
 **The interview is done when** the timeline is whole, and for the commands this work needs every state and command is named with who may issue it, every caller and outside fact says what makes it trusted, every invariant is stated with one example, and every trigger they raise has its answer, proposed or confirmed. Ask whether anything is missing from the timeline at the end of the last checkpoint; the answer comes with the user's corrections. If the person who would know is not available, leave the item under open questions and do not keep asking.
 
@@ -172,20 +123,7 @@ CancelOrder : DraftOrder | PlacedOrder -> CancelledOrder + [OrderCancelled]
 
 - **Notation**, which `tools/check-model.sh` reads: `Timestamp` and `Boolean` are built in; every other type is a primitive or is defined in the States block. `terminal` lists the states nothing leads out of. A command that creates the aggregate starts from `()`. Under the States block, one line per state that is not terminal says what ends it if nothing happens, or "no expiry". The Commands table's **Input** lists the values a command takes that are not in its starting state, as `name: Type`, or `none`; a command that time issues names the scheduler and the delay under **Issued by**. The matrix has one row per state and one column per command, without the creating commands. A section with nothing in it says `None.`
 - **The flow**: the model told as a story, at the top of the context file: five to fifteen numbered sentences in the order things happen, each naming its command. Write it first, from the timeline, and keep it true as the model changes. It is what a person reads; the tables are what they look things up in.
-- **Domain primitives**: every value with rules gets a named type with stated bounds, and the reason for each bound; a bound nobody confirmed says `(assumed)` in the Why column. No bare strings or numbers in the model.
-- **States**: one type per state, holding only the data that exists in that state. No status field with optional fields.
-- **Commands**: a function from the specific state or states it is legal in, to a new state plus events, or a named failure. A command that is illegal in a state is simply not defined for that state's type, so "wrong state" is never listed as a failure of the command.
-- **Matrix**: every state against every command. `yes`, or `no:` and the reason the business gave.
-- **Events**: past tense, in the ubiquitous language, with the data consumers need.
-- **Invariants**: each one names where it is enforced (the type, a constructor, a decision function, or "not in types" with how it is checked instead) and every command that could break it.
-- **Failures**: each business failure gets a name and the data needed to explain it.
-- **Use-case failures**: "not found", "not allowed" and "not in a state this command accepts" are raised by the workflow, not by a decision. Name them in their own table.
-- **Examples**: the confirmed rows from the interview. Values, not descriptions. Every command and every failure has at least one, and every bound one on each side.
-- **Races**: which command wins and what the other is told.
-- **Facts from outside**: any data a command needs that the aggregate does not hold gets a named type, its source, what is checked before it is believed, what happens when that check fails or the source does not answer, and whether it may be slightly out of date. The caller's identity is such a fact: "Requester", from the sign-in token, believed once its signature, issuer, audience and expiry are checked.
-- **Aggregates**: keep them small. Data belongs in the same aggregate only if a rule requires it to change together. Other aggregates are referenced by ID.
-- **Rules across aggregates**: immediate or eventual. An immediate rule means the things involved are one aggregate, or a database constraint holds it. An eventual rule names the policy that restores it and what the user sees in the meantime.
-- **Policies**: each reaction from the interview: the event, the command it causes, and what happens when that command fails.
+- **Each section's own rules** — what Domain primitives, States, Commands, Matrix, Events, Invariants, Failures, Use-case failures, Examples, Races, Facts from outside, Aggregates, Rules across aggregates and Policies each hold — are in [sections.md](sections.md). Read it while writing a section.
 - **Keep a cell a cell.** A table cell states the rule and the one reason for it, in a sentence or two. Anything longer is a derivation, and a derivation goes in a `## Decisions` row the cell names, or in a paragraph under the table; `tools/check-model.sh` warns past sixty words. The flow is what a person reads and the tables are what they look things up in, so a cell that has to be read twice has stopped doing its job.
 - **Decisions**: the model says what was decided; this section says why. Record a decision only when all three hold: it is hard to reverse, a later reader would be surprised by it, and a real alternative was rejected. Only decisions about the domain go here: a rule, a boundary, a split between contexts. They are part of the approved model, so changing one means approving again. A technical decision (storage, a framework, event sourcing, deployment) is an ADR in `docs/adr/`, as Matt Pocock's `domain-modeling` writes them, and not a Decisions row.
 

@@ -718,7 +718,7 @@ class ToolTests(unittest.TestCase):
     def test_glossary_has_one_name(self):
         # The glossary is GLOSSARY.md, the name Matt Pocock's skills read. CONTEXT.md is named only where an earlier repository is upgraded.
         allowed = {"skills/ddd-setup/SKILL.md", "skills/ddd-setup/UPGRADING.md", "REFERENCE.md", "README.md",
-                   "skills/ddd-modelling/SKILL.md",
+                   "skills/ddd-modelling/glossary.md",
                    "skills/ddd-setup/kit/tools/check_model.py", "skills/ddd-setup/kit/tools/ddd_status.py"}
         tracked = subprocess.run(["git", "ls-files", "skills", "evals", "README.md", "REFERENCE.md"], cwd=ROOT,
                                  capture_output=True, text=True, check=True).stdout.split()
